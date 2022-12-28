@@ -915,7 +915,7 @@ ApplicationMain.main = function() {
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
-	app.meta.h["build"] = "52";
+	app.meta.h["build"] = "1";
 	app.meta.h["company"] = "Company Name";
 	app.meta.h["file"] = "StarlingProject";
 	app.meta.h["name"] = "StarlingProject";
@@ -7470,7 +7470,7 @@ ManifestResources.init = function(config) {
 		ManifestResources.rootPath = "./";
 	}
 	var bundle;
-	var data = "{\"name\":null,\"assets\":\"aoy4:pathy29:assets%2Fsettings%2Flibs.jsony4:sizei2y4:typey4:TEXTy2:idR1y7:preloadtgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R7R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R8R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R9R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R10R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R11R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3y5:IMAGER5R12R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R14R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R15R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3R13R5R16R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R17R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R18R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R19R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R20R6tgoR0y21:assets%2Fgame_ui.jsonR2i872R3R4R5R21R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
+	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei872y4:typey4:TEXTy2:idR1y7:preloadtgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R7R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R8R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R9R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R10R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R11R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R12R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R13R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R14R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R15R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R16R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R17R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R19R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R20R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R18R5R21R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
 	var manifest = lime_utils_AssetManifest.parse(data,ManifestResources.rootPath);
 	var library = lime_utils_AssetLibrary.fromManifest(manifest);
 	lime_utils_Assets.registerLibrary("default",library);
@@ -31550,7 +31550,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 760948;
+	this.version = 843385;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -84256,8 +84256,8 @@ starling_core_StatsDisplay.prototype = $extend(starling_display_Sprite.prototype
 	,update: function() {
 		this.__background.set_color(this.__skipCount > this.__frameCount / 2 ? 16128 : 0);
 		this.__fps = this.__totalTime > 0 ? this.__frameCount / this.__totalTime : 0;
-		this.__memory = openfl_system_System.get_totalMemory() * 9.5367431640625e-07;
-		this.__gpuMemory = this.get_supportsGpuMem() ? Reflect.field(starling_core_Starling.get_current().get_context(),"totalGPUMemory") * 9.5367431640625e-07 : -1;
+		this.__memory = openfl_system_System.get_totalMemory() * 9.5367431640625e-007;
+		this.__gpuMemory = this.get_supportsGpuMem() ? Reflect.field(starling_core_Starling.get_current().get_context(),"totalGPUMemory") * 9.5367431640625e-007 : -1;
 		var fpsText = starling_utils_MathUtil.toFixed(this.__fps,this.__fps < 100 ? 1 : 0);
 		var memText = starling_utils_MathUtil.toFixed(this.__memory,this.__memory < 100 ? 1 : 0);
 		var gpuMemText = starling_utils_MathUtil.toFixed(this.__gpuMemory,this.__gpuMemory < 100 ? 1 : 0);
@@ -97482,7 +97482,7 @@ lime_math_RGBA.__alpha16 = this1;
 var _g = 0;
 while(_g < 256) {
 	var i = _g++;
-	lime_math_RGBA.__alpha16[i] = Math.ceil(i * 257.003921568627447);
+	lime_math_RGBA.__alpha16[i] = Math.ceil(i * 257.00392156862745);
 }
 var array = null;
 var vector = null;
@@ -99882,7 +99882,7 @@ starling_animation_Tween.sTweenPool = openfl_Vector.toObjectVector(null);
 starling_core_Starling.VERSION = "2.5.1";
 starling_core_Starling.sAll = openfl_Vector.toObjectVector(null);
 starling_core_StatsDisplay.UPDATE_INTERVAL = 0.5;
-starling_core_StatsDisplay.B_TO_MB = 9.5367431640625e-07;
+starling_core_StatsDisplay.B_TO_MB = 9.5367431640625e-007;
 starling_display_BlendMode.AUTO = "auto";
 starling_display_BlendMode.NONE = "none";
 starling_display_BlendMode.NORMAL = "normal";
