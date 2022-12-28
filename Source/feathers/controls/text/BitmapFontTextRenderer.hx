@@ -8,6 +8,12 @@
 
 package feathers.controls.text;
 
+import feathers.core.IToggle;
+import feathers.core.IFeathersControl;
+import openfl.geom.Rectangle;
+import starling.textures.Texture;
+import starling.text.TextField;
+import starling.utils.Align;
 import starling.utils.MathUtil;
 import starling.utils.Pool;
 import openfl.text.TextFormatAlign;
@@ -607,13 +613,15 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 			return this._style;
 		}
 		this._style = value;
-		this.invalidate(INVALIDATION_FLAG_STYLES);
+		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._style;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
+	public var baseline(get, never):Float;
+
 	public function get_baseline():Float {
 		if (this._currentTextFormat == null) {
 			return 0;
@@ -715,7 +723,7 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 		// if the context's current state is the state that we're modifying,
 		// we need to use the new value immediately.
 		if (this._stateContext != null && this._stateContext.currentState == state) {
-			this.invalidate(INVALIDATION_FLAG_STATE);
+			this.invalidate(FeathersControl.INVALIDATION_FLAG_STATE);
 		}
 	}
 
@@ -749,9 +757,9 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @private
 	 */
 	override private function draw():Void {
-		var dataInvalid:Bool = this.isInvalid(INVALIDATION_FLAG_DATA);
-		var stylesInvalid:Bool = this.isInvalid(INVALIDATION_FLAG_STYLES);
-		var stateInvalid:Bool = this.isInvalid(INVALIDATION_FLAG_STATE);
+		var dataInvalid:Bool = this.isInvalid(FeathersControl.INVALIDATION_FLAG_DATA);
+		var stylesInvalid:Bool = this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES);
+		var stateInvalid:Bool = this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE);
 
 		if (stylesInvalid || stateInvalid) {
 			this.refreshTextFormat();
@@ -789,15 +797,11 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 
 			// ...unless the text was previously truncated!
 			// sizeInvalid ||= (this._lastLayoutIsTruncated && newWidth != this._lastLayoutWidth);
-			if (sizeInvalid == null) {
-				sizeInvalid = (this._lastLayoutIsTruncated && newWidth != this._lastLayoutWidth);
-			}
+			sizeInvalid = sizeInvalid || (this._lastLayoutIsTruncated && newWidth != this._lastLayoutWidth);
 
 			// ... or the text is aligned
 			// sizeInvalid ||= this._currentTextFormat.align != TextFormatAlign.LEFT;
-			if (sizeInvalid == null) {
-				sizeInvalid = this._currentTextFormat.align != TextFormatAlign.LEFT;
-			}
+			sizeInvalid = sizeInvalid || this._currentTextFormat.align != TextFormatAlign.LEFT;
 		}
 
 		if (dataInvalid || sizeInvalid || stylesInvalid || this._textFormatChanged) {
@@ -1065,19 +1069,507 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 		var countToRemove:Int = 0;
 		var charCount:Int = CHARACTER_BUFFER.length - skipCount;
 		// for (var i:Int = charCount - 1; i >= 0; i--)
-		for (i in(0...charCount).reverse()) {
+		var i:Int = charCount - 1;
+		while (i >= 0) {
 			var charLocation:CharLocation = CHARACTER_BUFFER[i];
 			var charData:BitmapChar = charLocation.char;
-			var charID:int = charData.charID;
+			var charID:Int = charData.charID;
 			if (charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB) {
 				countToRemove++;
 			} else {
 				break;
 			}
+			i--;
 		}
 		if (countToRemove > 0) {
 			CHARACTER_BUFFER.splice(i + 1, countToRemove);
 		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function alignBuffer(maxLineWidth:Float, currentLineWidth:Float, skipCount:Int):Void {
+		var align:String = this._currentTextFormat.align;
+		if (align == TextFormatAlign.CENTER) {
+			this.moveBufferedCharacters(Math.round((maxLineWidth - currentLineWidth) / 2), 0, skipCount);
+		} else if (align == TextFormatAlign.RIGHT) {
+			this.moveBufferedCharacters(maxLineWidth - currentLineWidth, 0, skipCount);
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function addBufferToBatch(skipCount:Int):Void {
+		var charCount:Int = CHARACTER_BUFFER.length - skipCount;
+		var pushIndex:Int = CHAR_LOCATION_POOL.length;
+		// for (var i:Int = 0; i < charCount; i++)
+		for (i in 0...charCount) {
+			var charLocation:CharLocation = CHARACTER_BUFFER.shift();
+			this.addCharacterToBatch(charLocation.char, charLocation.x, charLocation.y, charLocation.scale);
+			charLocation.char = null;
+			CHAR_LOCATION_POOL[pushIndex] = charLocation;
+			pushIndex++;
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function moveBufferedCharacters(xOffset:Float, yOffset:Float, skipCount:Int):Void {
+		var charCount:Int = CHARACTER_BUFFER.length - skipCount;
+		// for (var i:Int = 0; i < charCount; i++)
+		for (i in 0...charCount) {
+			var charLocation:CharLocation = CHARACTER_BUFFER[i];
+			charLocation.x += xOffset;
+			charLocation.y += yOffset;
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function addCharacterToBatch(charData:BitmapChar, x:Float, y:Float, scale:Float, painter:Painter = null):Void {
+		var texture:Texture = charData.texture;
+		var frame:Rectangle = texture.frame;
+		if (frame != null) {
+			if (frame.width == 0 || frame.height == 0) {
+				return;
+			}
+		} else if (texture.width == 0 || texture.height == 0) {
+			return;
+		}
+		var font:BitmapFont = this._currentTextFormat.font;
+		if (this._image == null) {
+			this._image = new Image(texture);
+		} else {
+			this._image.texture = texture;
+			this._image.readjustSize();
+		}
+		this._image.scaleX = scale;
+		this._image.scaleY = scale;
+		this._image.x = x;
+		this._image.y = y;
+		this._image.color = this._currentTextFormat.color;
+		if (this._textureSmoothing != null) {
+			this._image.textureSmoothing = this._textureSmoothing;
+		} else {
+			this._image.textureSmoothing = font.smoothing;
+		}
+
+		if (painter != null) {
+			painter.pushState();
+			painter.setStateTo(this._image.transformationMatrix);
+			painter.batchMesh(this._image);
+			painter.popState();
+		} else {
+			this._characterBatch.addMesh(this._image);
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function refreshTextFormat():Void {
+		var textFormat:BitmapFontTextFormat;
+		if (this._stateContext != null) {
+			if (this._textFormatForState != null) {
+				var currentState:String = this._stateContext.currentState;
+				if (this._textFormatForState.exists(currentState)) {
+					textFormat = cast this._textFormatForState.get(currentState);
+				}
+			}
+			if (textFormat == null
+				&& this._disabledTextFormat != null
+				&& Std.isOfType(this._stateContext, IFeathersControl)
+				&& !cast(this._stateContext, IFeathersControl).isEnabled) {
+				textFormat = this._disabledTextFormat;
+			}
+			if (textFormat == null
+				&& this._selectedTextFormat != null
+				&& this._stateContext is IToggle
+				&& cast(this._stateContext, IToggle).isSelected) {
+				textFormat = this._selectedTextFormat;
+			}
+		} else // no state context
+		{
+			// we can still check if the text renderer is disabled to see if
+			// we should use disabledTextFormat
+			if (!this._isEnabled && this._disabledTextFormat != null) {
+				textFormat = this._disabledTextFormat;
+			}
+		}
+		if (textFormat == null) {
+			textFormat = this._textFormat;
+		}
+		if (textFormat == null) {
+			textFormat = this.getTextFormatFromFontStyles();
+		} else {
+			// when using BitmapFontTextFormat, vertical align is always top
+			this._currentVerticalAlign = Align.TOP;
+			if (this._currentFontStyles == null) {
+				this._currentFontStyles = new TextFormat();
+			}
+			// we need the size to determine the default mesh style
+			this._currentFontStyles.size = textFormat.size;
+		}
+		if (this._currentTextFormat != textFormat) {
+			this._currentTextFormat = textFormat;
+			this._textFormatChanged = true;
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function getTextFormatFromFontStyles():BitmapFontTextFormat {
+		if (this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES) || this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE)) {
+			var textFormat:TextFormat;
+			if (this._fontStyles != null) {
+				textFormat = this._fontStyles.getTextFormatForTarget(this);
+				this._currentFontStyles = textFormat;
+			}
+			if (textFormat != null) {
+				this._fontStylesTextFormat = new BitmapFontTextFormat(textFormat.font, textFormat.size, textFormat.color, textFormat.horizontalAlign,
+					textFormat.leading);
+				this._fontStylesTextFormat.isKerningEnabled = textFormat.kerning;
+				this._fontStylesTextFormat.letterSpacing = textFormat.letterSpacing;
+				this._currentVerticalAlign = textFormat.verticalAlign;
+			} else if (this._fontStylesTextFormat == null) {
+				// let's fall back to using Starling's embedded mini font if no
+				// text format has been specified
+
+				// if it's not registered, do that first
+				if (TextField.getBitmapFont(BitmapFont.MINI) == null) {
+					var font:BitmapFont = new BitmapFont();
+					TextField.registerCompositor(font, font.name);
+				}
+				this._fontStylesTextFormat = new BitmapFontTextFormat(BitmapFont.MINI, Math.NaN, 0x000000);
+				this._currentVerticalAlign = Align.TOP;
+			}
+		}
+		return this._fontStylesTextFormat;
+	}
+
+	/**
+	 * @private
+	 */
+	private function measureTextInternal(result:Point, useExplicit:Bool):Point {
+		if (result == null) {
+			result = new Point();
+		}
+
+		var needsWidth:Bool = !useExplicit || this._explicitWidth != this._explicitWidth; // isNaN
+		var needsHeight:Bool = !useExplicit || this._explicitHeight != this._explicitHeight; // isNaN
+		if (!needsWidth && !needsHeight) {
+			result.x = this._explicitWidth;
+			result.y = this._explicitHeight;
+			return result;
+		}
+
+		if (this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES) || this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE)) {
+			this.refreshTextFormat();
+		}
+
+		if (this._currentTextFormat == null || this._text == null) {
+			result.setTo(0, 0);
+			return result;
+		}
+
+		var font:BitmapFont = this._currentTextFormat.font;
+		var customSize:Float = this._currentTextFormat.size;
+		var customLetterSpacing:Float = this._currentTextFormat.letterSpacing;
+		var isKerningEnabled:Bool = this._currentTextFormat.isKerningEnabled;
+		var scale:Float = customSize / font.size;
+		if (scale != scale) // isNaN
+		{
+			scale = 1;
+		}
+		var lineHeight:Float = font.lineHeight * scale + this._currentTextFormat.leading;
+		var maxLineWidth:Float = this._explicitWidth;
+		if (maxLineWidth != maxLineWidth) // isNaN
+		{
+			maxLineWidth = this._explicitMaxWidth;
+		}
+
+		var maxX:Float = 0;
+		var currentX:Float = 0;
+		var currentY:Float = 0;
+		var previousCharID:Float = Math.NaN;
+		var charCount:Int = this._text.length;
+		var startXOfPreviousWord:Float = 0;
+		var widthOfWhitespaceAfterWord:Float = 0;
+		var wordCountForLine:Int = 0;
+		var line:String = "";
+		var word:String = "";
+		var charData:BitmapChar = null;
+		// for (var i:Int = 0; i < charCount; i++)
+		for (i in 0...charCount) {
+			var charID:Int = this._text.charCodeAt(i);
+			if (charID == CHARACTER_ID_LINE_FEED || charID == CHARACTER_ID_CARRIAGE_RETURN) // new line \n or \r
+			{
+				// remove whitespace after the final character in the line
+				currentX -= customLetterSpacing;
+				if (charData != null) {
+					currentX -= (charData.xAdvance - charData.width) * scale;
+				}
+				if (currentX < 0) {
+					currentX = 0;
+				}
+				if (maxX < currentX) {
+					maxX = currentX;
+				}
+				previousCharID = Math.NaN;
+				currentX = 0;
+				currentY += lineHeight;
+				startXOfPreviousWord = 0;
+				wordCountForLine = 0;
+				widthOfWhitespaceAfterWord = 0;
+				continue;
+			}
+
+			charData = font.getChar(charID);
+			if (charData == null) {
+				trace("Missing character " + String.fromCharCode(charID) + " in font " + font.name + ".");
+				continue;
+			}
+
+			if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+			{
+				currentX += charData.getKerning(Std.int(previousCharID)) * scale;
+			}
+
+			var xAdvance:Float = charData.xAdvance * scale;
+			var previousCharData:BitmapChar;
+			if (this._wordWrap) {
+				var currentCharIsWhitespace:Bool = charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB;
+				var previousCharIsWhitespace:Bool = previousCharID == CHARACTER_ID_SPACE || previousCharID == CHARACTER_ID_TAB;
+				if (currentCharIsWhitespace) {
+					if (!previousCharIsWhitespace) {
+						// this is the spacing after the last character
+						// that isn't whitespace
+						previousCharData = font.getChar(Std.int(previousCharID));
+						widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.xAdvance - previousCharData.width) * scale;
+					}
+					widthOfWhitespaceAfterWord += xAdvance;
+				} else if (previousCharIsWhitespace) {
+					startXOfPreviousWord = currentX;
+					wordCountForLine++;
+					line += word;
+					word = "";
+				}
+
+				var charWidth:Float = charData.width * scale;
+				if (!currentCharIsWhitespace && (wordCountForLine > 0 || this._breakLongWords) && (currentX + charWidth) > maxLineWidth) {
+					if (wordCountForLine == 0) {
+						// if we're breaking long words, this is where we break
+						startXOfPreviousWord = currentX;
+						if (previousCharID == previousCharID) // !isNaN
+						{
+							previousCharData = font.getChar(Std.int(previousCharID));
+							widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.xAdvance - previousCharData.width) * scale;
+						}
+					}
+					// we're just reusing this variable to avoid creating a
+					// new one. it'll be reset to 0 in a moment.
+					widthOfWhitespaceAfterWord = startXOfPreviousWord - widthOfWhitespaceAfterWord;
+					if (maxX < widthOfWhitespaceAfterWord) {
+						maxX = widthOfWhitespaceAfterWord;
+					}
+					previousCharID = Math.NaN;
+					currentX -= startXOfPreviousWord;
+					currentY += lineHeight;
+					startXOfPreviousWord = 0;
+					widthOfWhitespaceAfterWord = 0;
+					wordCountForLine = 0;
+					line = "";
+				}
+			}
+			currentX += xAdvance + customLetterSpacing;
+			previousCharID = charID;
+			word += String.fromCharCode(charID);
+		}
+		// remove whitespace after the final character in the final line
+		currentX -= customLetterSpacing;
+		if (charData != null) {
+			currentX -= (charData.xAdvance - charData.width) * scale;
+		}
+		if (currentX < 0) {
+			currentX = 0;
+		}
+		// if the text ends in extra whitespace, the currentX value will be
+		// larger than the max line width. we'll remove that and add extra
+		// lines.
+		if (this._wordWrap) {
+			while (currentX > maxLineWidth && !MathUtil.isEquivalent(currentX, maxLineWidth)) {
+				currentX -= maxLineWidth;
+				currentY += lineHeight;
+				if (maxLineWidth == 0) {
+					// we don't want to get stuck in an infinite loop!
+					break;
+				}
+			}
+		}
+		if (maxX < currentX) {
+			maxX = currentX;
+		}
+
+		if (needsWidth) {
+			result.x = maxX;
+		} else {
+			result.x = this._explicitWidth;
+		}
+		if (needsHeight) {
+			result.y = currentY + lineHeight - this._currentTextFormat.leading;
+		} else {
+			result.y = this._explicitHeight;
+		}
+
+		return result;
+	}
+
+	/**
+	 * @private
+	 */
+	private function getTruncatedText(width:Float):String {
+		if (this._text == null) {
+			// this shouldn't be called if _text is null, but just in case...
+			return "";
+		}
+
+		// if the width is infinity or the string is multiline, don't allow truncation
+		if (width == Math.POSITIVE_INFINITY
+			|| this._wordWrap
+			|| this._text.indexOf(String.fromCharCode(CHARACTER_ID_LINE_FEED)) >= 0
+			|| this._text.indexOf(String.fromCharCode(CHARACTER_ID_CARRIAGE_RETURN)) >= 0) {
+			return this._text;
+		}
+
+		var font:BitmapFont = this._currentTextFormat.font;
+		var customSize:Float = this._currentTextFormat.size;
+		var customLetterSpacing:Float = this._currentTextFormat.letterSpacing;
+		var isKerningEnabled:Bool = this._currentTextFormat.isKerningEnabled;
+		var scale:Float = customSize / font.size;
+		if (scale != scale) // isNaN
+		{
+			scale = 1;
+		}
+		var currentX:Float = 0;
+		var previousCharID:Float = Math.NaN;
+		var charCount:Int = this._text.length;
+		var truncationIndex:Int = -1;
+		var charID:Int;
+		var charData:BitmapChar;
+		var charWidth:Float;
+		var currentKerning:Float;
+		var difference:Float;
+		// for (var i:Int = 0; i < charCount; i++)
+		for (i in 0...charCount) {
+			charID = this._text.charCodeAt(i);
+			charData = font.getChar(charID);
+			if (charData == null) {
+				continue;
+			}
+			currentKerning = 0;
+			if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+			{
+				currentKerning = charData.getKerning(Std.int(previousCharID)) * scale;
+			}
+			charWidth = charData.width * scale;
+			// add only the width of the character and not the xAdvance
+			// because the final character doesn't have whitespace after it
+			currentX += currentKerning + charWidth;
+			if (currentX > width) {
+				// floating point errors can cause unnecessary truncation,
+				// so we're going to be a little bit fuzzy on the greater
+				// than check. such tiny numbers shouldn't break anything.
+				difference = Math.abs(currentX - width);
+				if (difference > FUZZY_MAX_WIDTH_PADDING) {
+					truncationIndex = i;
+					// add the extra whitespace back to the end because we'll
+					// be appending the truncation text (...)
+					currentX += (charData.xAdvance * scale) - charWidth;
+					break;
+				}
+			}
+			// add the extra whitespace to the end for the next character
+			currentX += customLetterSpacing + (charData.xAdvance * scale) - charWidth;
+			previousCharID = charID;
+		}
+
+		if (truncationIndex >= 0) {
+			// first add the width of the truncation text (...)
+			charCount = this._truncationText.length;
+			// for (i = 0;i < charCount;i++)
+			for (i in 0...charCount) {
+				charID = this._truncationText.charCodeAt(i);
+				charData = font.getChar(charID);
+				if (charData == null) {
+					continue;
+				}
+				currentKerning = 0;
+				if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+				{
+					currentKerning = charData.getKerning(Std.int(previousCharID)) * scale;
+				}
+				currentX += currentKerning + charData.xAdvance * scale + customLetterSpacing;
+				previousCharID = charID;
+			}
+			currentX -= customLetterSpacing;
+			if (charData != null) {
+				currentX -= (charData.xAdvance - charData.width) * scale;
+			}
+
+			// then work our way backwards until we fit into the width
+			// for (i = truncationIndex; i >= 0; i--)
+			var i:Int;
+			while (i >= 0) {
+				charID = this._text.charCodeAt(i);
+				previousCharID = (i > 0) ? this._text.charCodeAt(i - 1) : Math.NaN;
+				charData = font.getChar(charID);
+				if (charData == null) {
+					continue;
+				}
+				currentKerning = 0;
+				if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+				{
+					currentKerning = charData.getKerning(Std.int(previousCharID)) * scale;
+				}
+				currentX -= (currentKerning + charData.xAdvance * scale + customLetterSpacing);
+				if (currentX <= width) {
+					return this._text.substr(0, i) + this._truncationText;
+				}
+
+				i--;
+			}
+			return this._truncationText;
+		}
+		return this._text;
+	}
+
+	/**
+	 * @private
+	 */
+	private function getVerticalAlignOffsetY():Float {
+		var font:BitmapFont = this._currentTextFormat.font;
+		var customSize:Float = this._currentTextFormat.size;
+		var scale:Float = customSize / font.size;
+		if (scale != scale) // isNaN
+		{
+			scale = 1;
+		}
+		var lineHeight:Float = font.lineHeight * scale + this._currentTextFormat.leading;
+		var textHeight:Float = this._numLines * lineHeight;
+		if (textHeight > this.actualHeight) {
+			return 0;
+		}
+		if (this._currentVerticalAlign == Align.BOTTOM) {
+			return (this.actualHeight - textHeight);
+		} else if (this._currentVerticalAlign == Align.CENTER) {
+			return (this.actualHeight - textHeight) / 2;
+		}
+		return 0;
 	}
 }
 

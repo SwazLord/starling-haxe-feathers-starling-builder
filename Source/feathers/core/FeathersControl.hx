@@ -2723,285 +2723,254 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 			this.removeFromParent(dispose);
 		}
 	}
+
 	/**
-		 * Resets the <code>styleProvider</code> property to its default value,
-		 * which is usually the global style provider for the component.
-		 * 
-		 * @see #styleProvider
-		 * @see #defaultStyleProvider
-		 */
-		 public function resetStyleProvider():Void
-			{
-				this.styleProvider = this.defaultStyleProvider;
-			}
-		/**
-		 * Indicates that effects should not be activated temporarily. Call
-		 * <code>resumeEffects()</code> when effects should be allowed again.
-		 * 
-		 * @see #resumeEffects()
-		 */
-		 public function suspendEffects():Void
-			{
-				this._suspendEffectsCount++;
-			}
-			/**
-		 * Indicates that effects should be re-activated after being suspended.
-		 * 
-		 * @see #suspendEffects()
-		 */
-		public function resumeEffects():Void
-			{
-				this._suspendEffectsCount--;
-			}
-		/**
-		 * <p>The implementation of this method is provided for convenience, but
-		 * it cannot be used unless a subclass implements the
-		 * <code>IFocusDisplayObject</code> interface.</p>
-		 *
-		 * @copy feathers.core.IFocusDisplayObject#showFocus()
-		 *
-		 * @see feathers.core.IFocusDisplayObject
-		 */
-		 public function showFocus():Void
-			{
-				if(!this._hasFocus || this._focusIndicatorSkin == null)
-				{
-					return;
-				}
-	
-				this._showFocus = true;
-				this.invalidate(INVALIDATION_FLAG_FOCUS);
-			}
-		/**
-		 * <p>The implementation of this method is provided for convenience, but
-		 * it cannot be used unless a subclass implements the
-		 * <code>IFocusDisplayObject</code> interface.</p>
-		 *
-		 * @copy feathers.core.IFocusDisplayObject#hideFocus()
-		 *
-		 * @see feathers.core.IFocusDisplayObject
-		 */
-		 public function hideFocus():Void
-			{
-				if(!this._hasFocus || this._focusIndicatorSkin == null)
-				{
-					return;
-				}
-	
-				this._showFocus = false;
-				this.invalidate(INVALIDATION_FLAG_FOCUS);
-			}
+	 * Resets the <code>styleProvider</code> property to its default value,
+	 * which is usually the global style provider for the component.
+	 * 
+	 * @see #styleProvider
+	 * @see #defaultStyleProvider
+	 */
+	public function resetStyleProvider():Void {
+		this.styleProvider = this.defaultStyleProvider;
+	}
+
 	/**
-		 * If the component has not yet initialized, initializes immediately.
-		 * The <code>initialize()</code> function will be called, and the
-		 * <code>FeathersEventType.INITIALIZE</code> event will be dispatched.
-		 * Then, if the component has a style provider, it will be applied. The
-		 * component will not validate, though. To initialize and validate
-		 * immediately, call <code>validate()</code> instead.
-		 * 
-		 * @see #isInitialized
-		 * @see #initialize()
-		 * @see #event:initialize FeathersEventType.INITIALIZE
-		 * @see #styleProvider
-		 * @see #validate()
-		 */
-		 public function initializeNow():Void
-			{
-				if(this._isInitialized || this._isInitializing)
-				{
-					return;
-				}
-				this._isInitializing = true;
-				this.initialize();
-				this.invalidate(); //invalidate everything
-				this._isInitializing = false;
-				this._isInitialized = true;
-				this.dispatchEventWith(FeathersEventType.INITIALIZE);
-	
-				if(this._styleProvider != null)
-				{
-					this._applyingStyles = true;
-					this._styleProvider.applyStyles(this);
-					this._applyingStyles = false;
-				}
-				this._styleNameList.addEventListener(Event.CHANGE, styleNameList_changeHandler);
+	 * Indicates that effects should not be activated temporarily. Call
+	 * <code>resumeEffects()</code> when effects should be allowed again.
+	 * 
+	 * @see #resumeEffects()
+	 */
+	public function suspendEffects():Void {
+		this._suspendEffectsCount++;
+	}
+
+	/**
+	 * Indicates that effects should be re-activated after being suspended.
+	 * 
+	 * @see #suspendEffects()
+	 */
+	public function resumeEffects():Void {
+		this._suspendEffectsCount--;
+	}
+
+	/**
+	 * <p>The implementation of this method is provided for convenience, but
+	 * it cannot be used unless a subclass implements the
+	 * <code>IFocusDisplayObject</code> interface.</p>
+	 *
+	 * @copy feathers.core.IFocusDisplayObject#showFocus()
+	 *
+	 * @see feathers.core.IFocusDisplayObject
+	 */
+	public function showFocus():Void {
+		if (!this._hasFocus || this._focusIndicatorSkin == null) {
+			return;
+		}
+
+		this._showFocus = true;
+		this.invalidate(INVALIDATION_FLAG_FOCUS);
+	}
+
+	/**
+	 * <p>The implementation of this method is provided for convenience, but
+	 * it cannot be used unless a subclass implements the
+	 * <code>IFocusDisplayObject</code> interface.</p>
+	 *
+	 * @copy feathers.core.IFocusDisplayObject#hideFocus()
+	 *
+	 * @see feathers.core.IFocusDisplayObject
+	 */
+	public function hideFocus():Void {
+		if (!this._hasFocus || this._focusIndicatorSkin == null) {
+			return;
+		}
+
+		this._showFocus = false;
+		this.invalidate(INVALIDATION_FLAG_FOCUS);
+	}
+
+	/**
+	 * If the component has not yet initialized, initializes immediately.
+	 * The <code>initialize()</code> function will be called, and the
+	 * <code>FeathersEventType.INITIALIZE</code> event will be dispatched.
+	 * Then, if the component has a style provider, it will be applied. The
+	 * component will not validate, though. To initialize and validate
+	 * immediately, call <code>validate()</code> instead.
+	 * 
+	 * @see #isInitialized
+	 * @see #initialize()
+	 * @see #event:initialize FeathersEventType.INITIALIZE
+	 * @see #styleProvider
+	 * @see #validate()
+	 */
+	public function initializeNow():Void {
+		if (this._isInitialized || this._isInitializing) {
+			return;
+		}
+		this._isInitializing = true;
+		this.initialize();
+		this.invalidate(); // invalidate everything
+		this._isInitializing = false;
+		this._isInitialized = true;
+		this.dispatchEventWith(FeathersEventType.INITIALIZE);
+
+		if (this._styleProvider != null) {
+			this._applyingStyles = true;
+			this._styleProvider.applyStyles(this);
+			this._applyingStyles = false;
+		}
+		this._styleNameList.addEventListener(Event.CHANGE, styleNameList_changeHandler);
+	}
+
+	/**
+	 * Sets the width and height of the control, with the option of
+	 * invalidating or not. Intended to be used when the <code>width</code>
+	 * and <code>height</code> values have not been set explicitly, and the
+	 * UI control needs to measure itself and choose an "ideal" size.
+	 */
+	private function setSizeInternal(width:Float, height:Float, canInvalidate:Bool):Bool {
+		var changed:Bool = this.saveMeasurements(width, height, this.actualMinWidth, this.actualMinHeight);
+		if (canInvalidate && changed) {
+			this.invalidate(INVALIDATION_FLAG_SIZE);
+		}
+		return changed;
+	}
+
+	/**
+	 * Saves the dimensions and minimum dimensions calculated for the
+	 * component. Returns true if the reported values have changed and
+	 * <code>Event.RESIZE</code> was dispatched.
+	 */
+	private function saveMeasurements(width:Float, height:Float, minWidth:Float = 0, minHeight:Float = 0):Bool {
+		if (this._explicitMinWidth == this._explicitMinWidth) // !isNaN
+		{
+			// the min width has been set explicitly. it has precedence over
+			// the measured min width
+			minWidth = this._explicitMinWidth;
+		} else if (minWidth > this._explicitMaxWidth) {
+			// similarly, if the max width has been set explicitly, it can
+			// affect the measured min width (but not explicit min width)
+			minWidth = this._explicitMaxWidth;
+		}
+		if (this._explicitMinHeight == this._explicitMinHeight) // !isNaN
+		{
+			// the min height has been set explicitly. it has precedence over
+			// the measured min height
+			minHeight = this._explicitMinHeight;
+		} else if (minHeight > this._explicitMaxHeight) {
+			// similarly, if the max height has been set explicitly, it can
+			// affect the measured min height (but not explicit min height)
+			minHeight = this._explicitMaxHeight;
+		}
+		if (this._explicitWidth == this._explicitWidth) // !isNaN
+		{
+			width = this._explicitWidth;
+		} else {
+			if (width < minWidth) {
+				width = minWidth;
+			} else if (width > this._explicitMaxWidth) {
+				width = this._explicitMaxWidth;
 			}
-		/**
-		 * Sets the width and height of the control, with the option of
-		 * invalidating or not. Intended to be used when the <code>width</code>
-		 * and <code>height</code> values have not been set explicitly, and the
-		 * UI control needs to measure itself and choose an "ideal" size.
-		 */
-		 private function setSizeInternal(width:Float, height:Float, canInvalidate:Bool):Bool
-			{
-				var changed:Bool = this.saveMeasurements(width, height, this.actualMinWidth, this.actualMinHeight);
-				if(canInvalidate && changed)
-				{
-					this.invalidate(INVALIDATION_FLAG_SIZE);
-				}
-				return changed;
+		}
+		if (this._explicitHeight == this._explicitHeight) // !isNaN
+		{
+			height = this._explicitHeight;
+		} else {
+			if (height < minHeight) {
+				height = minHeight;
+			} else if (height > this._explicitMaxHeight) {
+				height = this._explicitMaxHeight;
 			}
-		/**
-		 * Saves the dimensions and minimum dimensions calculated for the
-		 * component. Returns true if the reported values have changed and
-		 * <code>Event.RESIZE</code> was dispatched.
-		 */
-		 private function saveMeasurements(width:Float, height:Float, minWidth:Float = 0, minHeight:Float = 0):Bool
-			{
-				if(this._explicitMinWidth == this._explicitMinWidth) //!isNaN
-				{
-					//the min width has been set explicitly. it has precedence over
-					//the measured min width
-					minWidth = this._explicitMinWidth;
-				}
-				else if(minWidth > this._explicitMaxWidth)
-				{
-					//similarly, if the max width has been set explicitly, it can
-					//affect the measured min width (but not explicit min width)
-					minWidth = this._explicitMaxWidth;
-				}
-				if(this._explicitMinHeight == this._explicitMinHeight) //!isNaN
-				{
-					//the min height has been set explicitly. it has precedence over
-					//the measured min height
-					minHeight = this._explicitMinHeight;
-				}
-				else if(minHeight > this._explicitMaxHeight)
-				{
-					//similarly, if the max height has been set explicitly, it can
-					//affect the measured min height (but not explicit min height)
-					minHeight = this._explicitMaxHeight;
-				}
-				if(this._explicitWidth == this._explicitWidth) //!isNaN
-				{
-					width = this._explicitWidth;
-				}
-				else
-				{
-					if(width < minWidth)
-					{
-						width = minWidth;
-					}
-					else if(width > this._explicitMaxWidth)
-					{
-						width = this._explicitMaxWidth;
-					}
-				}
-				if(this._explicitHeight == this._explicitHeight) //!isNaN
-				{
-					height = this._explicitHeight;
-				}
-				else
-				{
-					if(height < minHeight)
-					{
-						height = minHeight;
-					}
-					else if(height > this._explicitMaxHeight)
-					{
-						height = this._explicitMaxHeight;
-					}
-				}
-				if(width != width) //isNaN
-				{
-					throw new ArgumentError(ILLEGAL_WIDTH_ERROR);
-				}
-				if(height != height) //isNaN
-				{
-					throw new ArgumentError(ILLEGAL_HEIGHT_ERROR);
-				}
-				var scaleX:Float = this.scaleX;
-				if(scaleX < 0)
-				{
-					scaleX = -scaleX;
-				}
-				var scaleY:Float = this.scaleY;
-				if(scaleY < 0)
-				{
-					scaleY = -scaleY;
-				}
-				var resized:Bool = false;
-				if(this.actualWidth != width)
-				{
-					this.actualWidth = width;
-					this.refreshHitAreaX();
-					resized = true;
-				}
-				if(this.actualHeight != height)
-				{
-					this.actualHeight = height;
-					this.refreshHitAreaY();
-					resized = true;
-				}
-				if(this.actualMinWidth != minWidth)
-				{
-					this.actualMinWidth = minWidth;
-					resized = true;
-				}
-				if(this.actualMinHeight != minHeight)
-				{
-					this.actualMinHeight = minHeight;
-					resized = true;
-				}
-				width = this.scaledActualWidth;
-				height = this.scaledActualHeight;
-				this.scaledActualWidth = this.actualWidth * scaleX;
-				this.scaledActualHeight = this.actualHeight * scaleY;
-				this.scaledActualMinWidth = this.actualMinWidth * scaleX;
-				this.scaledActualMinHeight = this.actualMinHeight * scaleY;
-				if(width != this.scaledActualWidth || height != this.scaledActualHeight)
-				{
-					resized = true;
-					this.dispatchEventWith(Event.RESIZE);
-				}
-				return resized;
-			}
-			/**
-		 * Called the first time that the UI control is added to the stage, and
-		 * you should override this function to customize the initialization
-		 * process. Do things like create children and set up event listeners.
-		 * After this function is called, <code>FeathersEventType.INITIALIZE</code>
-		 * is dispatched.
-		 *
-		 * @see #event:initialize feathers.events.FeathersEventType.INITIALIZE
-		 */
-		private function initialize():Void
-			{
-	
-			}
-		/**
-		 * Override to customize layout and to adjust properties of children.
-		 * Called when the component validates, if any flags have been marked
-		 * to indicate that validation is pending.
-		 */
-		 private function draw():Void
-			{
-	
-			}
-		/**
-		 * Sets an invalidation flag. This will not add the component to the
-		 * validation queue. It only sets the flag. A subclass might use
-		 * this function during <code>draw()</code> to manipulate the flags that
-		 * its superclass sees.
-		 */
-		 private function setInvalidationFlag(flag:String):Void
-			{
-				if(this._invalidationFlags.exists(flag))
-				{
-					return;
-				}
-				this._invalidationFlags[flag] = true;
-			}
-			/**
-		 * Clears an invalidation flag. This will not remove the component from
-		 * the validation queue. It only clears the flag. A subclass might use
-		 * this function during <code>draw()</code> to manipulate the flags that
-		 * its superclass sees.
-		 */
-		 private function clearInvalidationFlag(flag:String):Void
-			{
-				this._invalidationFlags.remove(flag);
-			}
+		}
+		if (width != width) // isNaN
+		{
+			throw new ArgumentError(ILLEGAL_WIDTH_ERROR);
+		}
+		if (height != height) // isNaN
+		{
+			throw new ArgumentError(ILLEGAL_HEIGHT_ERROR);
+		}
+		var scaleX:Float = this.scaleX;
+		if (scaleX < 0) {
+			scaleX = -scaleX;
+		}
+		var scaleY:Float = this.scaleY;
+		if (scaleY < 0) {
+			scaleY = -scaleY;
+		}
+		var resized:Bool = false;
+		if (this.actualWidth != width) {
+			this.actualWidth = width;
+			this.refreshHitAreaX();
+			resized = true;
+		}
+		if (this.actualHeight != height) {
+			this.actualHeight = height;
+			this.refreshHitAreaY();
+			resized = true;
+		}
+		if (this.actualMinWidth != minWidth) {
+			this.actualMinWidth = minWidth;
+			resized = true;
+		}
+		if (this.actualMinHeight != minHeight) {
+			this.actualMinHeight = minHeight;
+			resized = true;
+		}
+		width = this.scaledActualWidth;
+		height = this.scaledActualHeight;
+		this.scaledActualWidth = this.actualWidth * scaleX;
+		this.scaledActualHeight = this.actualHeight * scaleY;
+		this.scaledActualMinWidth = this.actualMinWidth * scaleX;
+		this.scaledActualMinHeight = this.actualMinHeight * scaleY;
+		if (width != this.scaledActualWidth || height != this.scaledActualHeight) {
+			resized = true;
+			this.dispatchEventWith(Event.RESIZE);
+		}
+		return resized;
+	}
+
+	/**
+	 * Called the first time that the UI control is added to the stage, and
+	 * you should override this function to customize the initialization
+	 * process. Do things like create children and set up event listeners.
+	 * After this function is called, <code>FeathersEventType.INITIALIZE</code>
+	 * is dispatched.
+	 *
+	 * @see #event:initialize feathers.events.FeathersEventType.INITIALIZE
+	 */
+	private function initialize():Void {}
+
+	/**
+	 * Override to customize layout and to adjust properties of children.
+	 * Called when the component validates, if any flags have been marked
+	 * to indicate that validation is pending.
+	 */
+	private function draw():Void {}
+
+	/**
+	 * Sets an invalidation flag. This will not add the component to the
+	 * validation queue. It only sets the flag. A subclass might use
+	 * this function during <code>draw()</code> to manipulate the flags that
+	 * its superclass sees.
+	 */
+	private function setInvalidationFlag(flag:String):Void {
+		if (this._invalidationFlags.exists(flag)) {
+			return;
+		}
+		this._invalidationFlags[flag] = true;
+	}
+
+	/**
+	 * Clears an invalidation flag. This will not remove the component from
+	 * the validation queue. It only clears the flag. A subclass might use
+	 * this function during <code>draw()</code> to manipulate the flags that
+	 * its superclass sees.
+	 */
+	private function clearInvalidationFlag(flag:String):Void {
+		this._invalidationFlags.remove(flag);
+	}
 
 	/**
 	 * Used by setters for properties that are considered "styles" to
@@ -3068,315 +3037,277 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		this._restrictedStyles.set(key, true);
 		return false;
 	}
+
 	/**
-		 * The next style that is set will not be restricted. This allows
-		 * components to set defaults by calling the setter while still allowing
-		 * the style property to be replaced by a theme in the future.
-		 * 
-		 * @see #processStyleRestriction()
-		 */
-		 private function ignoreNextStyleRestriction():Void
-			{
-				this._ignoreNextStyleRestriction = true;
-			}
-		/**
-		 * Updates the focus indicator skin by showing or hiding it and
-		 * adjusting its position and dimensions. This function is not called
-		 * automatically. Components that support focus should call this
-		 * function at an appropriate point within the <code>draw()</code>
-		 * function. This function may be overridden if the default behavior is
-		 * not desired.
-		 */
-		 private function refreshFocusIndicator():Void
-			{
-				if(this._focusIndicatorSkin != null)
-				{
-					if(this._hasFocus && this._showFocus)
-					{
-						if(this._focusIndicatorSkin.parent != this)
-						{
-							this.addChild(this._focusIndicatorSkin);
-						}
-						else
-						{
-							this.setChildIndex(this._focusIndicatorSkin, this.numChildren - 1);
-						}
-					}
-					else if(this._focusIndicatorSkin.parent != null)
-					{
-						this._focusIndicatorSkin.removeFromParent(false);
-					}
-					this._focusIndicatorSkin.x = this._focusPaddingLeft;
-					this._focusIndicatorSkin.y = this._focusPaddingTop;
-					this._focusIndicatorSkin.width = this.actualWidth - this._focusPaddingLeft - this._focusPaddingRight;
-					this._focusIndicatorSkin.height = this.actualHeight - this._focusPaddingTop - this._focusPaddingBottom;
-				}
-			}
-		/**
-		 * @private
-		 */
-		 private function refreshHitAreaX():Void
-			{
-				if(this.actualWidth < this._minTouchWidth)
-				{
-					this._hitArea.width = this._minTouchWidth;
-				}
-				else
-				{
-					this._hitArea.width = this.actualWidth;
-				}
-				var hitAreaX:Float = (this.actualWidth - this._hitArea.width) / 2;
-				if(hitAreaX != hitAreaX) //isNaN
-				{
-					this._hitArea.x = 0;
-				}
-				else
-				{
-					this._hitArea.x = hitAreaX;
-				}
-			}
+	 * The next style that is set will not be restricted. This allows
+	 * components to set defaults by calling the setter while still allowing
+	 * the style property to be replaced by a theme in the future.
+	 * 
+	 * @see #processStyleRestriction()
+	 */
+	private function ignoreNextStyleRestriction():Void {
+		this._ignoreNextStyleRestriction = true;
+	}
 
-			/**
-		 * @private
-		 */
-		private function refreshHitAreaY():Void
-			{
-				if(this.actualHeight < this._minTouchHeight)
-				{
-					this._hitArea.height = this._minTouchHeight;
+	/**
+	 * Updates the focus indicator skin by showing or hiding it and
+	 * adjusting its position and dimensions. This function is not called
+	 * automatically. Components that support focus should call this
+	 * function at an appropriate point within the <code>draw()</code>
+	 * function. This function may be overridden if the default behavior is
+	 * not desired.
+	 */
+	private function refreshFocusIndicator():Void {
+		if (this._focusIndicatorSkin != null) {
+			if (this._hasFocus && this._showFocus) {
+				if (this._focusIndicatorSkin.parent != this) {
+					this.addChild(this._focusIndicatorSkin);
+				} else {
+					this.setChildIndex(this._focusIndicatorSkin, this.numChildren - 1);
 				}
-				else
-				{
-					this._hitArea.height = this.actualHeight;
-				}
-				var hitAreaY:Float = (this.actualHeight - this._hitArea.height) / 2;
-				if(hitAreaY != hitAreaY) //isNaN
-				{
-					this._hitArea.y = 0;
-				}
-				else
-				{
-					this._hitArea.y = hitAreaY;
-				}
+			} else if (this._focusIndicatorSkin.parent != null) {
+				this._focusIndicatorSkin.removeFromParent(false);
 			}
-			/**
-		 * Default event handler for <code>FeathersEventType.FOCUS_IN</code>
-		 * that may be overridden in subclasses to perform additional actions
-		 * when the component receives focus.
-		 */
-		private function focusInHandler(event:Event):Void
-			{
-				this._hasFocus = true;
-				this.invalidate(INVALIDATION_FLAG_FOCUS);
-	
-				if(this._focusOutEffectContext != null)
-				{
-					this._focusOutEffectContext.interrupt();
-					this._focusOutEffectContext = null;
-				}
-	
-				if(this._suspendEffectsCount == 0 && this._focusInEffect != null)
-				{
-					this._focusInEffectContext = cast this._focusInEffect(this);
-					this._focusInEffectContext.addEventListener(Event.COMPLETE, focusInEffectContext_completeHandler);
-					this._focusInEffectContext.play();
-				}
-			}
+			this._focusIndicatorSkin.x = this._focusPaddingLeft;
+			this._focusIndicatorSkin.y = this._focusPaddingTop;
+			this._focusIndicatorSkin.width = this.actualWidth - this._focusPaddingLeft - this._focusPaddingRight;
+			this._focusIndicatorSkin.height = this.actualHeight - this._focusPaddingTop - this._focusPaddingBottom;
+		}
+	}
 
-			/**
-		 * Default event handler for <code>FeathersEventType.FOCUS_OUT</code>
-		 * that may be overridden in subclasses to perform additional actions
-		 * when the component loses focus.
-		 */
-		private function focusOutHandler(event:Event):Void
-			{
-				this._hasFocus = false;
-				this._showFocus = false;
-				this.invalidate(INVALIDATION_FLAG_FOCUS);
-	
-				if(this._focusInEffectContext != null)
-				{
-					this._focusInEffectContext.interrupt();
-					this._focusInEffectContext = null;
-				}
-	
-				if(this._suspendEffectsCount == 0 && this._focusOutEffect != null)
-				{
-					this._focusOutEffectContext = cast this._focusOutEffect(this);
-					this._focusOutEffectContext.addEventListener(Event.COMPLETE, focusOutEffectContext_completeHandler);
-					this._focusOutEffectContext.play();
-				}
-			}
-		/**
-		 * @private
-		 * Initialize the control, if it hasn't been initialized yet. Then,
-		 * invalidate. If already initialized, check if invalid and put back
-		 * into queue.
-		 */
-		 private function feathersControl_addedToStageHandler(event:Event):Void
-			{
-				if(this.stage == null)
-				{
-					//this could happen if removed from parent in another
-					//Event.ADDED_TO_STAGE listener
-					return;
-				}
-				//initialize before setting the validation queue to avoid
-				//getting added to the validation queue before initialization
-				//completes.
-				if(!this._isInitialized)
-				{
-					this.initializeNow();
-				}
-				this._depth = FeathersDisplayUtil.getDisplayObjectDepthFromStage(this);
-				this._validationQueue = ValidationQueue.forStarling(this.stage.starling);
-				if(this.isInvalid())
-				{
-					this._invalidateCount = 0;
-					//add to validation queue, if required
-					this._validationQueue.addControl(this);
-				}
-	
-				//if the removed effect is still active, stop it
-				if(this._removedEffectContext != null)
-				{
-					this._removedEffectContext.interrupt();
-				}
-	
-				if(this.isCreated && this._suspendEffectsCount == 0 && this._addedEffect != null)
-				{
-					this._addedEffectContext = cast this._addedEffect(this);
-					this._addedEffectContext.addEventListener(Event.COMPLETE, addedEffectContext_completeHandler);
-					this._addedEffectContext.play();
-				}
-			}
-		/**
-		 * @private
-		 */
-		 private function feathersControl_removedFromStageHandler(event:Event):Void
-			{
-				if(this._addedEffectContext != null)
-				{
-					this._addedEffectContext.interrupt();
-				}
-				this._depth = -1;
-				this._validationQueue = null;
-			}
-		/**
-		 * @private
-		 */
-		 private function addedEffectContext_completeHandler(event:Event):Void
-			{
-				this._addedEffectContext = null;
-			}
+	/**
+	 * @private
+	 */
+	private function refreshHitAreaX():Void {
+		if (this.actualWidth < this._minTouchWidth) {
+			this._hitArea.width = this._minTouchWidth;
+		} else {
+			this._hitArea.width = this.actualWidth;
+		}
+		var hitAreaX:Float = (this.actualWidth - this._hitArea.width) / 2;
+		if (hitAreaX != hitAreaX) // isNaN
+		{
+			this._hitArea.x = 0;
+		} else {
+			this._hitArea.x = hitAreaX;
+		}
+	}
 
-		/**
-		 * @private
-		 */
-		 private function removedEffectContext_completeHandler(event:Event, stopped:Bool):Void
-			{
-				this._removedEffectContext = null;
-				if(!stopped)
-				{
-					this.removeFromParent(this._disposeAfterRemovedEffect);
-				}
-			}
+	/**
+	 * @private
+	 */
+	private function refreshHitAreaY():Void {
+		if (this.actualHeight < this._minTouchHeight) {
+			this._hitArea.height = this._minTouchHeight;
+		} else {
+			this._hitArea.height = this.actualHeight;
+		}
+		var hitAreaY:Float = (this.actualHeight - this._hitArea.height) / 2;
+		if (hitAreaY != hitAreaY) // isNaN
+		{
+			this._hitArea.y = 0;
+		} else {
+			this._hitArea.y = hitAreaY;
+		}
+	}
 
-		/**
-		 * @private
-		 */
-		 private function showEffectContext_completeHandler(event:Event):Void
-			{
-				this._showEffectContext.removeEventListener(Event.COMPLETE, showEffectContext_completeHandler);
-				this._showEffectContext = null;
-			}
-		/**
-		 * @private
-		 */
-		 private function hideEffectContext_completeHandler(event:Event, stopped:Bool):Void
-			{
-				this._hideEffectContext.removeEventListener(Event.COMPLETE, hideEffectContext_completeHandler);
-				this._hideEffectContext = null;
-				if(!stopped)
-				{
-					this.suspendEffects();
-					super.visible = this._pendingVisible;
-					this.resumeEffects();
-				}
-			}
-		/**
-		 * @private
-		 */
-		 private function focusInEffectContext_completeHandler(event:Event):Void
-			{
-				this._focusInEffectContext.removeEventListener(Event.COMPLETE, focusInEffectContext_completeHandler);
-				this._focusInEffectContext = null;
-			}
-		/**
-		 * @private
-		 */
-		 private function focusOutEffectContext_completeHandler(event:Event):Void
-			{
-				this._focusOutEffectContext.removeEventListener(Event.COMPLETE, focusOutEffectContext_completeHandler);
-				this._focusOutEffectContext = null;
-			}
-		/**
-		 * @private
-		 */
-		 private function moveEffectContext_completeHandler(event:Event):Void
-			{
-				this._moveEffectContext.removeEventListener(Event.COMPLETE, moveEffectContext_completeHandler);
-				this._moveEffectContext = null;
-			}
-		/**
-		 * @private
-		 */
-		 private function resizeEffectContext_completeHandler(event:Event):Void
-			{
-				this._resizeEffectContext.removeEventListener(Event.COMPLETE, resizeEffectContext_completeHandler);
-				this._resizeEffectContext = null;
-			}
-		/**
-		 * @private
-		 */
-		 private function layoutData_changeHandler(event:Event):Void
-			{
-				this.dispatchEventWith(FeathersEventType.LAYOUT_DATA_CHANGE);
-			}
-		/**
-		 * @private
-		 */
-		 private function styleNameList_changeHandler(event:Event):Void
-			{
-				if(this._styleProvider == null)
-				{
-					return;
-				}
-				if(this._applyingStyles)
-				{
-					throw new IllegalOperationError("Cannot change styleNameList while the style provider is applying styles.");
-				}
-				this._applyingStyles = true;
-				this._styleProvider.applyStyles(this);
-				this._applyingStyles = false;
-			}
-		/**
-		 * @private
-		 */
-		 private function styleProvider_changeHandler(event:Event):Void
-			{
-				if(!this._isInitialized)
-				{
-					//safe to ignore changes until initialization
-					return;
-				}
-				if(this._applyingStyles)
-				{
-					throw new IllegalOperationError("Cannot change style provider while it is applying styles.");
-				}
-				this._applyingStyles = true;
-				this._styleProvider.applyStyles(this);
-				this._applyingStyles = false;
-			}
-	
+	/**
+	 * Default event handler for <code>FeathersEventType.FOCUS_IN</code>
+	 * that may be overridden in subclasses to perform additional actions
+	 * when the component receives focus.
+	 */
+	private function focusInHandler(event:Event):Void {
+		this._hasFocus = true;
+		this.invalidate(INVALIDATION_FLAG_FOCUS);
+
+		if (this._focusOutEffectContext != null) {
+			this._focusOutEffectContext.interrupt();
+			this._focusOutEffectContext = null;
+		}
+
+		if (this._suspendEffectsCount == 0 && this._focusInEffect != null) {
+			this._focusInEffectContext = cast this._focusInEffect(this);
+			this._focusInEffectContext.addEventListener(Event.COMPLETE, focusInEffectContext_completeHandler);
+			this._focusInEffectContext.play();
+		}
+	}
+
+	/**
+	 * Default event handler for <code>FeathersEventType.FOCUS_OUT</code>
+	 * that may be overridden in subclasses to perform additional actions
+	 * when the component loses focus.
+	 */
+	private function focusOutHandler(event:Event):Void {
+		this._hasFocus = false;
+		this._showFocus = false;
+		this.invalidate(INVALIDATION_FLAG_FOCUS);
+
+		if (this._focusInEffectContext != null) {
+			this._focusInEffectContext.interrupt();
+			this._focusInEffectContext = null;
+		}
+
+		if (this._suspendEffectsCount == 0 && this._focusOutEffect != null) {
+			this._focusOutEffectContext = cast this._focusOutEffect(this);
+			this._focusOutEffectContext.addEventListener(Event.COMPLETE, focusOutEffectContext_completeHandler);
+			this._focusOutEffectContext.play();
+		}
+	}
+
+	/**
+	 * @private
+	 * Initialize the control, if it hasn't been initialized yet. Then,
+	 * invalidate. If already initialized, check if invalid and put back
+	 * into queue.
+	 */
+	private function feathersControl_addedToStageHandler(event:Event):Void {
+		if (this.stage == null) {
+			// this could happen if removed from parent in another
+			// Event.ADDED_TO_STAGE listener
+			return;
+		}
+		// initialize before setting the validation queue to avoid
+		// getting added to the validation queue before initialization
+		// completes.
+		if (!this._isInitialized) {
+			this.initializeNow();
+		}
+		this._depth = FeathersDisplayUtil.getDisplayObjectDepthFromStage(this);
+		this._validationQueue = ValidationQueue.forStarling(this.stage.starling);
+		if (this.isInvalid()) {
+			this._invalidateCount = 0;
+			// add to validation queue, if required
+			this._validationQueue.addControl(this);
+		}
+
+		// if the removed effect is still active, stop it
+		if (this._removedEffectContext != null) {
+			this._removedEffectContext.interrupt();
+		}
+
+		if (this.isCreated && this._suspendEffectsCount == 0 && this._addedEffect != null) {
+			this._addedEffectContext = cast this._addedEffect(this);
+			this._addedEffectContext.addEventListener(Event.COMPLETE, addedEffectContext_completeHandler);
+			this._addedEffectContext.play();
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function feathersControl_removedFromStageHandler(event:Event):Void {
+		if (this._addedEffectContext != null) {
+			this._addedEffectContext.interrupt();
+		}
+		this._depth = -1;
+		this._validationQueue = null;
+	}
+
+	/**
+	 * @private
+	 */
+	private function addedEffectContext_completeHandler(event:Event):Void {
+		this._addedEffectContext = null;
+	}
+
+	/**
+	 * @private
+	 */
+	private function removedEffectContext_completeHandler(event:Event, stopped:Bool):Void {
+		this._removedEffectContext = null;
+		if (!stopped) {
+			this.removeFromParent(this._disposeAfterRemovedEffect);
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function showEffectContext_completeHandler(event:Event):Void {
+		this._showEffectContext.removeEventListener(Event.COMPLETE, showEffectContext_completeHandler);
+		this._showEffectContext = null;
+	}
+
+	/**
+	 * @private
+	 */
+	private function hideEffectContext_completeHandler(event:Event, stopped:Bool):Void {
+		this._hideEffectContext.removeEventListener(Event.COMPLETE, hideEffectContext_completeHandler);
+		this._hideEffectContext = null;
+		if (!stopped) {
+			this.suspendEffects();
+			super.visible = this._pendingVisible;
+			this.resumeEffects();
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function focusInEffectContext_completeHandler(event:Event):Void {
+		this._focusInEffectContext.removeEventListener(Event.COMPLETE, focusInEffectContext_completeHandler);
+		this._focusInEffectContext = null;
+	}
+
+	/**
+	 * @private
+	 */
+	private function focusOutEffectContext_completeHandler(event:Event):Void {
+		this._focusOutEffectContext.removeEventListener(Event.COMPLETE, focusOutEffectContext_completeHandler);
+		this._focusOutEffectContext = null;
+	}
+
+	/**
+	 * @private
+	 */
+	private function moveEffectContext_completeHandler(event:Event):Void {
+		this._moveEffectContext.removeEventListener(Event.COMPLETE, moveEffectContext_completeHandler);
+		this._moveEffectContext = null;
+	}
+
+	/**
+	 * @private
+	 */
+	private function resizeEffectContext_completeHandler(event:Event):Void {
+		this._resizeEffectContext.removeEventListener(Event.COMPLETE, resizeEffectContext_completeHandler);
+		this._resizeEffectContext = null;
+	}
+
+	/**
+	 * @private
+	 */
+	private function layoutData_changeHandler(event:Event):Void {
+		this.dispatchEventWith(FeathersEventType.LAYOUT_DATA_CHANGE);
+	}
+
+	/**
+	 * @private
+	 */
+	private function styleNameList_changeHandler(event:Event):Void {
+		if (this._styleProvider == null) {
+			return;
+		}
+		if (this._applyingStyles) {
+			throw new IllegalOperationError("Cannot change styleNameList while the style provider is applying styles.");
+		}
+		this._applyingStyles = true;
+		this._styleProvider.applyStyles(this);
+		this._applyingStyles = false;
+	}
+
+	/**
+	 * @private
+	 */
+	private function styleProvider_changeHandler(event:Event):Void {
+		if (!this._isInitialized) {
+			// safe to ignore changes until initialization
+			return;
+		}
+		if (this._applyingStyles) {
+			throw new IllegalOperationError("Cannot change style provider while it is applying styles.");
+		}
+		this._applyingStyles = true;
+		this._styleProvider.applyStyles(this);
+		this._applyingStyles = false;
+	}
 }
