@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="StarlingProject" package="com.sample.starlingproject" version="1.0.0" company="Company Name" />
+	<app main="Startup" path="Export" file="StarlingProject" />
+	
+	<source path="Source" />
+	
+	<haxelib name="openfl" />
+	<haxelib name="starling" />
+	<haxelib name="format" />
+	
+	<assets path="Assets" rename="assets" />
+	
+</project>

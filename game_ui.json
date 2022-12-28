@@ -1,0 +1,36 @@
+{
+  "layout":{
+    "children":[
+      {
+        "cls":"starling.display.Image",
+        "constructorParams":[
+          {
+            "cls":"starling.textures.Texture",
+            "textureName":"header_text"
+          }
+        ],
+        "customParams":{},
+        "params":{
+          "name":"header_text",
+          "pivotX":303,
+          "pivotY":64,
+          "x":578,
+          "y":339
+        }
+      }
+    ],
+    "cls":"feathers.controls.LayoutGroup",
+    "customParams":{},
+    "params":{
+      "name":"root"
+    }
+  },
+  "setting":{
+    "canvasColor":21079,
+    "canvasSize":{
+      "x":1280,
+      "y":720
+    }
+  },
+  "version":"2.0"
+}
