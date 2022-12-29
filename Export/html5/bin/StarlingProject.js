@@ -915,7 +915,7 @@ ApplicationMain.main = function() {
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
-	app.meta.h["build"] = "5";
+	app.meta.h["build"] = "6";
 	app.meta.h["company"] = "Company Name";
 	app.meta.h["file"] = "StarlingProject";
 	app.meta.h["name"] = "StarlingProject";
@@ -9518,6 +9518,839 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 	,__class__: feathers_controls_LayoutGroup
 	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{set_autoSizeMode:"set_autoSizeMode",get_autoSizeMode:"get_autoSizeMode",set_backgroundDisabledSkin:"set_backgroundDisabledSkin",get_backgroundDisabledSkin:"get_backgroundDisabledSkin",set_backgroundSkin:"set_backgroundSkin",get_backgroundSkin:"get_backgroundSkin",set_clipContent:"set_clipContent",get_clipContent:"get_clipContent",set_layout:"set_layout",get_layout:"get_layout"})
 });
+var feathers_layout_ILayout = function() { };
+$hxClasses["feathers.layout.ILayout"] = feathers_layout_ILayout;
+feathers_layout_ILayout.__name__ = "feathers.layout.ILayout";
+feathers_layout_ILayout.__isInterface__ = true;
+feathers_layout_ILayout.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
+feathers_layout_ILayout.prototype = {
+	get_requiresLayoutOnScroll: null
+	,layout: null
+	,calculateNavigationDestination: null
+	,getScrollPositionForIndex: null
+	,getNearestScrollPositionForIndex: null
+	,__class__: feathers_layout_ILayout
+	,__properties__: {get_requiresLayoutOnScroll:"get_requiresLayoutOnScroll"}
+};
+var feathers_layout_AnchorLayout = function() {
+	this._helperVector2 = [];
+	this._helperVector1 = [];
+	starling_events_EventDispatcher.call(this);
+};
+$hxClasses["feathers.layout.AnchorLayout"] = feathers_layout_AnchorLayout;
+feathers_layout_AnchorLayout.__name__ = "feathers.layout.AnchorLayout";
+feathers_layout_AnchorLayout.__interfaces__ = [feathers_layout_ILayout];
+feathers_layout_AnchorLayout.__super__ = starling_events_EventDispatcher;
+feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_helperVector1: null
+	,_helperVector2: null
+	,get_requiresLayoutOnScroll: function() {
+		return false;
+	}
+	,layout: function(items,viewPortBounds,result) {
+		var boundsX = viewPortBounds != null ? viewPortBounds.x : 0;
+		var boundsY = viewPortBounds != null ? viewPortBounds.y : 0;
+		var minWidth = viewPortBounds != null ? viewPortBounds.minWidth : 0;
+		var minHeight = viewPortBounds != null ? viewPortBounds.minHeight : 0;
+		var maxWidth = viewPortBounds != null ? viewPortBounds.maxWidth : Infinity;
+		var maxHeight = viewPortBounds != null ? viewPortBounds.maxHeight : Infinity;
+		var explicitWidth = viewPortBounds != null ? viewPortBounds.explicitWidth : NaN;
+		var explicitHeight = viewPortBounds != null ? viewPortBounds.explicitHeight : NaN;
+		var viewPortWidth = explicitWidth;
+		var viewPortHeight = explicitHeight;
+		var needsWidth = explicitWidth != explicitWidth;
+		var needsHeight = explicitHeight != explicitHeight;
+		var point;
+		if(needsWidth || needsHeight) {
+			this.validateItems(items,explicitWidth,explicitHeight,maxWidth,maxHeight,true);
+			point = starling_utils_Pool.getPoint();
+			this.measureViewPort(items,viewPortWidth,viewPortHeight,point);
+			if(needsWidth) {
+				viewPortWidth = point.x;
+				if(viewPortWidth < minWidth) {
+					viewPortWidth = minWidth;
+				} else if(viewPortWidth > maxWidth) {
+					viewPortWidth = maxWidth;
+				}
+			}
+			if(needsHeight) {
+				viewPortHeight = point.y;
+				if(viewPortHeight < minHeight) {
+					viewPortHeight = minHeight;
+				} else if(viewPortHeight > maxHeight) {
+					viewPortHeight = maxHeight;
+				}
+			}
+			starling_utils_Pool.putPoint(point);
+		} else {
+			this.validateItems(items,explicitWidth,explicitHeight,maxWidth,maxHeight,false);
+		}
+		this.layoutWithBounds(items,boundsX,boundsY,viewPortWidth,viewPortHeight);
+		point = starling_utils_Pool.getPoint();
+		this.measureContent(items,viewPortWidth,viewPortHeight,point);
+		if(result == null) {
+			result = new feathers_layout_LayoutBoundsResult();
+		}
+		result.contentWidth = point.x;
+		result.contentHeight = point.y;
+		result.viewPortWidth = viewPortWidth;
+		result.viewPortHeight = viewPortHeight;
+		starling_utils_Pool.putPoint(point);
+		return result;
+	}
+	,calculateNavigationDestination: function(items,index,keyCode,bounds) {
+		return index;
+	}
+	,getNearestScrollPositionForIndex: function(index,scrollX,scrollY,items,x,y,width,height,result) {
+		return this.getScrollPositionForIndex(index,items,x,y,width,height,result);
+	}
+	,getScrollPositionForIndex: function(index,items,x,y,width,height,result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		result.x = 0;
+		result.y = 0;
+		return result;
+	}
+	,measureViewPort: function(items,viewPortWidth,viewPortHeight,result) {
+		this._helperVector1.splice(0,this._helperVector1.length);
+		this._helperVector2.splice(0,this._helperVector2.length);
+		result.setTo(0,0);
+		var mainVector = items;
+		var otherVector = this._helperVector1;
+		this.measureVector(items,otherVector,result);
+		var currentLength = otherVector.length;
+		while(currentLength > 0) {
+			if(otherVector == this._helperVector1) {
+				mainVector = this._helperVector1;
+				otherVector = this._helperVector2;
+			} else {
+				mainVector = this._helperVector2;
+				otherVector = this._helperVector1;
+			}
+			this.measureVector(mainVector,otherVector,result);
+			var oldLength = currentLength;
+			currentLength = otherVector.length;
+			if(oldLength == currentLength) {
+				this._helperVector1.splice(0,this._helperVector1.length);
+				this._helperVector2.splice(0,this._helperVector2.length);
+				throw new openfl_errors_IllegalOperationError("It is impossible to create this layout due to a circular reference in the AnchorLayoutData.");
+			}
+		}
+		this._helperVector1.splice(0,this._helperVector1.length);
+		this._helperVector2.splice(0,this._helperVector2.length);
+		return result;
+	}
+	,measureVector: function(items,unpositionedItems,result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		unpositionedItems.splice(0,unpositionedItems.length);
+		var itemCount = items.length;
+		var pushIndex = 0;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = items[i];
+			var layoutData = null;
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+				var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				if(!layoutItem.get_includeInLayout()) {
+					continue;
+				}
+				layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			}
+			var isReadyForLayout = layoutData == null || this.isReadyForLayout(layoutData,i,items,unpositionedItems);
+			if(!isReadyForLayout) {
+				unpositionedItems[pushIndex] = item;
+				++pushIndex;
+				continue;
+			}
+			this.measureItem(item,result);
+		}
+		return result;
+	}
+	,measureItem: function(item,result) {
+		var maxX = result.x;
+		var maxY = result.y;
+		var isAnchored = false;
+		var measurement = 0;
+		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			if(layoutData != null) {
+				measurement = this.measureItemHorizontally(layoutItem,layoutData);
+			}
+			if(measurement > maxX) {
+				maxX = measurement;
+			}
+			measurement = this.measureItemVertically(layoutItem,layoutData);
+			if(measurement > maxY) {
+				maxY = measurement;
+			}
+			isAnchored = true;
+		}
+		if(!isAnchored) {
+			measurement = item.get_x() - item.get_pivotX() + item.get_width();
+			if(measurement > maxX) {
+				maxX = measurement;
+			}
+			measurement = item.get_y() - item.get_pivotY() + item.get_height();
+			if(measurement > maxY) {
+				maxY = measurement;
+			}
+		}
+		result.x = maxX;
+		result.y = maxY;
+	}
+	,measureItemHorizontally: function(item,layoutData) {
+		var itemWidth = item.get_width();
+		var displayItem = js_Boot.__cast(item , starling_display_DisplayObject);
+		var left = this.getLeftOffset(displayItem);
+		var right = this.getRightOffset(displayItem);
+		return itemWidth + left + right;
+	}
+	,measureItemVertically: function(item,layoutData) {
+		var itemHeight = item.get_height();
+		if(layoutData != null && js_Boot.__implements(item,feathers_core_IFeathersControl)) {
+			var percentHeight = layoutData.get_percentHeight();
+			this.doNothing();
+			if(percentHeight == percentHeight) {
+				itemHeight = (js_Boot.__cast(item , feathers_core_IFeathersControl)).get_minHeight();
+			}
+		}
+		var displayItem = js_Boot.__cast(item , starling_display_DisplayObject);
+		var top = this.getTopOffset(displayItem);
+		var bottom = this.getBottomOffset(displayItem);
+		return itemHeight + top + bottom;
+	}
+	,doNothing: function() {
+	}
+	,getTopOffset: function(item) {
+		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			if(layoutData != null) {
+				var top = layoutData.get_top();
+				var hasTopPosition = top == top;
+				var bottom = layoutData.get_bottom();
+				var hasBottomPosition = bottom == bottom;
+				var verticalCenter = layoutData.get_verticalCenter();
+				var hasVerticalCenterPosition = verticalCenter == verticalCenter;
+				if(hasTopPosition) {
+					var topAnchorDisplayObject = layoutData.get_topAnchorDisplayObject();
+					if(topAnchorDisplayObject != null) {
+						top += topAnchorDisplayObject.get_height() + this.getTopOffset(topAnchorDisplayObject);
+					} else {
+						return top;
+					}
+				} else if(!hasBottomPosition && !hasVerticalCenterPosition) {
+					top = item.get_y();
+				} else {
+					top = 0;
+				}
+				if(hasBottomPosition) {
+					var bottomAnchorDisplayObject = layoutData.get_bottomAnchorDisplayObject();
+					if(bottomAnchorDisplayObject != null) {
+						top = Math.max(top,-bottomAnchorDisplayObject.get_height() - bottom + this.getTopOffset(bottomAnchorDisplayObject));
+					}
+				}
+				if(hasVerticalCenterPosition) {
+					var verticalCenterAnchorDisplayObject = layoutData.get_verticalCenterAnchorDisplayObject();
+					if(verticalCenterAnchorDisplayObject != null) {
+						var verticalOffset = verticalCenter - Math.round((item.get_height() - verticalCenterAnchorDisplayObject.get_height()) / 2);
+						top = Math.max(top,verticalOffset + this.getTopOffset(verticalCenterAnchorDisplayObject));
+					} else if(verticalCenter > 0) {
+						return verticalCenter * 2;
+					}
+				}
+				return top;
+			}
+		}
+		return item.get_y();
+	}
+	,getRightOffset: function(item) {
+		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			if(layoutData != null) {
+				var right = layoutData.get_right();
+				var hasRightPosition = right == right;
+				if(hasRightPosition) {
+					var rightAnchorDisplayObject = layoutData.get_rightAnchorDisplayObject();
+					if(rightAnchorDisplayObject != null) {
+						right += rightAnchorDisplayObject.get_width() + this.getRightOffset(rightAnchorDisplayObject);
+					} else {
+						return right;
+					}
+				} else {
+					right = 0;
+				}
+				var left = layoutData.get_left();
+				var hasLeftPosition = left == left;
+				if(hasLeftPosition) {
+					var leftAnchorDisplayObject = layoutData.get_leftAnchorDisplayObject();
+					if(leftAnchorDisplayObject != null) {
+						right = Math.max(right,-leftAnchorDisplayObject.get_width() - left + this.getRightOffset(leftAnchorDisplayObject));
+					}
+				}
+				var horizontalCenter = layoutData.get_horizontalCenter();
+				var hasHorizontalCenterPosition = horizontalCenter == horizontalCenter;
+				if(hasHorizontalCenterPosition) {
+					var horizontalCenterAnchorDisplayObject = layoutData.get_horizontalCenterAnchorDisplayObject();
+					if(horizontalCenterAnchorDisplayObject != null) {
+						var horizontalOffset = -horizontalCenter - Math.round((item.get_width() - horizontalCenterAnchorDisplayObject.get_width()) / 2);
+						right = Math.max(right,horizontalOffset + this.getRightOffset(horizontalCenterAnchorDisplayObject));
+					} else if(horizontalCenter < 0) {
+						return -horizontalCenter * 2;
+					}
+				}
+				return right;
+			}
+		}
+		return 0;
+	}
+	,getBottomOffset: function(item) {
+		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			if(layoutData != null) {
+				var bottom = layoutData.get_bottom();
+				var hasBottomPosition = bottom == bottom;
+				if(hasBottomPosition) {
+					var bottomAnchorDisplayObject = layoutData.get_bottomAnchorDisplayObject();
+					if(bottomAnchorDisplayObject != null) {
+						bottom += bottomAnchorDisplayObject.get_height() + this.getBottomOffset(bottomAnchorDisplayObject);
+					} else {
+						return bottom;
+					}
+				} else {
+					bottom = 0;
+				}
+				var top = layoutData.get_top();
+				var hasTopPosition = top == top;
+				if(hasTopPosition) {
+					var topAnchorDisplayObject = layoutData.get_topAnchorDisplayObject();
+					if(topAnchorDisplayObject != null) {
+						bottom = Math.max(bottom,-topAnchorDisplayObject.get_height() - top + this.getBottomOffset(topAnchorDisplayObject));
+					}
+				}
+				var verticalCenter = layoutData.get_verticalCenter();
+				var hasVerticalCenterPosition = verticalCenter == verticalCenter;
+				if(hasVerticalCenterPosition) {
+					var verticalCenterAnchorDisplayObject = layoutData.get_verticalCenterAnchorDisplayObject();
+					if(verticalCenterAnchorDisplayObject != null) {
+						var verticalOffset = -verticalCenter - Math.round((item.get_height() - verticalCenterAnchorDisplayObject.get_height()) / 2);
+						bottom = Math.max(bottom,verticalOffset + this.getBottomOffset(verticalCenterAnchorDisplayObject));
+					} else if(verticalCenter < 0) {
+						return -verticalCenter * 2;
+					}
+				}
+				return bottom;
+			}
+		}
+		return 0;
+	}
+	,getLeftOffset: function(item) {
+		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+			var layoutItem = item;
+			var layoutData = layoutItem.get_layoutData();
+			if(layoutData != null) {
+				var left = layoutData.get_left();
+				var hasLeftPosition = left == left;
+				var right = layoutData.get_right();
+				var hasRightPosition = right == right;
+				var horizontalCenter = layoutData.get_horizontalCenter();
+				var hasHorizontalCenterPosition = horizontalCenter == horizontalCenter;
+				if(hasLeftPosition) {
+					var leftAnchorDisplayObject = layoutData.get_leftAnchorDisplayObject();
+					if(leftAnchorDisplayObject != null) {
+						left += leftAnchorDisplayObject.get_width() + this.getLeftOffset(leftAnchorDisplayObject);
+					} else {
+						return left;
+					}
+				} else if(!hasRightPosition && !hasHorizontalCenterPosition) {
+					left = item.get_x();
+				} else {
+					left = 0;
+				}
+				if(hasRightPosition) {
+					var rightAnchorDisplayObject = layoutData.get_rightAnchorDisplayObject();
+					if(rightAnchorDisplayObject != null) {
+						left = Math.max(left,-rightAnchorDisplayObject.get_width() - right + this.getLeftOffset(rightAnchorDisplayObject));
+					}
+				}
+				if(hasHorizontalCenterPosition) {
+					var horizontalCenterAnchorDisplayObject = layoutData.get_horizontalCenterAnchorDisplayObject();
+					if(horizontalCenterAnchorDisplayObject != null) {
+						var horizontalOffset = horizontalCenter - Math.round((item.get_width() - horizontalCenterAnchorDisplayObject.get_width()) / 2);
+						left = Math.max(left,horizontalOffset + this.getLeftOffset(horizontalCenterAnchorDisplayObject));
+					} else if(horizontalCenter > 0) {
+						return horizontalCenter * 2;
+					}
+				}
+				return left;
+			}
+		}
+		return item.get_x();
+	}
+	,layoutWithBounds: function(items,x,y,width,height) {
+		this._helperVector1.splice(0,this._helperVector1.length);
+		this._helperVector2.splice(0,this._helperVector2.length);
+		var mainVector = items;
+		var otherVector = this._helperVector1;
+		this.layoutVector(items,otherVector,x,y,width,height);
+		var currentLength = otherVector.length;
+		while(currentLength > 0) {
+			if(otherVector == this._helperVector1) {
+				mainVector = this._helperVector1;
+				otherVector = this._helperVector2;
+			} else {
+				mainVector = this._helperVector2;
+				otherVector = this._helperVector1;
+			}
+			this.layoutVector(mainVector,otherVector,x,y,width,height);
+			var oldLength = currentLength;
+			currentLength = otherVector.length;
+			if(oldLength == currentLength) {
+				this._helperVector1.splice(0,this._helperVector1.length);
+				this._helperVector2.splice(0,this._helperVector2.length);
+				throw new openfl_errors_IllegalOperationError("It is impossible to create this layout due to a circular reference in the AnchorLayoutData.");
+			}
+		}
+		this._helperVector1.splice(0,this._helperVector1.length);
+		this._helperVector2.splice(0,this._helperVector2.length);
+	}
+	,layoutVector: function(items,unpositionedItems,boundsX,boundsY,viewPortWidth,viewPortHeight) {
+		unpositionedItems.splice(0,unpositionedItems.length);
+		var itemCount = items.length;
+		var pushIndex = 0;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = items[i];
+			var layoutItem = js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) ? item : null;
+			if(layoutItem == null || !layoutItem.get_includeInLayout()) {
+				continue;
+			}
+			var e = layoutItem.get_layoutData();
+			var layoutData = ((e) instanceof feathers_layout_AnchorLayoutData) ? e : null;
+			if(layoutData == null) {
+				continue;
+			}
+			var isReadyForLayout = this.isReadyForLayout(layoutData,i,items,unpositionedItems);
+			if(!isReadyForLayout) {
+				unpositionedItems[pushIndex] = item;
+				++pushIndex;
+				continue;
+			}
+			this.positionHorizontally(layoutItem,layoutData,boundsX,boundsY,viewPortWidth,viewPortHeight);
+			this.positionVertically(layoutItem,layoutData,boundsX,boundsY,viewPortWidth,viewPortHeight);
+		}
+	}
+	,positionHorizontally: function(item,layoutData,boundsX,boundsY,viewPortWidth,viewPortHeight) {
+		var uiItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+		var percentWidth = layoutData.get_percentWidth();
+		var itemWidth;
+		if(percentWidth == percentWidth) {
+			if(percentWidth < 0) {
+				percentWidth = 0;
+			} else if(percentWidth > 100) {
+				percentWidth = 100;
+			}
+			itemWidth = percentWidth * 0.01 * viewPortWidth;
+			if(uiItem != null) {
+				var minWidth = uiItem.get_explicitMinWidth();
+				var maxWidth = uiItem.get_explicitMaxWidth();
+				if(itemWidth < minWidth) {
+					itemWidth = minWidth;
+				} else if(itemWidth > maxWidth) {
+					itemWidth = maxWidth;
+				}
+			}
+			if(itemWidth > viewPortWidth) {
+				itemWidth = viewPortWidth;
+			}
+			if(uiItem.get_explicitMaxWidth() == uiItem.get_explicitMaxWidth() && uiItem.get_explicitMaxWidth() < itemWidth) {
+				itemWidth = uiItem.get_explicitMaxWidth();
+			}
+			item.set_width(itemWidth);
+		}
+		var left = layoutData.get_left();
+		var hasLeftPosition = left == left;
+		var leftAnchorDisplayObject = null;
+		if(hasLeftPosition) {
+			leftAnchorDisplayObject = layoutData.get_leftAnchorDisplayObject();
+			if(leftAnchorDisplayObject != null) {
+				item.set_x(item.get_pivotX() + leftAnchorDisplayObject.get_x() - leftAnchorDisplayObject.get_pivotX() + leftAnchorDisplayObject.get_width() + left);
+			} else {
+				item.set_x(item.get_pivotX() + boundsX + left);
+			}
+		}
+		var horizontalCenter = layoutData.get_horizontalCenter();
+		var hasHorizontalCenterPosition = horizontalCenter == horizontalCenter;
+		var right = layoutData.get_right();
+		var hasRightPosition = right == right;
+		var rightAnchorDisplayObject = null;
+		var horizontalCenterAnchorDisplayObject = null;
+		var xPositionOfCenter;
+		if(hasRightPosition) {
+			rightAnchorDisplayObject = layoutData.get_rightAnchorDisplayObject();
+			if(hasLeftPosition) {
+				var leftRightWidth = viewPortWidth;
+				if(rightAnchorDisplayObject != null) {
+					leftRightWidth = rightAnchorDisplayObject.get_x() - rightAnchorDisplayObject.get_pivotX();
+				}
+				if(leftAnchorDisplayObject != null) {
+					leftRightWidth -= leftAnchorDisplayObject.get_x() - leftAnchorDisplayObject.get_pivotX() + leftAnchorDisplayObject.get_width();
+				}
+				itemWidth = leftRightWidth - right - left;
+				if(uiItem.get_explicitMaxWidth() == uiItem.get_explicitMaxWidth() && uiItem.get_explicitMaxWidth() < itemWidth) {
+					itemWidth = uiItem.get_explicitMaxWidth();
+				}
+				item.set_width(itemWidth);
+			} else if(hasHorizontalCenterPosition) {
+				horizontalCenterAnchorDisplayObject = layoutData.get_horizontalCenterAnchorDisplayObject();
+				if(horizontalCenterAnchorDisplayObject != null) {
+					xPositionOfCenter = horizontalCenterAnchorDisplayObject.get_x() - horizontalCenterAnchorDisplayObject.get_pivotX() + Math.round(horizontalCenterAnchorDisplayObject.get_width() / 2) + horizontalCenter;
+				} else {
+					xPositionOfCenter = Math.round(viewPortWidth / 2) + horizontalCenter;
+				}
+				var xPositionOfRight;
+				if(rightAnchorDisplayObject != null) {
+					xPositionOfRight = rightAnchorDisplayObject.get_x() - rightAnchorDisplayObject.get_pivotX() - right;
+				} else {
+					xPositionOfRight = viewPortWidth - right;
+				}
+				itemWidth = 2 * (xPositionOfRight - xPositionOfCenter);
+				if(uiItem.get_explicitMaxWidth() == uiItem.get_explicitMaxWidth() && uiItem.get_explicitMaxWidth() < itemWidth) {
+					itemWidth = uiItem.get_explicitMaxWidth();
+				}
+				item.set_width(itemWidth);
+				item.set_x(item.get_pivotX() + viewPortWidth - right - item.get_width());
+			} else if(rightAnchorDisplayObject != null) {
+				item.set_x(item.get_pivotX() + rightAnchorDisplayObject.get_x() - rightAnchorDisplayObject.get_pivotX() - item.get_width() - right);
+			} else {
+				item.set_x(item.get_pivotX() + boundsX + viewPortWidth - right - item.get_width());
+			}
+		} else if(hasHorizontalCenterPosition) {
+			horizontalCenterAnchorDisplayObject = layoutData.get_horizontalCenterAnchorDisplayObject();
+			if(horizontalCenterAnchorDisplayObject != null) {
+				xPositionOfCenter = horizontalCenterAnchorDisplayObject.get_x() - horizontalCenterAnchorDisplayObject.get_pivotX() + Math.round(horizontalCenterAnchorDisplayObject.get_width() / 2) + horizontalCenter;
+			} else {
+				xPositionOfCenter = Math.round(viewPortWidth / 2) + horizontalCenter;
+			}
+			if(hasLeftPosition) {
+				itemWidth = 2 * (xPositionOfCenter - item.get_x() + item.get_pivotX());
+				if(uiItem.get_explicitMaxWidth() == uiItem.get_explicitMaxWidth() && uiItem.get_explicitMaxWidth() < itemWidth) {
+					itemWidth = uiItem.get_explicitMaxWidth();
+				}
+				item.set_width(itemWidth);
+			} else {
+				item.set_x(item.get_pivotX() + xPositionOfCenter - Math.round(item.get_width() / 2));
+			}
+		}
+	}
+	,positionVertically: function(item,layoutData,boundsX,boundsY,viewPortWidth,viewPortHeight) {
+		var uiItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+		var percentHeight = layoutData.get_percentHeight();
+		var itemHeight;
+		if(percentHeight == percentHeight) {
+			if(percentHeight < 0) {
+				percentHeight = 0;
+			} else if(percentHeight > 100) {
+				percentHeight = 100;
+			}
+			itemHeight = percentHeight * 0.01 * viewPortHeight;
+			if(uiItem != null) {
+				var minHeight = uiItem.get_explicitMinHeight();
+				var maxHeight = uiItem.get_explicitMaxHeight();
+				if(itemHeight < minHeight) {
+					itemHeight = minHeight;
+				} else if(itemHeight > maxHeight) {
+					itemHeight = maxHeight;
+				}
+			}
+			if(itemHeight > viewPortHeight) {
+				itemHeight = viewPortHeight;
+			}
+			if(uiItem.get_explicitMaxHeight() == uiItem.get_explicitMaxHeight() && uiItem.get_explicitMaxHeight() < itemHeight) {
+				itemHeight = uiItem.get_explicitMaxHeight();
+			}
+			item.set_height(itemHeight);
+		}
+		var top = layoutData.get_top();
+		var hasTopPosition = top == top;
+		var topAnchorDisplayObject = null;
+		if(hasTopPosition) {
+			topAnchorDisplayObject = layoutData.get_topAnchorDisplayObject();
+			if(topAnchorDisplayObject != null) {
+				item.set_y(item.get_pivotY() + topAnchorDisplayObject.get_y() - topAnchorDisplayObject.get_pivotY() + topAnchorDisplayObject.get_height() + top);
+			} else {
+				item.set_y(item.get_pivotY() + boundsY + top);
+			}
+		}
+		var verticalCenter = layoutData.get_verticalCenter();
+		var hasVerticalCenterPosition = verticalCenter == verticalCenter;
+		var bottom = layoutData.get_bottom();
+		var hasBottomPosition = bottom == bottom;
+		var bottomAnchorDisplayObject = null;
+		var verticalCenterAnchorDisplayObject = null;
+		var yPositionOfCenter;
+		if(hasBottomPosition) {
+			bottomAnchorDisplayObject = layoutData.get_bottomAnchorDisplayObject();
+			if(hasTopPosition) {
+				var topBottomHeight = viewPortHeight;
+				if(bottomAnchorDisplayObject != null) {
+					topBottomHeight = bottomAnchorDisplayObject.get_y() - bottomAnchorDisplayObject.get_pivotY();
+				}
+				if(topAnchorDisplayObject != null) {
+					topBottomHeight -= topAnchorDisplayObject.get_y() - topAnchorDisplayObject.get_pivotY() + topAnchorDisplayObject.get_height();
+				}
+				itemHeight = topBottomHeight - bottom - top;
+				if(uiItem.get_explicitMaxHeight() == uiItem.get_explicitMaxHeight() && uiItem.get_explicitMaxHeight() < itemHeight) {
+					itemHeight = uiItem.get_explicitMaxHeight();
+				}
+				item.set_height(itemHeight);
+			} else if(hasVerticalCenterPosition) {
+				verticalCenterAnchorDisplayObject = layoutData.get_verticalCenterAnchorDisplayObject();
+				if(verticalCenterAnchorDisplayObject != null) {
+					yPositionOfCenter = verticalCenterAnchorDisplayObject.get_y() - verticalCenterAnchorDisplayObject.get_pivotY() + Math.round(verticalCenterAnchorDisplayObject.get_height() / 2) + verticalCenter;
+				} else {
+					yPositionOfCenter = Math.round(viewPortHeight / 2) + verticalCenter;
+				}
+				var yPositionOfBottom;
+				if(bottomAnchorDisplayObject != null) {
+					yPositionOfBottom = bottomAnchorDisplayObject.get_y() - bottomAnchorDisplayObject.get_pivotY() - bottom;
+				} else {
+					yPositionOfBottom = viewPortHeight - bottom;
+				}
+				itemHeight = 2 * (yPositionOfBottom - yPositionOfCenter);
+				if(uiItem.get_explicitMaxHeight() == uiItem.get_explicitMaxHeight() && uiItem.get_explicitMaxHeight() < itemHeight) {
+					itemHeight = uiItem.get_explicitMaxHeight();
+				}
+				item.set_height(itemHeight);
+				item.set_y(item.get_pivotY() + viewPortHeight - bottom - item.get_height());
+			} else if(bottomAnchorDisplayObject != null) {
+				item.set_y(item.get_pivotY() + bottomAnchorDisplayObject.get_y() - bottomAnchorDisplayObject.get_pivotY() - item.get_height() - bottom);
+			} else {
+				item.set_y(item.get_pivotY() + boundsY + viewPortHeight - bottom - item.get_height());
+			}
+		} else if(hasVerticalCenterPosition) {
+			verticalCenterAnchorDisplayObject = layoutData.get_verticalCenterAnchorDisplayObject();
+			if(verticalCenterAnchorDisplayObject != null) {
+				yPositionOfCenter = verticalCenterAnchorDisplayObject.get_y() - verticalCenterAnchorDisplayObject.get_pivotY() + Math.round(verticalCenterAnchorDisplayObject.get_height() / 2) + verticalCenter;
+			} else {
+				yPositionOfCenter = Math.round(viewPortHeight / 2) + verticalCenter;
+			}
+			if(hasTopPosition) {
+				itemHeight = 2 * (yPositionOfCenter - item.get_y() + item.get_pivotY());
+				if(uiItem.get_explicitMaxHeight() == uiItem.get_explicitMaxHeight() && uiItem.get_explicitMaxHeight() < itemHeight) {
+					itemHeight = uiItem.get_explicitMaxHeight();
+				}
+				item.set_height(itemHeight);
+			} else {
+				item.set_y(item.get_pivotY() + yPositionOfCenter - Math.round(item.get_height() / 2));
+			}
+		}
+	}
+	,measureContent: function(items,viewPortWidth,viewPortHeight,result) {
+		var maxX = viewPortWidth;
+		var maxY = viewPortHeight;
+		var itemCount = items.length;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = items[i];
+			var itemMaxX = item.get_x() - item.get_pivotX() + item.get_width();
+			var itemMaxY = item.get_y() - item.get_pivotY() + item.get_height();
+			if(itemMaxX == itemMaxX && itemMaxX > maxX) {
+				maxX = itemMaxX;
+			}
+			if(itemMaxY == itemMaxY && itemMaxY > maxY) {
+				maxY = itemMaxY;
+			}
+		}
+		result.x = maxX;
+		result.y = maxY;
+		return result;
+	}
+	,isReadyForLayout: function(layoutData,index,items,unpositionedItems) {
+		var nextIndex = index + 1;
+		var leftAnchorDisplayObject = layoutData.get_leftAnchorDisplayObject();
+		if(leftAnchorDisplayObject != null && (items.indexOf(leftAnchorDisplayObject,nextIndex) >= nextIndex || unpositionedItems.indexOf(leftAnchorDisplayObject) >= 0)) {
+			return false;
+		}
+		var rightAnchorDisplayObject = layoutData.get_rightAnchorDisplayObject();
+		if(rightAnchorDisplayObject != null && (items.indexOf(rightAnchorDisplayObject,nextIndex) >= nextIndex || unpositionedItems.indexOf(rightAnchorDisplayObject) >= 0)) {
+			return false;
+		}
+		var topAnchorDisplayObject = layoutData.get_topAnchorDisplayObject();
+		if(topAnchorDisplayObject != null && (items.indexOf(topAnchorDisplayObject,nextIndex) >= nextIndex || unpositionedItems.indexOf(topAnchorDisplayObject) >= 0)) {
+			return false;
+		}
+		var bottomAnchorDisplayObject = layoutData.get_bottomAnchorDisplayObject();
+		if(bottomAnchorDisplayObject != null && (items.indexOf(bottomAnchorDisplayObject,nextIndex) >= nextIndex || unpositionedItems.indexOf(bottomAnchorDisplayObject) >= 0)) {
+			return false;
+		}
+		var horizontalCenterAnchorDisplayObject = layoutData.get_horizontalCenterAnchorDisplayObject();
+		if(horizontalCenterAnchorDisplayObject != null && (items.indexOf(horizontalCenterAnchorDisplayObject,nextIndex) >= nextIndex || unpositionedItems.indexOf(horizontalCenterAnchorDisplayObject) >= 0)) {
+			return false;
+		}
+		var verticalCenterAnchorDisplayObject = layoutData.get_verticalCenterAnchorDisplayObject();
+		if(verticalCenterAnchorDisplayObject != null && (items.indexOf(verticalCenterAnchorDisplayObject,nextIndex) >= nextIndex || unpositionedItems.indexOf(verticalCenterAnchorDisplayObject) >= 0)) {
+			return false;
+		}
+		return true;
+	}
+	,isReferenced: function(item,items) {
+		var itemCount = items.length;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var e = items[i];
+			var otherItem = js_Boot.__implements(e,feathers_layout_ILayoutDisplayObject) ? e : null;
+			if(otherItem == null || js_Boot.__cast(otherItem , starling_display_DisplayObject) == item) {
+				continue;
+			}
+			var layoutData = js_Boot.__cast(otherItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			if(layoutData == null) {
+				continue;
+			}
+			if(layoutData.get_leftAnchorDisplayObject() == item || layoutData.get_horizontalCenterAnchorDisplayObject() == item || layoutData.get_rightAnchorDisplayObject() == item || layoutData.get_topAnchorDisplayObject() == item || layoutData.get_verticalCenterAnchorDisplayObject() == item || layoutData.get_bottomAnchorDisplayObject() == item) {
+				return true;
+			}
+		}
+		return false;
+	}
+	,validateItems: function(items,explicitWidth,explicitHeight,maxWidth,maxHeight,force) {
+		var needsWidth = explicitWidth != explicitWidth;
+		var needsHeight = explicitHeight != explicitHeight;
+		var containerWidth = explicitWidth;
+		if(needsWidth && maxWidth < Infinity) {
+			containerWidth = maxWidth;
+		}
+		var containerHeight = explicitHeight;
+		if(needsHeight && maxHeight < Infinity) {
+			containerHeight = maxHeight;
+		}
+		var itemCount = items.length;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = items[i];
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+				var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				if(!layoutItem.get_includeInLayout()) {
+					continue;
+				}
+				var e = layoutItem.get_layoutData();
+				var layoutData = ((e) instanceof feathers_layout_AnchorLayoutData) ? e : null;
+				if(layoutData != null) {
+					var left = layoutData.get_left();
+					var hasLeftPosition = left == left;
+					var leftAnchor = layoutData.get_leftAnchorDisplayObject();
+					var right = layoutData.get_right();
+					var rightAnchor = layoutData.get_rightAnchorDisplayObject();
+					var hasRightPosition = right == right;
+					var percentWidth = layoutData.get_percentWidth();
+					var hasPercentWidth = percentWidth == percentWidth;
+					var measureItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+					if(needsWidth) {
+						if(hasLeftPosition && leftAnchor == null && hasRightPosition && rightAnchor == null) {
+							measureItem.set_width(NaN);
+							measureItem.set_maxWidth(maxWidth - left - right);
+						} else if(hasPercentWidth) {
+							if(percentWidth < 0) {
+								percentWidth = 0;
+							} else if(percentWidth > 100) {
+								percentWidth = 100;
+							}
+							measureItem.set_width(NaN);
+							measureItem.set_maxWidth(percentWidth * 0.01 * maxWidth);
+						}
+					} else {
+						var itemWidth;
+						if(hasLeftPosition && leftAnchor == null && hasRightPosition && rightAnchor == null) {
+							itemWidth = containerWidth - left - right;
+							if(measureItem.get_explicitMaxWidth() == measureItem.get_explicitMaxWidth() && measureItem.get_explicitMaxWidth() < itemWidth) {
+								itemWidth = measureItem.get_explicitMaxWidth();
+							}
+							item.set_width(itemWidth);
+						} else if(hasPercentWidth) {
+							if(percentWidth < 0) {
+								percentWidth = 0;
+							} else if(percentWidth > 100) {
+								percentWidth = 100;
+							}
+							itemWidth = percentWidth * 0.01 * containerWidth;
+							if(measureItem.get_explicitMaxWidth() == measureItem.get_explicitMaxWidth() && measureItem.get_explicitMaxWidth() < itemWidth) {
+								itemWidth = measureItem.get_explicitMaxWidth();
+							}
+							item.set_width(itemWidth);
+						}
+					}
+					var horizontalCenter = layoutData.get_horizontalCenter();
+					var hasHorizontalCenterPosition = horizontalCenter == horizontalCenter;
+					var top = layoutData.get_top();
+					var hasTopPosition = top == top;
+					var topAnchor = layoutData.get_topAnchorDisplayObject();
+					var bottom = layoutData.get_bottom();
+					var hasBottomPosition = bottom == bottom;
+					var bottomAnchor = layoutData.get_bottomAnchorDisplayObject();
+					var percentHeight = layoutData.get_percentHeight();
+					var hasPercentHeight = percentHeight == percentHeight;
+					var itemHeight;
+					if(!needsHeight) {
+						if(hasTopPosition && topAnchor == null && hasBottomPosition && bottomAnchor == null) {
+							itemHeight = containerHeight - top - bottom;
+							if(measureItem.get_explicitMaxHeight() == measureItem.get_explicitMaxHeight() && measureItem.get_explicitMaxHeight() < itemHeight) {
+								itemHeight = measureItem.get_explicitMaxHeight();
+							}
+							item.set_height(itemHeight);
+						} else if(hasPercentHeight) {
+							if(percentHeight < 0) {
+								percentHeight = 0;
+							} else if(percentHeight > 100) {
+								percentHeight = 100;
+							}
+							itemHeight = percentHeight * 0.01 * containerHeight;
+							if(measureItem.get_explicitMaxHeight() == measureItem.get_explicitMaxHeight() && measureItem.get_explicitMaxHeight() < itemHeight) {
+								itemHeight = measureItem.get_explicitMaxHeight();
+							}
+							item.set_height(itemHeight);
+						}
+					}
+					var verticalCenter = layoutData.get_verticalCenter();
+					var hasVerticalCenterPosition = verticalCenter == verticalCenter;
+					if(hasRightPosition && !hasLeftPosition && !hasHorizontalCenterPosition || hasHorizontalCenterPosition) {
+						if(js_Boot.__implements(item,feathers_core_IValidating)) {
+							(js_Boot.__cast(item , feathers_core_IValidating)).validate();
+						}
+						continue;
+					} else if(hasBottomPosition && !hasTopPosition && !hasVerticalCenterPosition || hasVerticalCenterPosition) {
+						if(js_Boot.__implements(item,feathers_core_IValidating)) {
+							(js_Boot.__cast(item , feathers_core_IValidating)).validate();
+						}
+						continue;
+					}
+				}
+			}
+			if(force || this.isReferenced(item,items)) {
+				if(js_Boot.__implements(item,feathers_core_IValidating)) {
+					(js_Boot.__cast(item , feathers_core_IValidating)).validate();
+				}
+			}
+		}
+	}
+	,__class__: feathers_layout_AnchorLayout
+	,__properties__: {get_requiresLayoutOnScroll:"get_requiresLayoutOnScroll"}
+});
 var Game = function() {
 	starling_display_Sprite.call(this);
 };
@@ -9537,9 +10370,9 @@ Game.prototype = $extend(starling_display_Sprite.prototype,{
 		var loader = new starlingbuilder_engine_LayoutLoader(ParsedLayouts);
 		Game.assetManager.enqueue([openfl_utils_Assets.getPath("assets/textures/atlas.png"),openfl_utils_Assets.getPath("assets/textures/atlas.xml")]);
 		Game.assetManager.loadQueue(function(ratio) {
-			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 40, className : "Game", methodName : "start"});
+			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 41, className : "Game", methodName : "start"});
 			if(ratio == 1) {
-				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 42, className : "Game", methodName : "start"});
+				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 43, className : "Game", methodName : "start"});
 				_gthis._sprite = new starling_display_Sprite();
 				_gthis._sprite = Game.uiBuilder.create(ParsedLayouts.game_ui,false,_gthis);
 				_gthis.addChild(_gthis._sprite);
@@ -9660,7 +10493,7 @@ ManifestResources.init = function(config) {
 		ManifestResources.rootPath = "./";
 	}
 	var bundle;
-	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei872y4:typey4:TEXTy2:idR1y7:preloadtgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R7R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R8R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R9R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R10R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R11R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R12R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R13R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R14R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R15R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R16R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R17R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R19R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R20R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R18R5R21R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
+	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei1769y4:typey4:TEXTy2:idR1y7:preloadtgoR0y25:assets%2Fgame_ui_old.jsonR2i872R3R4R5R7R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R9R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R10R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R11R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R12R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R13R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R14R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R15R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R16R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R17R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R20R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R19R5R22R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
 	var manifest = lime_utils_AssetManifest.parse(data,ManifestResources.rootPath);
 	var library = lime_utils_AssetLibrary.fromManifest(manifest);
 	lime_utils_Assets.registerLibrary("default",library);
@@ -12793,25 +13626,222 @@ feathers_core_ValidationQueue.prototype = {
 var feathers_events_FeathersEventType = function() { };
 $hxClasses["feathers.events.FeathersEventType"] = feathers_events_FeathersEventType;
 feathers_events_FeathersEventType.__name__ = "feathers.events.FeathersEventType";
-var feathers_layout_ILayout = function() { };
-$hxClasses["feathers.layout.ILayout"] = feathers_layout_ILayout;
-feathers_layout_ILayout.__name__ = "feathers.layout.ILayout";
-feathers_layout_ILayout.__isInterface__ = true;
-feathers_layout_ILayout.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
-feathers_layout_ILayout.prototype = {
-	get_requiresLayoutOnScroll: null
-	,layout: null
-	,calculateNavigationDestination: null
-	,getScrollPositionForIndex: null
-	,getNearestScrollPositionForIndex: null
-	,__class__: feathers_layout_ILayout
-	,__properties__: {get_requiresLayoutOnScroll:"get_requiresLayoutOnScroll"}
-};
 var feathers_layout_ILayoutData = function() { };
 $hxClasses["feathers.layout.ILayoutData"] = feathers_layout_ILayoutData;
 feathers_layout_ILayoutData.__name__ = "feathers.layout.ILayoutData";
 feathers_layout_ILayoutData.__isInterface__ = true;
 feathers_layout_ILayoutData.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
+var feathers_layout_AnchorLayoutData = function(top,right,bottom,left,horizontalCenter,verticalCenter) {
+	this._verticalCenter = NaN;
+	this._horizontalCenter = NaN;
+	this._left = NaN;
+	this._bottom = NaN;
+	this._right = NaN;
+	this._top = NaN;
+	this._percentHeight = NaN;
+	this._percentWidth = NaN;
+	starling_events_EventDispatcher.call(this);
+	if(top == null) {
+		top = NaN;
+	}
+	if(right == null) {
+		right = NaN;
+	}
+	if(bottom == null) {
+		bottom = NaN;
+	}
+	if(left == null) {
+		left = NaN;
+	}
+	if(horizontalCenter == null) {
+		horizontalCenter = NaN;
+	}
+	if(verticalCenter == null) {
+		verticalCenter = NaN;
+	}
+	this.set_top(top);
+	this.set_right(right);
+	this.set_bottom(bottom);
+	this.set_left(left);
+	this.set_horizontalCenter(horizontalCenter);
+	this.set_verticalCenter(verticalCenter);
+};
+$hxClasses["feathers.layout.AnchorLayoutData"] = feathers_layout_AnchorLayoutData;
+feathers_layout_AnchorLayoutData.__name__ = "feathers.layout.AnchorLayoutData";
+feathers_layout_AnchorLayoutData.__interfaces__ = [feathers_layout_ILayoutData];
+feathers_layout_AnchorLayoutData.__super__ = starling_events_EventDispatcher;
+feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_percentWidth: null
+	,get_percentWidth: function() {
+		return this._percentWidth;
+	}
+	,set_percentWidth: function(value) {
+		if(this._percentWidth == value) {
+			return this._percentWidth;
+		}
+		this._percentWidth = value;
+		this.dispatchEventWith("change");
+		return this._percentWidth;
+	}
+	,_percentHeight: null
+	,get_percentHeight: function() {
+		return this._percentHeight;
+	}
+	,set_percentHeight: function(value) {
+		if(this._percentHeight == value) {
+			return this._percentHeight;
+		}
+		this._percentHeight = value;
+		this.dispatchEventWith("change");
+		return this._percentHeight;
+	}
+	,_topAnchorDisplayObject: null
+	,get_topAnchorDisplayObject: function() {
+		return this._topAnchorDisplayObject;
+	}
+	,set_topAnchorDisplayObject: function(value) {
+		if(this._topAnchorDisplayObject == value) {
+			return this._topAnchorDisplayObject;
+		}
+		this._topAnchorDisplayObject = value;
+		this.dispatchEventWith("change");
+		return this._topAnchorDisplayObject;
+	}
+	,_top: null
+	,get_top: function() {
+		return this._top;
+	}
+	,set_top: function(value) {
+		if(this._top == value) {
+			return this._top;
+		}
+		this._top = value;
+		this.dispatchEventWith("change");
+		return this._top;
+	}
+	,_rightAnchorDisplayObject: null
+	,get_rightAnchorDisplayObject: function() {
+		return this._rightAnchorDisplayObject;
+	}
+	,set_rightAnchorDisplayObject: function(value) {
+		if(this._rightAnchorDisplayObject == value) {
+			return this._rightAnchorDisplayObject;
+		}
+		this._rightAnchorDisplayObject = value;
+		this.dispatchEventWith("change");
+		return this._rightAnchorDisplayObject;
+	}
+	,_right: null
+	,get_right: function() {
+		return this._right;
+	}
+	,set_right: function(value) {
+		if(this._right == value) {
+			return this._right;
+		}
+		this._right = value;
+		this.dispatchEventWith("change");
+		return this._right;
+	}
+	,_bottomAnchorDisplayObject: null
+	,get_bottomAnchorDisplayObject: function() {
+		return this._bottomAnchorDisplayObject;
+	}
+	,set_bottomAnchorDisplayObject: function(value) {
+		if(this._bottomAnchorDisplayObject == value) {
+			return this._bottomAnchorDisplayObject;
+		}
+		this._bottomAnchorDisplayObject = value;
+		this.dispatchEventWith("change");
+		return this._bottomAnchorDisplayObject;
+	}
+	,_bottom: null
+	,get_bottom: function() {
+		return this._bottom;
+	}
+	,set_bottom: function(value) {
+		if(this._bottom == value) {
+			return this._bottom;
+		}
+		this._bottom = value;
+		this.dispatchEventWith("change");
+		return this._bottom;
+	}
+	,_leftAnchorDisplayObject: null
+	,get_leftAnchorDisplayObject: function() {
+		return this._leftAnchorDisplayObject;
+	}
+	,set_leftAnchorDisplayObject: function(value) {
+		if(this._leftAnchorDisplayObject == value) {
+			return this._leftAnchorDisplayObject;
+		}
+		this._leftAnchorDisplayObject = value;
+		this.dispatchEventWith("change");
+		return this._leftAnchorDisplayObject;
+	}
+	,_left: null
+	,get_left: function() {
+		return this._left;
+	}
+	,set_left: function(value) {
+		if(this._left == value) {
+			return this._left;
+		}
+		this._left = value;
+		this.dispatchEventWith("change");
+		return this._left;
+	}
+	,_horizontalCenterAnchorDisplayObject: null
+	,get_horizontalCenterAnchorDisplayObject: function() {
+		return this._horizontalCenterAnchorDisplayObject;
+	}
+	,set_horizontalCenterAnchorDisplayObject: function(value) {
+		if(this._horizontalCenterAnchorDisplayObject == value) {
+			return this._horizontalCenterAnchorDisplayObject;
+		}
+		this._horizontalCenterAnchorDisplayObject = value;
+		this.dispatchEventWith("change");
+		return this._horizontalCenterAnchorDisplayObject;
+	}
+	,_horizontalCenter: null
+	,get_horizontalCenter: function() {
+		return this._horizontalCenter;
+	}
+	,set_horizontalCenter: function(value) {
+		if(this._horizontalCenter == value) {
+			return this._horizontalCenter;
+		}
+		this._horizontalCenter = value;
+		this.dispatchEventWith("change");
+		return this._horizontalCenter;
+	}
+	,_verticalCenterAnchorDisplayObject: null
+	,get_verticalCenterAnchorDisplayObject: function() {
+		return this._verticalCenterAnchorDisplayObject;
+	}
+	,set_verticalCenterAnchorDisplayObject: function(value) {
+		if(this._verticalCenterAnchorDisplayObject == value) {
+			return this._verticalCenterAnchorDisplayObject;
+		}
+		this._verticalCenterAnchorDisplayObject = value;
+		this.dispatchEventWith("change");
+		return this._verticalCenterAnchorDisplayObject;
+	}
+	,_verticalCenter: null
+	,get_verticalCenter: function() {
+		return this._verticalCenter;
+	}
+	,set_verticalCenter: function(value) {
+		if(this._verticalCenter == value) {
+			return this._verticalCenter;
+		}
+		this._verticalCenter = value;
+		this.dispatchEventWith("change");
+		return this._verticalCenter;
+	}
+	,__class__: feathers_layout_AnchorLayoutData
+	,__properties__: {set_verticalCenter:"set_verticalCenter",get_verticalCenter:"get_verticalCenter",set_verticalCenterAnchorDisplayObject:"set_verticalCenterAnchorDisplayObject",get_verticalCenterAnchorDisplayObject:"get_verticalCenterAnchorDisplayObject",set_horizontalCenter:"set_horizontalCenter",get_horizontalCenter:"get_horizontalCenter",set_horizontalCenterAnchorDisplayObject:"set_horizontalCenterAnchorDisplayObject",get_horizontalCenterAnchorDisplayObject:"get_horizontalCenterAnchorDisplayObject",set_left:"set_left",get_left:"get_left",set_leftAnchorDisplayObject:"set_leftAnchorDisplayObject",get_leftAnchorDisplayObject:"get_leftAnchorDisplayObject",set_bottom:"set_bottom",get_bottom:"get_bottom",set_bottomAnchorDisplayObject:"set_bottomAnchorDisplayObject",get_bottomAnchorDisplayObject:"get_bottomAnchorDisplayObject",set_right:"set_right",get_right:"get_right",set_rightAnchorDisplayObject:"set_rightAnchorDisplayObject",get_rightAnchorDisplayObject:"get_rightAnchorDisplayObject",set_top:"set_top",get_top:"get_top",set_topAnchorDisplayObject:"set_topAnchorDisplayObject",get_topAnchorDisplayObject:"get_topAnchorDisplayObject",set_percentHeight:"set_percentHeight",get_percentHeight:"get_percentHeight",set_percentWidth:"set_percentWidth",get_percentWidth:"get_percentWidth"}
+});
 var feathers_layout_IVirtualLayout = function() { };
 $hxClasses["feathers.layout.IVirtualLayout"] = feathers_layout_IVirtualLayout;
 feathers_layout_IVirtualLayout.__name__ = "feathers.layout.IVirtualLayout";
@@ -13475,6 +14505,9 @@ feathers_utils_skins_FeathersSkinsUtils.resetFluidChildDimensionsForMeasurement 
 		measureChild.set_maxHeight(childMaxHeight);
 	}
 };
+var feathers_utils_type_SafeCast = function() { };
+$hxClasses["feathers.utils.type.SafeCast"] = feathers_utils_type_SafeCast;
+feathers_utils_type_SafeCast.__name__ = "feathers.utils.type.SafeCast";
 var format_amf_Reader = function(i) {
 	this.i = i;
 	i.set_bigEndian(true);
@@ -36975,7 +38008,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 733522;
+	this.version = 160642;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -103008,7 +104041,8 @@ feathers_core_FeathersControl.ILLEGAL_HEIGHT_ERROR = "A component's height canno
 feathers_core_FeathersControl.ABSTRACT_CLASS_ERROR = "FeathersControl is an abstract class. For a lightweight Feathers wrapper, use feathers.controls.LayoutGroup.";
 feathers_controls_LayoutGroup.INVALIDATION_FLAG_CLIPPING = "clipping";
 feathers_controls_LayoutGroup.ALTERNATE_STYLE_NAME_TOOLBAR = "feathers-toolbar-layout-group";
-Game.linkers = [starling_display_Button,feathers_controls_LayoutGroup];
+feathers_layout_AnchorLayout.CIRCULAR_REFERENCE_ERROR = "It is impossible to create this layout due to a circular reference in the AnchorLayoutData.";
+Game.linkers = [starling_display_Button,feathers_controls_LayoutGroup,feathers_layout_AnchorLayout];
 Xml.Element = 0;
 Xml.PCData = 1;
 Xml.CData = 2;

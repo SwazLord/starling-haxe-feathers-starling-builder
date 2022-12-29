@@ -1,5 +1,6 @@
 package;
 
+import feathers.layout.AnchorLayout;
 import feathers.controls.LayoutGroup;
 import starlingbuilder.engine.UIBuilder;
 import starlingbuilder.engine.IUIBuilder;
@@ -21,7 +22,7 @@ class Game extends Sprite {
 	private var _sprite:Sprite;
 
 	public static var uiBuilder:IUIBuilder;
-	public static var linkers:Array<Dynamic> = [Button, LayoutGroup];
+	public static var linkers:Array<Dynamic> = [Button, LayoutGroup, AnchorLayout];
 
 	public function new() {
 		super();
