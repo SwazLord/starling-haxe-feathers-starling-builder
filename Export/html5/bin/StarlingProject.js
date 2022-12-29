@@ -915,7 +915,7 @@ ApplicationMain.main = function() {
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
-	app.meta.h["build"] = "4";
+	app.meta.h["build"] = "5";
 	app.meta.h["company"] = "Company Name";
 	app.meta.h["file"] = "StarlingProject";
 	app.meta.h["name"] = "StarlingProject";
@@ -7329,6 +7329,2195 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 	,__class__: starling_display_Button
 	,__properties__: $extend(starling_display_DisplayObjectContainer.prototype.__properties__,{set_scale9Grid:"set_scale9Grid",get_scale9Grid:"get_scale9Grid",set_pixelSnapping:"set_pixelSnapping",get_pixelSnapping:"get_pixelSnapping",get_overlay:"get_overlay",set_textureSmoothing:"set_textureSmoothing",get_textureSmoothing:"get_textureSmoothing",set_color:"set_color",get_color:"get_color",set_textBounds:"set_textBounds",get_textBounds:"get_textBounds",set_disabledState:"set_disabledState",get_disabledState:"get_disabledState",set_overState:"set_overState",get_overState:"get_overState",set_downState:"set_downState",get_downState:"get_downState",set_upState:"set_upState",get_upState:"get_upState",set_style:"set_style",get_style:"get_style",set_textStyle:"set_textStyle",get_textStyle:"get_textStyle",set_textFormat:"set_textFormat",get_textFormat:"get_textFormat",set_text:"set_text",get_text:"get_text",set_enabled:"set_enabled",get_enabled:"get_enabled",set_alphaWhenDisabled:"set_alphaWhenDisabled",get_alphaWhenDisabled:"get_alphaWhenDisabled",set_alphaWhenDown:"set_alphaWhenDown",get_alphaWhenDown:"get_alphaWhenDown",set_scaleWhenOver:"set_scaleWhenOver",get_scaleWhenOver:"get_scaleWhenOver",set_scaleWhenDown:"set_scaleWhenDown",get_scaleWhenDown:"get_scaleWhenDown",set_state:"set_state",get_state:"get_state"})
 });
+var feathers_core_IFeathersEventDispatcher = function() { };
+$hxClasses["feathers.core.IFeathersEventDispatcher"] = feathers_core_IFeathersEventDispatcher;
+feathers_core_IFeathersEventDispatcher.__name__ = "feathers.core.IFeathersEventDispatcher";
+feathers_core_IFeathersEventDispatcher.__isInterface__ = true;
+feathers_core_IFeathersEventDispatcher.prototype = {
+	addEventListener: null
+	,removeEventListener: null
+	,removeEventListeners: null
+	,dispatchEvent: null
+	,dispatchEventWith: null
+	,hasEventListener: null
+	,__class__: feathers_core_IFeathersEventDispatcher
+};
+var feathers_core_IFeathersDisplayObject = function() { };
+$hxClasses["feathers.core.IFeathersDisplayObject"] = feathers_core_IFeathersDisplayObject;
+feathers_core_IFeathersDisplayObject.__name__ = "feathers.core.IFeathersDisplayObject";
+feathers_core_IFeathersDisplayObject.__isInterface__ = true;
+feathers_core_IFeathersDisplayObject.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
+feathers_core_IFeathersDisplayObject.prototype = {
+	get_x: null
+	,set_x: null
+	,get_y: null
+	,set_y: null
+	,get_width: null
+	,set_width: null
+	,get_height: null
+	,set_height: null
+	,get_pivotX: null
+	,set_pivotX: null
+	,get_pivotY: null
+	,set_pivotY: null
+	,get_scaleX: null
+	,set_scaleX: null
+	,get_scaleY: null
+	,set_scaleY: null
+	,get_skewX: null
+	,set_skewX: null
+	,get_skewY: null
+	,set_skewY: null
+	,get_blendMode: null
+	,set_blendMode: null
+	,get_name: null
+	,set_name: null
+	,get_touchable: null
+	,set_touchable: null
+	,get_visible: null
+	,set_visible: null
+	,get_alpha: null
+	,set_alpha: null
+	,get_rotation: null
+	,set_rotation: null
+	,get_mask: null
+	,set_mask: null
+	,get_parent: null
+	,get_base: null
+	,get_root: null
+	,get_stage: null
+	,get_transformationMatrix: null
+	,get_useHandCursor: null
+	,set_useHandCursor: null
+	,get_bounds: null
+	,get_filter: null
+	,set_filter: null
+	,removeFromParent: null
+	,hitTest: null
+	,localToGlobal: null
+	,globalToLocal: null
+	,getTransformationMatrix: null
+	,getBounds: null
+	,render: null
+	,dispose: null
+	,__class__: feathers_core_IFeathersDisplayObject
+	,__properties__: {set_filter:"set_filter",get_filter:"get_filter",get_bounds:"get_bounds",set_useHandCursor:"set_useHandCursor",get_useHandCursor:"get_useHandCursor",get_transformationMatrix:"get_transformationMatrix",get_stage:"get_stage",get_root:"get_root",get_base:"get_base",get_parent:"get_parent",set_mask:"set_mask",get_mask:"get_mask",set_rotation:"set_rotation",get_rotation:"get_rotation",set_alpha:"set_alpha",get_alpha:"get_alpha",set_visible:"set_visible",get_visible:"get_visible",set_touchable:"set_touchable",get_touchable:"get_touchable",set_name:"set_name",get_name:"get_name",set_blendMode:"set_blendMode",get_blendMode:"get_blendMode",set_skewY:"set_skewY",get_skewY:"get_skewY",set_skewX:"set_skewX",get_skewX:"get_skewX",set_scaleY:"set_scaleY",get_scaleY:"get_scaleY",set_scaleX:"set_scaleX",get_scaleX:"get_scaleX",set_pivotY:"set_pivotY",get_pivotY:"get_pivotY",set_pivotX:"set_pivotX",get_pivotX:"get_pivotX",set_height:"set_height",get_height:"get_height",set_width:"set_width",get_width:"get_width",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x"}
+};
+var feathers_layout_ILayoutDisplayObject = function() { };
+$hxClasses["feathers.layout.ILayoutDisplayObject"] = feathers_layout_ILayoutDisplayObject;
+feathers_layout_ILayoutDisplayObject.__name__ = "feathers.layout.ILayoutDisplayObject";
+feathers_layout_ILayoutDisplayObject.__isInterface__ = true;
+feathers_layout_ILayoutDisplayObject.__interfaces__ = [feathers_core_IFeathersDisplayObject];
+feathers_layout_ILayoutDisplayObject.prototype = {
+	get_layoutData: null
+	,set_layoutData: null
+	,get_includeInLayout: null
+	,set_includeInLayout: null
+	,__class__: feathers_layout_ILayoutDisplayObject
+	,__properties__: {set_includeInLayout:"set_includeInLayout",get_includeInLayout:"get_includeInLayout",set_layoutData:"set_layoutData",get_layoutData:"get_layoutData"}
+};
+var feathers_core_IMeasureDisplayObject = function() { };
+$hxClasses["feathers.core.IMeasureDisplayObject"] = feathers_core_IMeasureDisplayObject;
+feathers_core_IMeasureDisplayObject.__name__ = "feathers.core.IMeasureDisplayObject";
+feathers_core_IMeasureDisplayObject.__isInterface__ = true;
+feathers_core_IMeasureDisplayObject.__interfaces__ = [feathers_core_IFeathersDisplayObject];
+feathers_core_IMeasureDisplayObject.prototype = {
+	get_minWidth: null
+	,set_minWidth: null
+	,get_maxWidth: null
+	,set_maxWidth: null
+	,get_minHeight: null
+	,set_minHeight: null
+	,get_maxHeight: null
+	,set_maxHeight: null
+	,get_explicitWidth: null
+	,get_explicitMinWidth: null
+	,get_explicitMaxWidth: null
+	,get_explicitHeight: null
+	,get_explicitMinHeight: null
+	,get_explicitMaxHeight: null
+	,__class__: feathers_core_IMeasureDisplayObject
+	,__properties__: {set_maxHeight:"set_maxHeight",get_maxHeight:"get_maxHeight",get_explicitMaxHeight:"get_explicitMaxHeight",set_minHeight:"set_minHeight",get_minHeight:"get_minHeight",get_explicitMinHeight:"get_explicitMinHeight",get_explicitHeight:"get_explicitHeight",set_maxWidth:"set_maxWidth",get_maxWidth:"get_maxWidth",get_explicitMaxWidth:"get_explicitMaxWidth",set_minWidth:"set_minWidth",get_minWidth:"get_minWidth",get_explicitMinWidth:"get_explicitMinWidth",get_explicitWidth:"get_explicitWidth"}
+};
+var feathers_core_IValidating = function() { };
+$hxClasses["feathers.core.IValidating"] = feathers_core_IValidating;
+feathers_core_IValidating.__name__ = "feathers.core.IValidating";
+feathers_core_IValidating.__isInterface__ = true;
+feathers_core_IValidating.__interfaces__ = [feathers_core_IFeathersDisplayObject];
+feathers_core_IValidating.prototype = {
+	get_depth: null
+	,validate: null
+	,__class__: feathers_core_IValidating
+	,__properties__: {get_depth:"get_depth"}
+};
+var feathers_core_IFeathersControl = function() { };
+$hxClasses["feathers.core.IFeathersControl"] = feathers_core_IFeathersControl;
+feathers_core_IFeathersControl.__name__ = "feathers.core.IFeathersControl";
+feathers_core_IFeathersControl.__isInterface__ = true;
+feathers_core_IFeathersControl.__interfaces__ = [feathers_core_IMeasureDisplayObject,feathers_core_IValidating];
+feathers_core_IFeathersControl.prototype = {
+	get_isEnabled: null
+	,set_isEnabled: null
+	,get_styleName: null
+	,set_styleName: null
+	,get_styleProvider: null
+	,set_styleProvider: null
+	,get_toolTip: null
+	,set_toolTip: null
+	,get_isInitialized: null
+	,get_isCreated: null
+	,get_styleNameList: null
+	,get_effectsSuspended: null
+	,setSize: null
+	,move: null
+	,resetStyleProvider: null
+	,initializeNow: null
+	,suspendEffects: null
+	,resumeEffects: null
+	,__class__: feathers_core_IFeathersControl
+	,__properties__: {get_effectsSuspended:"get_effectsSuspended",set_toolTip:"set_toolTip",get_toolTip:"get_toolTip",set_styleProvider:"set_styleProvider",get_styleProvider:"get_styleProvider",set_styleName:"set_styleName",get_styleName:"get_styleName",get_styleNameList:"get_styleNameList",get_isCreated:"get_isCreated",get_isInitialized:"get_isInitialized",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled"}
+};
+var feathers_core_FeathersControl = function() {
+	this._isDisposed = false;
+	this._invalidateCount = 0;
+	this._ignoreNextStyleRestriction = false;
+	this._suspendEffectsCount = 0;
+	this._depth = -1;
+	this._hasValidated = false;
+	this._isValidating = false;
+	this._showFocus = false;
+	this._hasFocus = false;
+	this._focusPaddingLeft = 0;
+	this._focusPaddingBottom = 0;
+	this._focusPaddingRight = 0;
+	this._focusPaddingTop = 0;
+	this._nextLeftFocus = null;
+	this._nextDownFocus = null;
+	this._nextRightFocus = null;
+	this._nextUpFocus = null;
+	this._previousTabFocus = null;
+	this._nextTabFocus = null;
+	this._isFocusEnabled = true;
+	this._includeInLayout = true;
+	this._explicitMaxHeight = Infinity;
+	this._explicitMaxWidth = Infinity;
+	this.scaledActualMinHeight = 0;
+	this.actualMinHeight = 0;
+	this._explicitMinHeight = NaN;
+	this.scaledActualMinWidth = 0;
+	this.actualMinWidth = 0;
+	this._explicitMinWidth = NaN;
+	this._minTouchHeight = 0;
+	this._minTouchWidth = 0;
+	this.scaledActualHeight = 0;
+	this.actualHeight = 0;
+	this._explicitHeight = NaN;
+	this.scaledActualWidth = 0;
+	this.actualWidth = 0;
+	this._moveEffect = null;
+	this._moveEffectContext = null;
+	this._resizeEffect = null;
+	this._resizeEffectContext = null;
+	this._explicitWidth = NaN;
+	this._isEnabled = true;
+	this._delayedInvalidationFlags = new haxe_ds_StringMap();
+	this._invalidationFlags = new haxe_ds_StringMap();
+	this._isAllInvalid = false;
+	this._applyingStyles = false;
+	this._isInitialized = false;
+	this._isInitializing = false;
+	this._hitArea = new openfl_geom_Rectangle();
+	this._isQuickHitAreaEnabled = false;
+	this._styleNameList = new feathers_core_TokenList();
+	this._disposeAfterRemovedEffect = false;
+	this._removedEffectContext = null;
+	this._addedEffect = null;
+	this._addedEffectContext = null;
+	this._focusOutEffect = null;
+	this._focusOutEffectContext = null;
+	this._focusInEffect = null;
+	this._focusInEffectContext = null;
+	this._pendingVisible = true;
+	this._hideEffect = null;
+	this._hideEffectContext = null;
+	this._showEffect = null;
+	this._showEffectContext = null;
+	starling_display_Sprite.call(this);
+	this._styleProvider = this.get_defaultStyleProvider();
+	this.addEventListener("addedToStage",$bind(this,this.feathersControl_addedToStageHandler));
+	this.addEventListener("removedFromStage",$bind(this,this.feathersControl_removedFromStageHandler));
+	if(js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+		this.addEventListener("focusIn",$bind(this,this.focusInHandler));
+		this.addEventListener("focusOut",$bind(this,this.focusOutHandler));
+	}
+};
+$hxClasses["feathers.core.FeathersControl"] = feathers_core_FeathersControl;
+feathers_core_FeathersControl.__name__ = "feathers.core.FeathersControl";
+feathers_core_FeathersControl.__interfaces__ = [feathers_layout_ILayoutDisplayObject,feathers_core_IFeathersControl];
+feathers_core_FeathersControl.defaultTextRendererFactory = function() {
+	return new feathers_controls_text_BitmapFontTextRenderer();
+};
+feathers_core_FeathersControl.defaultTextEditorFactory = function() {
+	return new feathers_controls_text_StageTextTextEditor();
+};
+feathers_core_FeathersControl.__super__ = starling_display_Sprite;
+feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.prototype,{
+	_showEffectContext: null
+	,_showEffect: null
+	,get_showEffect: function() {
+		return this._showEffect;
+	}
+	,set_showEffect: function(value) {
+		this._showEffect = value;
+		return this._showEffect;
+	}
+	,_hideEffectContext: null
+	,_hideEffect: null
+	,get_hideEffect: function() {
+		return this._hideEffect;
+	}
+	,set_hideEffect: function(value) {
+		this._hideEffect = value;
+		return this._hideEffect;
+	}
+	,_pendingVisible: null
+	,set_visible: function(value) {
+		if(value == this._pendingVisible) {
+			return this._pendingVisible;
+		}
+		this._pendingVisible = value;
+		if(this._suspendEffectsCount == 0 && this._hideEffectContext != null) {
+			this._hideEffectContext.interrupt();
+			this._hideEffectContext = null;
+		}
+		if(this._suspendEffectsCount == 0 && this._showEffectContext != null) {
+			this._showEffectContext.interrupt();
+			this._showEffectContext = null;
+		}
+		if(this._pendingVisible) {
+			starling_display_Sprite.prototype.set_visible.call(this,this._pendingVisible);
+			if(this.get_isCreated() && this._suspendEffectsCount == 0 && this._showEffect != null && this.get_stage() != null) {
+				this._showEffectContext = js_Boot.__cast(this._showEffect(this) , feathers_motion_effectClasses_IEffectContext);
+				this._showEffectContext.addEventListener("complete",$bind(this,this.showEffectContext_completeHandler));
+				this._showEffectContext.play();
+			}
+		} else if(!this.get_isCreated() || this._suspendEffectsCount > 0 || this._hideEffect == null || this.get_stage() == null) {
+			starling_display_Sprite.prototype.set_visible.call(this,this._pendingVisible);
+		} else {
+			this._hideEffectContext = js_Boot.__cast(this._hideEffect(this) , feathers_motion_effectClasses_IEffectContext);
+			this._hideEffectContext.addEventListener("complete",$bind(this,this.hideEffectContext_completeHandler));
+			this._hideEffectContext.play();
+		}
+		return this._pendingVisible;
+	}
+	,_focusInEffectContext: null
+	,_focusInEffect: null
+	,get_focusInEffect: function() {
+		return this._focusInEffect;
+	}
+	,set_focusInEffect: function(value) {
+		this._focusInEffect = value;
+		return this._focusInEffect;
+	}
+	,_focusOutEffectContext: null
+	,_focusOutEffect: null
+	,get_focusOutEffect: function() {
+		return this._focusOutEffect;
+	}
+	,set_focusOutEffect: function(value) {
+		this._focusOutEffect = value;
+		return this._focusOutEffect;
+	}
+	,_addedEffectContext: null
+	,_addedEffect: null
+	,get_addedEffect: function() {
+		return this._addedEffect;
+	}
+	,set_addedEffect: function(value) {
+		this._addedEffect = value;
+		return this._addedEffect;
+	}
+	,_removedEffectContext: null
+	,_disposeAfterRemovedEffect: null
+	,_validationQueue: null
+	,get_styleName: function() {
+		return this._styleNameList.get_value();
+	}
+	,set_styleName: function(value) {
+		this._styleNameList.set_value(value);
+		return this._styleNameList.get_value();
+	}
+	,_styleNameList: null
+	,get_styleNameList: function() {
+		return this._styleNameList;
+	}
+	,_styleProvider: null
+	,get_styleProvider: function() {
+		return this._styleProvider;
+	}
+	,set_styleProvider: function(value) {
+		if(this._styleProvider == value) {
+			return this._styleProvider;
+		}
+		if(this._applyingStyles) {
+			throw new openfl_errors_IllegalOperationError("Cannot change styleProvider while the current style provider is applying styles.");
+		}
+		if(this._styleProvider != null && ((this._styleProvider) instanceof starling_events_EventDispatcher)) {
+			(js_Boot.__cast(this._styleProvider , starling_events_EventDispatcher)).removeEventListener("change",$bind(this,this.styleProvider_changeHandler));
+		}
+		this._styleProvider = value;
+		if(this._styleProvider != null) {
+			if(this.get_isInitialized()) {
+				this._applyingStyles = true;
+				this._styleProvider.applyStyles(this);
+				this._applyingStyles = false;
+			}
+			if(((this._styleProvider) instanceof starling_events_EventDispatcher)) {
+				(js_Boot.__cast(this._styleProvider , starling_events_EventDispatcher)).addEventListener("change",$bind(this,this.styleProvider_changeHandler));
+			}
+		}
+		return this._styleProvider;
+	}
+	,get_defaultStyleProvider: function() {
+		return null;
+	}
+	,_isQuickHitAreaEnabled: null
+	,get_isQuickHitAreaEnabled: function() {
+		return this._isQuickHitAreaEnabled;
+	}
+	,set_isQuickHitAreaEnabled: function(value) {
+		this._isQuickHitAreaEnabled = value;
+		return this._isQuickHitAreaEnabled;
+	}
+	,_hitArea: null
+	,_isInitializing: null
+	,_isInitialized: null
+	,get_isInitialized: function() {
+		return this._isInitialized;
+	}
+	,_applyingStyles: null
+	,_restrictedStyles: null
+	,_isAllInvalid: null
+	,_invalidationFlags: null
+	,_delayedInvalidationFlags: null
+	,_isEnabled: null
+	,get_isEnabled: function() {
+		return this._isEnabled;
+	}
+	,set_isEnabled: function(value) {
+		if(this._isEnabled == value) {
+			return this._isEnabled;
+		}
+		this._isEnabled = value;
+		this.invalidate("state");
+		return this._isEnabled;
+	}
+	,_explicitWidth: null
+	,get_explicitWidth: function() {
+		return this._explicitWidth;
+	}
+	,_resizeEffectContext: null
+	,_resizeEffect: null
+	,get_resizeEffect: function() {
+		return this._resizeEffect;
+	}
+	,set_resizeEffect: function(value) {
+		this._resizeEffect = value;
+		return this._resizeEffect;
+	}
+	,_moveEffectContext: null
+	,_moveEffect: null
+	,get_moveEffect: function() {
+		return this._moveEffect;
+	}
+	,set_moveEffect: function(value) {
+		this._moveEffect = value;
+		return this._moveEffect;
+	}
+	,set_x: function(value) {
+		var newY = this.get_y();
+		var moveEffectContext;
+		if(this._suspendEffectsCount == 0 && this._moveEffectContext != null) {
+			if(js_Boot.__implements(this._moveEffectContext,feathers_motion_effectClasses_IMoveEffectContext)) {
+				moveEffectContext = this._moveEffectContext;
+				newY = moveEffectContext.get_newY();
+			}
+			this._moveEffectContext.interrupt();
+			this._moveEffectContext = null;
+		}
+		if(this.get_isCreated() && this._suspendEffectsCount == 0 && this._moveEffect != null) {
+			this._moveEffectContext = js_Boot.__cast(this._moveEffect(this) , feathers_motion_effectClasses_IEffectContext);
+			this._moveEffectContext.addEventListener("complete",$bind(this,this.moveEffectContext_completeHandler));
+			if(js_Boot.__implements(this._moveEffectContext,feathers_motion_effectClasses_IMoveEffectContext)) {
+				moveEffectContext = this._moveEffectContext;
+				moveEffectContext.set_oldX(this.get_x());
+				moveEffectContext.set_oldY(this.get_y());
+				moveEffectContext.set_newX(value);
+				moveEffectContext.set_newY(newY);
+			} else {
+				starling_display_Sprite.prototype.set_x.call(this,value);
+			}
+			this._moveEffectContext.play();
+		} else {
+			starling_display_Sprite.prototype.set_x.call(this,value);
+		}
+		return starling_display_Sprite.prototype.get_x.call(this);
+	}
+	,set_y: function(value) {
+		var newX = this.get_x();
+		var moveEffectContext;
+		if(this._suspendEffectsCount == 0 && this._moveEffectContext != null) {
+			if(js_Boot.__implements(this._moveEffectContext,feathers_motion_effectClasses_IMoveEffectContext)) {
+				moveEffectContext = this._moveEffectContext;
+				newX = moveEffectContext.get_newX();
+			}
+			this._moveEffectContext.interrupt();
+			this._moveEffectContext = null;
+		}
+		if(this.get_isCreated() && this._suspendEffectsCount == 0 && this._moveEffect != null) {
+			this._moveEffectContext = this._moveEffect(this);
+			this._moveEffectContext.addEventListener("complete",$bind(this,this.moveEffectContext_completeHandler));
+			if(js_Boot.__implements(this._moveEffectContext,feathers_motion_effectClasses_IMoveEffectContext)) {
+				moveEffectContext = this._moveEffectContext;
+				moveEffectContext.set_oldX(this.get_x());
+				moveEffectContext.set_oldY(this.get_y());
+				moveEffectContext.set_newX(newX);
+				moveEffectContext.set_newY(value);
+			} else {
+				starling_display_Sprite.prototype.set_y.call(this,value);
+			}
+			this._moveEffectContext.play();
+		} else {
+			starling_display_Sprite.prototype.set_y.call(this,value);
+		}
+		return starling_display_Sprite.prototype.get_y.call(this);
+	}
+	,actualWidth: null
+	,scaledActualWidth: null
+	,get_width: function() {
+		return this.scaledActualWidth;
+	}
+	,set_width: function(value) {
+		var valueIsNaN = value != value;
+		if(valueIsNaN && this._explicitWidth != this._explicitWidth) {
+			return this.get_width();
+		}
+		if(this.get_scaleX() != 1) {
+			value /= this.get_scaleX();
+		}
+		if(this._explicitWidth == value) {
+			return this.get_width();
+		}
+		var hasSetExplicitWidth = false;
+		var newHeight = this.actualHeight;
+		var resizeEffectContext;
+		if(this._suspendEffectsCount == 0 && this._resizeEffectContext != null) {
+			if(js_Boot.__implements(this._resizeEffectContext,feathers_motion_effectClasses_IResizeEffectContext)) {
+				resizeEffectContext = this._resizeEffectContext;
+				newHeight = resizeEffectContext.get_newHeight();
+			}
+			this._resizeEffectContext.interrupt();
+			this._resizeEffectContext = null;
+		}
+		if(!valueIsNaN && this.get_isCreated() && this._suspendEffectsCount == 0 && this._resizeEffect != null) {
+			this._resizeEffectContext = this._resizeEffect(this);
+			this._resizeEffectContext.addEventListener("complete",$bind(this,this.resizeEffectContext_completeHandler));
+			if(js_Boot.__implements(this._resizeEffectContext,feathers_motion_effectClasses_IResizeEffectContext)) {
+				resizeEffectContext = this._resizeEffectContext;
+				resizeEffectContext.set_oldWidth(this.actualWidth);
+				resizeEffectContext.set_oldHeight(this.actualHeight);
+				resizeEffectContext.set_newWidth(value);
+				resizeEffectContext.set_newHeight(newHeight);
+			} else {
+				this._explicitWidth = value;
+				hasSetExplicitWidth = true;
+			}
+			this._resizeEffectContext.play();
+		} else {
+			this._explicitWidth = value;
+			hasSetExplicitWidth = true;
+		}
+		if(hasSetExplicitWidth) {
+			if(valueIsNaN) {
+				this.actualWidth = this.scaledActualWidth = 0;
+				this.invalidate("size");
+			} else {
+				var result = this.saveMeasurements(value,this.actualHeight,this.actualMinWidth,this.actualMinHeight);
+				if(result) {
+					this.invalidate("size");
+				}
+			}
+		}
+		return this.get_width();
+	}
+	,_explicitHeight: null
+	,get_explicitHeight: function() {
+		return this._explicitHeight;
+	}
+	,actualHeight: null
+	,scaledActualHeight: null
+	,get_height: function() {
+		return this.scaledActualHeight;
+	}
+	,set_height: function(value) {
+		var valueIsNaN = value != value;
+		if(valueIsNaN && this._explicitHeight != this._explicitHeight) {
+			return this.get_height();
+		}
+		if(this.get_scaleY() != 1) {
+			value /= this.get_scaleY();
+		}
+		if(this._explicitHeight == value) {
+			return this.get_height();
+		}
+		var hasSetExplicitHeight = false;
+		var newWidth = this.actualWidth;
+		var resizeEffectContext;
+		if(this._suspendEffectsCount == 0 && this._resizeEffectContext != null) {
+			if(js_Boot.__implements(this._resizeEffectContext,feathers_motion_effectClasses_IResizeEffectContext)) {
+				resizeEffectContext = this._resizeEffectContext;
+				newWidth = resizeEffectContext.get_newWidth();
+			}
+			this._resizeEffectContext.interrupt();
+			this._resizeEffectContext = null;
+		}
+		if(!valueIsNaN && this.get_isCreated() && this._suspendEffectsCount == 0 && this._resizeEffect != null) {
+			this._resizeEffectContext = this._resizeEffect(this);
+			this._resizeEffectContext.addEventListener("complete",$bind(this,this.resizeEffectContext_completeHandler));
+			if(js_Boot.__implements(this._resizeEffectContext,feathers_motion_effectClasses_IResizeEffectContext)) {
+				resizeEffectContext = this._resizeEffectContext;
+				resizeEffectContext.set_oldWidth(this.actualWidth);
+				resizeEffectContext.set_oldHeight(this.actualHeight);
+				resizeEffectContext.set_newWidth(newWidth);
+				resizeEffectContext.set_newHeight(value);
+			} else {
+				this._explicitHeight = value;
+				hasSetExplicitHeight = true;
+			}
+			this._resizeEffectContext.play();
+		} else {
+			this._explicitHeight = value;
+			hasSetExplicitHeight = true;
+		}
+		if(hasSetExplicitHeight) {
+			if(valueIsNaN) {
+				this.actualHeight = this.scaledActualHeight = 0;
+				this.invalidate("size");
+			} else {
+				var result = this.saveMeasurements(this.actualWidth,value,this.actualMinWidth,this.actualMinHeight);
+				if(result) {
+					this.invalidate("size");
+				}
+			}
+		}
+		return this.get_height();
+	}
+	,_minTouchWidth: null
+	,get_minTouchWidth: function() {
+		return this._minTouchWidth;
+	}
+	,set_minTouchWidth: function(value) {
+		if(this._minTouchWidth == value) {
+			return this.get_minTouchWidth();
+		}
+		this._minTouchWidth = value;
+		this.refreshHitAreaX();
+		return this.get_minTouchWidth();
+	}
+	,_minTouchHeight: null
+	,get_minTouchHeight: function() {
+		return this._minTouchHeight;
+	}
+	,set_minTouchHeight: function(value) {
+		if(this._minTouchHeight == value) {
+			return this.get_minTouchHeight();
+		}
+		this._minTouchHeight = value;
+		this.refreshHitAreaY();
+		return this.get_minTouchHeight();
+	}
+	,_explicitMinWidth: null
+	,get_explicitMinWidth: function() {
+		return this._explicitMinWidth;
+	}
+	,actualMinWidth: null
+	,scaledActualMinWidth: null
+	,get_minWidth: function() {
+		return this.scaledActualMinWidth;
+	}
+	,set_minWidth: function(value) {
+		var valueIsNaN = value != value;
+		if(valueIsNaN && this._explicitMinWidth != this._explicitMinWidth) {
+			return this.get_minWidth();
+		}
+		if(this.get_scaleX() != 1) {
+			value /= this.get_scaleX();
+		}
+		if(this._explicitMinWidth == value) {
+			return this.get_minWidth();
+		}
+		var oldValue = this._explicitMinWidth;
+		this._explicitMinWidth = value;
+		if(valueIsNaN) {
+			this.actualMinWidth = this.scaledActualMinWidth = 0;
+			this.invalidate("size");
+		} else {
+			var actualWidth = this.actualWidth;
+			this.saveMeasurements(actualWidth,this.actualHeight,value,this.actualMinHeight);
+			if(this._explicitWidth != this._explicitWidth && (actualWidth < value || actualWidth == oldValue)) {
+				this.invalidate("size");
+			}
+		}
+		return this.get_minWidth();
+	}
+	,_explicitMinHeight: null
+	,get_explicitMinHeight: function() {
+		return this._explicitMinHeight;
+	}
+	,actualMinHeight: null
+	,scaledActualMinHeight: null
+	,get_minHeight: function() {
+		return this.scaledActualMinHeight;
+	}
+	,set_minHeight: function(value) {
+		var valueIsNaN = value != value;
+		if(valueIsNaN && this._explicitMinHeight != this._explicitMinHeight) {
+			return this.get_minHeight();
+		}
+		if(this.get_scaleY() != 1) {
+			value /= this.get_scaleY();
+		}
+		if(this._explicitMinHeight == value) {
+			return this.get_minHeight();
+		}
+		var oldValue = this._explicitMinHeight;
+		this._explicitMinHeight = value;
+		if(valueIsNaN) {
+			this.actualMinHeight = this.scaledActualMinHeight = 0;
+			this.invalidate("size");
+		} else {
+			var actualHeight = this.actualHeight;
+			this.saveMeasurements(this.actualWidth,actualHeight,this.actualMinWidth,value);
+			if(this._explicitHeight != this._explicitHeight && (actualHeight < value || actualHeight == oldValue)) {
+				this.invalidate("size");
+			}
+		}
+		return this.get_minHeight();
+	}
+	,_explicitMaxWidth: null
+	,get_explicitMaxWidth: function() {
+		return this._explicitMaxWidth;
+	}
+	,get_maxWidth: function() {
+		return this._explicitMaxWidth;
+	}
+	,set_maxWidth: function(value) {
+		if(value < 0) {
+			value = 0;
+		}
+		if(this._explicitMaxWidth == value) {
+			return this.get_maxWidth();
+		}
+		if(value != value) {
+			throw new openfl_errors_ArgumentError("maxWidth cannot be NaN");
+		}
+		var oldValue = this._explicitMaxWidth;
+		this._explicitMaxWidth = value;
+		if(this._explicitWidth != this._explicitWidth && (this.actualWidth > value || this.actualWidth == oldValue)) {
+			this.invalidate("size");
+		}
+		return this.get_maxWidth();
+	}
+	,_explicitMaxHeight: null
+	,get_explicitMaxHeight: function() {
+		return this._explicitMaxHeight;
+	}
+	,get_maxHeight: function() {
+		return this._explicitMaxHeight;
+	}
+	,set_maxHeight: function(value) {
+		if(value < 0) {
+			value = 0;
+		}
+		if(this._explicitMaxHeight == value) {
+			return this.get_maxHeight();
+		}
+		if(value != value) {
+			throw new openfl_errors_ArgumentError("maxHeight cannot be NaN");
+		}
+		var oldValue = this._explicitMaxHeight;
+		this._explicitMaxHeight = value;
+		if(this._explicitHeight != this._explicitHeight && (this.actualHeight > value || this.actualHeight == oldValue)) {
+			this.invalidate("size");
+		}
+		return this.get_maxHeight();
+	}
+	,set_scaleX: function(value) {
+		starling_display_Sprite.prototype.set_scaleX.call(this,value);
+		this.saveMeasurements(this.actualWidth,this.actualHeight,this.actualMinWidth,this.actualMinHeight);
+		return this.get_scaleX();
+	}
+	,set_scaleY: function(value) {
+		starling_display_Sprite.prototype.set_scaleY.call(this,value);
+		this.saveMeasurements(this.actualWidth,this.actualHeight,this.actualMinWidth,this.actualMinHeight);
+		return this.get_scaleY();
+	}
+	,_includeInLayout: null
+	,get_includeInLayout: function() {
+		return this._includeInLayout;
+	}
+	,set_includeInLayout: function(value) {
+		if(this._includeInLayout == value) {
+			return this.get_includeInLayout();
+		}
+		this._includeInLayout = value;
+		this.dispatchEventWith("layoutDataChange");
+		return this.get_includeInLayout();
+	}
+	,_layoutData: null
+	,get_layoutData: function() {
+		return this._layoutData;
+	}
+	,set_layoutData: function(value) {
+		if(this._layoutData == value) {
+			return this.get_layoutData();
+		}
+		if(this._layoutData != null) {
+			this._layoutData.removeEventListener("change",$bind(this,this.layoutData_changeHandler));
+		}
+		this._layoutData = value;
+		if(this._layoutData != null) {
+			this._layoutData.addEventListener("change",$bind(this,this.layoutData_changeHandler));
+		}
+		this.dispatchEventWith("layoutDataChange");
+		return this.get_layoutData();
+	}
+	,_toolTip: null
+	,get_toolTip: function() {
+		return this._toolTip;
+	}
+	,set_toolTip: function(value) {
+		this._toolTip = value;
+		return this._toolTip;
+	}
+	,_focusManager: null
+	,get_focusManager: function() {
+		return this._focusManager;
+	}
+	,set_focusManager: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot pass a focus manager to a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		if(this._focusManager == value) {
+			return this._focusManager;
+		}
+		this._focusManager = value;
+		return this._focusManager;
+	}
+	,_focusOwner: null
+	,get_focusOwner: function() {
+		return this._focusOwner;
+	}
+	,set_focusOwner: function(value) {
+		this._focusOwner = value;
+		return this._focusOwner;
+	}
+	,_isFocusEnabled: null
+	,get_isFocusEnabled: function() {
+		if(this._isEnabled) {
+			return this._isFocusEnabled;
+		} else {
+			return false;
+		}
+	}
+	,set_isFocusEnabled: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot enable focus on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		if(this._isFocusEnabled == value) {
+			return this.get_isFocusEnabled();
+		}
+		this._isFocusEnabled = value;
+		return this.get_isFocusEnabled();
+	}
+	,get_isShowingFocus: function() {
+		return this._showFocus;
+	}
+	,get_maintainTouchFocus: function() {
+		return false;
+	}
+	,_nextTabFocus: null
+	,get_nextTabFocus: function() {
+		return this._nextTabFocus;
+	}
+	,set_nextTabFocus: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot set nextTabFocus on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		this._nextTabFocus = value;
+		return this._nextTabFocus;
+	}
+	,_previousTabFocus: null
+	,get_previousTabFocus: function() {
+		return this._previousTabFocus;
+	}
+	,set_previousTabFocus: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot set previousTabFocus on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		this._previousTabFocus = value;
+		return this._previousTabFocus;
+	}
+	,_nextUpFocus: null
+	,get_nextUpFocus: function() {
+		return this._nextUpFocus;
+	}
+	,set_nextUpFocus: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot set nextUpFocus on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		this._nextUpFocus = value;
+		return this._nextUpFocus;
+	}
+	,_nextRightFocus: null
+	,get_nextRightFocus: function() {
+		return this._nextRightFocus;
+	}
+	,set_nextRightFocus: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot set nextRightFocus on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		this._nextRightFocus = value;
+		return this._nextRightFocus;
+	}
+	,_nextDownFocus: null
+	,get_nextDownFocus: function() {
+		return this._nextDownFocus;
+	}
+	,set_nextDownFocus: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot set nextDownFocus on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		this._nextDownFocus = value;
+		return this._nextDownFocus;
+	}
+	,_nextLeftFocus: null
+	,get_nextLeftFocus: function() {
+		return this._nextLeftFocus;
+	}
+	,set_nextLeftFocus: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot set nextLeftFocus on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		this._nextLeftFocus = value;
+		return this._nextLeftFocus;
+	}
+	,_focusIndicatorSkin: null
+	,get_focusIndicatorSkin: function() {
+		return this._focusIndicatorSkin;
+	}
+	,set_focusIndicatorSkin: function(value) {
+		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_IllegalOperationError("Cannot set focus indicator skin on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		if(this.processStyleRestriction($bind(this,this.set_focusIndicatorSkin))) {
+			return this._focusIndicatorSkin;
+		}
+		if(this._focusIndicatorSkin == value) {
+			return this._focusIndicatorSkin;
+		}
+		if(this._focusIndicatorSkin != null) {
+			if(this._focusIndicatorSkin.get_parent() == this) {
+				this._focusIndicatorSkin.removeFromParent(false);
+			}
+			if(js_Boot.__implements(this._focusIndicatorSkin,feathers_core_IStateObserver) && js_Boot.__implements(this,feathers_core_IStateContext)) {
+				(js_Boot.__cast(this._focusIndicatorSkin , feathers_core_IStateObserver)).set_stateContext(null);
+			}
+		}
+		this._focusIndicatorSkin = value;
+		if(this._focusIndicatorSkin != null) {
+			this._focusIndicatorSkin.set_touchable(false);
+		}
+		if(js_Boot.__implements(this._focusIndicatorSkin,feathers_core_IStateObserver) && js_Boot.__implements(this,feathers_core_IStateContext)) {
+			(js_Boot.__cast(this._focusIndicatorSkin , feathers_core_IStateObserver)).set_stateContext(js_Boot.__cast(this , feathers_core_IStateContext));
+		}
+		if(this._focusManager != null && js_Boot.__cast(this._focusManager.get_focus() , feathers_core_IFeathersDisplayObject) == this) {
+			this.invalidate("styles");
+		}
+		return this._focusIndicatorSkin;
+	}
+	,get_focusPadding: function() {
+		return this._focusPaddingTop;
+	}
+	,set_focusPadding: function(value) {
+		this.set_focusPaddingTop(value);
+		this.set_focusPaddingRight(value);
+		this.set_focusPaddingBottom(value);
+		this.set_focusPaddingLeft(value);
+		return this.get_focusPadding();
+	}
+	,_focusPaddingTop: null
+	,get_focusPaddingTop: function() {
+		return this._focusPaddingTop;
+	}
+	,set_focusPaddingTop: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_focusPaddingTop))) {
+			return this.get_focusPaddingTop();
+		}
+		if(this._focusPaddingTop == value) {
+			return this.get_focusPaddingTop();
+		}
+		this._focusPaddingTop = value;
+		this.invalidate("focus");
+		return this.get_focusPaddingTop();
+	}
+	,_focusPaddingRight: null
+	,get_focusPaddingRight: function() {
+		return this._focusPaddingRight;
+	}
+	,set_focusPaddingRight: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_focusPaddingRight))) {
+			return this.get_focusPaddingRight();
+		}
+		if(this._focusPaddingRight == value) {
+			return this.get_focusPaddingRight();
+		}
+		this._focusPaddingRight = value;
+		this.invalidate("focus");
+		return this.get_focusPaddingRight();
+	}
+	,_focusPaddingBottom: null
+	,get_focusPaddingBottom: function() {
+		return this._focusPaddingBottom;
+	}
+	,set_focusPaddingBottom: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_focusPaddingBottom))) {
+			return this.get_focusPaddingBottom();
+		}
+		if(this._focusPaddingBottom == value) {
+			return this.get_focusPaddingBottom();
+		}
+		this._focusPaddingBottom = value;
+		this.invalidate("focus");
+		return this.get_focusPaddingBottom();
+	}
+	,_focusPaddingLeft: null
+	,get_focusPaddingLeft: function() {
+		return this._focusPaddingLeft;
+	}
+	,set_focusPaddingLeft: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_focusPaddingLeft))) {
+			return this.get_focusPaddingLeft();
+		}
+		if(this._focusPaddingLeft == value) {
+			return this.get_focusPaddingLeft();
+		}
+		this._focusPaddingLeft = value;
+		this.invalidate("focus");
+		return this.get_focusPaddingLeft();
+	}
+	,get_effectsSuspended: function() {
+		return this._suspendEffectsCount > 0;
+	}
+	,_hasFocus: null
+	,_showFocus: null
+	,_isValidating: null
+	,_hasValidated: null
+	,get_isCreated: function() {
+		return this._hasValidated;
+	}
+	,_depth: null
+	,get_depth: function() {
+		return this._depth;
+	}
+	,_suspendEffectsCount: null
+	,_ignoreNextStyleRestriction: null
+	,_invalidateCount: null
+	,getBounds: function(targetSpace,resultRect) {
+		if(resultRect == null) {
+			resultRect = new openfl_geom_Rectangle();
+		}
+		var minX = 1.79e+308;
+		var maxX = -1.79e+308;
+		var minY = 1.79e+308;
+		var maxY = -1.79e+308;
+		if(targetSpace == this) {
+			minX = 0;
+			minY = 0;
+			maxX = this.actualWidth;
+			maxY = this.actualHeight;
+		} else {
+			var matrix = starling_utils_Pool.getMatrix();
+			this.getTransformationMatrix(targetSpace,matrix);
+			starling_utils_MatrixUtil.transformCoords(matrix,0,0,feathers_core_FeathersControl.HELPER_POINT);
+			if(!(minX < feathers_core_FeathersControl.HELPER_POINT.x)) {
+				minX = feathers_core_FeathersControl.HELPER_POINT.x;
+			}
+			if(!(maxX > feathers_core_FeathersControl.HELPER_POINT.x)) {
+				maxX = feathers_core_FeathersControl.HELPER_POINT.x;
+			}
+			if(!(minY < feathers_core_FeathersControl.HELPER_POINT.y)) {
+				minY = feathers_core_FeathersControl.HELPER_POINT.y;
+			}
+			if(!(maxY > feathers_core_FeathersControl.HELPER_POINT.y)) {
+				maxY = feathers_core_FeathersControl.HELPER_POINT.y;
+			}
+			starling_utils_MatrixUtil.transformCoords(matrix,0,this.actualHeight,feathers_core_FeathersControl.HELPER_POINT);
+			if(!(minX < feathers_core_FeathersControl.HELPER_POINT.x)) {
+				minX = feathers_core_FeathersControl.HELPER_POINT.x;
+			}
+			if(!(maxX > feathers_core_FeathersControl.HELPER_POINT.x)) {
+				maxX = feathers_core_FeathersControl.HELPER_POINT.x;
+			}
+			if(!(minY < feathers_core_FeathersControl.HELPER_POINT.y)) {
+				minY = feathers_core_FeathersControl.HELPER_POINT.y;
+			}
+			if(!(maxY > feathers_core_FeathersControl.HELPER_POINT.y)) {
+				maxY = feathers_core_FeathersControl.HELPER_POINT.y;
+			}
+			starling_utils_MatrixUtil.transformCoords(matrix,this.actualWidth,0,feathers_core_FeathersControl.HELPER_POINT);
+			if(!(minX < feathers_core_FeathersControl.HELPER_POINT.x)) {
+				minX = feathers_core_FeathersControl.HELPER_POINT.x;
+			}
+			if(!(maxX > feathers_core_FeathersControl.HELPER_POINT.x)) {
+				maxX = feathers_core_FeathersControl.HELPER_POINT.x;
+			}
+			if(!(minY < feathers_core_FeathersControl.HELPER_POINT.y)) {
+				minY = feathers_core_FeathersControl.HELPER_POINT.y;
+			}
+			if(!(maxY > feathers_core_FeathersControl.HELPER_POINT.y)) {
+				maxY = feathers_core_FeathersControl.HELPER_POINT.y;
+			}
+			starling_utils_MatrixUtil.transformCoords(matrix,this.actualWidth,this.actualHeight,feathers_core_FeathersControl.HELPER_POINT);
+			if(!(minX < feathers_core_FeathersControl.HELPER_POINT.x)) {
+				minX = feathers_core_FeathersControl.HELPER_POINT.x;
+			}
+			if(!(maxX > feathers_core_FeathersControl.HELPER_POINT.x)) {
+				maxX = feathers_core_FeathersControl.HELPER_POINT.x;
+			}
+			if(!(minY < feathers_core_FeathersControl.HELPER_POINT.y)) {
+				minY = feathers_core_FeathersControl.HELPER_POINT.y;
+			}
+			if(!(maxY > feathers_core_FeathersControl.HELPER_POINT.y)) {
+				maxY = feathers_core_FeathersControl.HELPER_POINT.y;
+			}
+			starling_utils_Pool.putMatrix(matrix);
+		}
+		resultRect.x = minX;
+		resultRect.y = minY;
+		resultRect.width = maxX - minX;
+		resultRect.height = maxY - minY;
+		return resultRect;
+	}
+	,hitTest: function(localPoint) {
+		if(this._isQuickHitAreaEnabled) {
+			if(!this.get_visible() || !this.get_touchable()) {
+				return null;
+			}
+			if(this.get_mask() != null && !this.hitTestMask(localPoint)) {
+				return null;
+			}
+			if(this._hitArea.containsPoint(localPoint)) {
+				return this;
+			} else {
+				return null;
+			}
+		}
+		return starling_display_Sprite.prototype.hitTest.call(this,localPoint);
+	}
+	,_isDisposed: null
+	,dispose: function() {
+		if(this._focusIndicatorSkin != null && this._focusIndicatorSkin.get_parent() != this) {
+			this._focusIndicatorSkin.dispose();
+		}
+		this._isDisposed = true;
+		this._validationQueue = null;
+		this.set_layoutData(null);
+		this._styleNameList.removeEventListeners();
+		starling_display_Sprite.prototype.dispose.call(this);
+	}
+	,invalidate: function(flag) {
+		if(flag == null) {
+			flag = "all";
+		}
+		var isAlreadyInvalid = this.isInvalid();
+		var isAlreadyDelayedInvalid = false;
+		if(this._isValidating) {
+			var h = this._delayedInvalidationFlags.h;
+			var otherFlag_h = h;
+			var otherFlag_keys = Object.keys(h);
+			var otherFlag_length = otherFlag_keys.length;
+			var otherFlag_current = 0;
+			while(otherFlag_current < otherFlag_length) {
+				var otherFlag = otherFlag_h[otherFlag_keys[otherFlag_current++]];
+				isAlreadyDelayedInvalid = true;
+				break;
+			}
+		}
+		if(flag == null || flag == "all") {
+			if(this._isValidating) {
+				this._delayedInvalidationFlags.h["all"] = true;
+			} else {
+				this._isAllInvalid = true;
+			}
+		} else if(this._isValidating) {
+			this._delayedInvalidationFlags.h[flag] = true;
+		} else if(flag != "all" && !Object.prototype.hasOwnProperty.call(this._invalidationFlags.h,flag)) {
+			this._invalidationFlags.h[flag] = true;
+		}
+		if(this._validationQueue == null || !this._isInitialized) {
+			return;
+		}
+		if(this._isValidating) {
+			if(isAlreadyDelayedInvalid) {
+				return;
+			}
+			this._invalidateCount++;
+			if(this._invalidateCount >= 10) {
+				throw new openfl_errors_Error(openfl_Lib.getQualifiedClassName(this) + " returned to validation queue too many times during validation. This may be an infinite loop. Try to avoid doing anything that calls invalidate() during validation.");
+			}
+			this._validationQueue.addControl(this);
+			return;
+		}
+		if(isAlreadyInvalid) {
+			return;
+		}
+		this._invalidateCount = 0;
+		this._validationQueue.addControl(this);
+	}
+	,validate: function() {
+		if(this._isDisposed) {
+			return;
+		}
+		if(!this._isInitialized) {
+			if(this._isInitializing) {
+				throw new openfl_errors_IllegalOperationError("A component cannot validate until after it has finished initializing.");
+			}
+			this.initializeNow();
+		}
+		if(!this.isInvalid()) {
+			return;
+		}
+		if(this._isValidating) {
+			return;
+		}
+		this._isValidating = true;
+		this.draw();
+		var h = this._invalidationFlags.h;
+		var flag_h = h;
+		var flag_keys = Object.keys(h);
+		var flag_length = flag_keys.length;
+		var flag_current = 0;
+		while(flag_current < flag_length) {
+			var flag = flag_keys[flag_current++];
+			var _this = this._invalidationFlags;
+			if(Object.prototype.hasOwnProperty.call(_this.h,flag)) {
+				delete(_this.h[flag]);
+			}
+		}
+		this._isAllInvalid = false;
+		var h = this._delayedInvalidationFlags.h;
+		var flag_h = h;
+		var flag_keys = Object.keys(h);
+		var flag_length = flag_keys.length;
+		var flag_current = 0;
+		while(flag_current < flag_length) {
+			var flag = flag_keys[flag_current++];
+			if(flag == "all") {
+				this._isAllInvalid = true;
+			} else {
+				this._invalidationFlags.h[flag] = true;
+			}
+			var _this = this._delayedInvalidationFlags;
+			if(Object.prototype.hasOwnProperty.call(_this.h,flag)) {
+				delete(_this.h[flag]);
+			}
+		}
+		this._isValidating = false;
+		if(!this._hasValidated) {
+			this._hasValidated = true;
+			this.dispatchEventWith("creationComplete");
+			if(this._suspendEffectsCount == 0 && this.get_stage() != null && this._addedEffect != null) {
+				this._addedEffectContext = this._addedEffect(this);
+				this._addedEffectContext.addEventListener("complete",$bind(this,this.addedEffectContext_completeHandler));
+				this._addedEffectContext.play();
+			}
+		}
+	}
+	,isInvalid: function(flag) {
+		if(this._isAllInvalid) {
+			return true;
+		}
+		if(flag == null) {
+			var h = this._invalidationFlags.h;
+			var flag_h = h;
+			var flag_keys = Object.keys(h);
+			var flag_length = flag_keys.length;
+			var flag_current = 0;
+			while(flag_current < flag_length) {
+				var flag1 = flag_h[flag_keys[flag_current++]];
+				return true;
+			}
+			return false;
+		}
+		return this._invalidationFlags.h[flag];
+	}
+	,setSize: function(width,height) {
+		var hasSetExplicitSize = false;
+		if(this._suspendEffectsCount == 0 && this._resizeEffectContext != null) {
+			this._resizeEffectContext.interrupt();
+			this._resizeEffectContext = null;
+		}
+		var widthIsNaN = width != width;
+		var heightIsNaN = height != height;
+		if((!widthIsNaN || !heightIsNaN) && this.get_isCreated() && this._suspendEffectsCount == 0 && this._resizeEffect != null) {
+			this._resizeEffectContext = this._resizeEffect(this);
+			this._resizeEffectContext.addEventListener("complete",$bind(this,this.resizeEffectContext_completeHandler));
+			if(js_Boot.__implements(this._resizeEffectContext,feathers_motion_effectClasses_IResizeEffectContext)) {
+				var resizeEffectContext = this._resizeEffectContext;
+				resizeEffectContext.set_oldWidth(this.actualWidth);
+				resizeEffectContext.set_oldHeight(this.actualHeight);
+				if(widthIsNaN) {
+					resizeEffectContext.set_newWidth(this.actualWidth);
+				} else {
+					resizeEffectContext.set_newWidth(width);
+				}
+				if(heightIsNaN) {
+					resizeEffectContext.set_newHeight(this.actualHeight);
+				} else {
+					resizeEffectContext.set_newHeight(height);
+				}
+			} else {
+				this._explicitWidth = width;
+				this._explicitHeight = height;
+				hasSetExplicitSize = true;
+			}
+			this._resizeEffectContext.play();
+		} else {
+			this._explicitWidth = width;
+			this._explicitHeight = height;
+			hasSetExplicitSize = true;
+		}
+		if(hasSetExplicitSize) {
+			if(widthIsNaN) {
+				this.actualWidth = this.scaledActualWidth = 0;
+			}
+			if(heightIsNaN) {
+				this.actualHeight = this.scaledActualHeight = 0;
+			}
+			if(widthIsNaN || heightIsNaN) {
+				this.invalidate("size");
+			} else {
+				var result = this.saveMeasurements(width,height,this.actualMinWidth,this.actualMinHeight);
+				if(result) {
+					this.invalidate("size");
+				}
+			}
+		}
+	}
+	,move: function(x,y) {
+		if(this._suspendEffectsCount == 0 && this._moveEffectContext != null) {
+			this._moveEffectContext.interrupt();
+			this._moveEffectContext = null;
+		}
+		if(this.get_isCreated() && this._suspendEffectsCount == 0 && this._moveEffect != null) {
+			this._moveEffectContext = this._moveEffect(this);
+			this._moveEffectContext.addEventListener("complete",$bind(this,this.moveEffectContext_completeHandler));
+			if(js_Boot.__implements(this._moveEffectContext,feathers_motion_effectClasses_IMoveEffectContext)) {
+				var moveEffectContext = this._moveEffectContext;
+				moveEffectContext.set_oldX(this.get_x());
+				moveEffectContext.set_oldY(this.get_y());
+				moveEffectContext.set_newX(x);
+				moveEffectContext.set_newY(y);
+			} else {
+				starling_display_Sprite.prototype.set_x.call(this,x);
+				starling_display_Sprite.prototype.set_y.call(this,y);
+			}
+			this._moveEffectContext.play();
+		} else {
+			starling_display_Sprite.prototype.set_x.call(this,x);
+			starling_display_Sprite.prototype.set_y.call(this,y);
+		}
+	}
+	,removeFromParentWithEffect: function(effect,dispose) {
+		if(dispose == null) {
+			dispose = false;
+		}
+		if(this.get_isCreated() && this._suspendEffectsCount == 0) {
+			this._disposeAfterRemovedEffect = dispose;
+			this._removedEffectContext = effect(this);
+			this._removedEffectContext.addEventListener("complete",$bind(this,this.removedEffectContext_completeHandler));
+			this._removedEffectContext.play();
+		} else {
+			this.removeFromParent(dispose);
+		}
+	}
+	,resetStyleProvider: function() {
+		this.set_styleProvider(this.get_defaultStyleProvider());
+	}
+	,suspendEffects: function() {
+		this._suspendEffectsCount++;
+	}
+	,resumeEffects: function() {
+		this._suspendEffectsCount--;
+	}
+	,showFocus: function() {
+		if(!this._hasFocus || this._focusIndicatorSkin == null) {
+			return;
+		}
+		this._showFocus = true;
+		this.invalidate("focus");
+	}
+	,hideFocus: function() {
+		if(!this._hasFocus || this._focusIndicatorSkin == null) {
+			return;
+		}
+		this._showFocus = false;
+		this.invalidate("focus");
+	}
+	,initializeNow: function() {
+		if(this._isInitialized || this._isInitializing) {
+			return;
+		}
+		this._isInitializing = true;
+		this.initialize();
+		this.invalidate();
+		this._isInitializing = false;
+		this._isInitialized = true;
+		this.dispatchEventWith("initialize");
+		if(this._styleProvider != null) {
+			this._applyingStyles = true;
+			this._styleProvider.applyStyles(this);
+			this._applyingStyles = false;
+		}
+		this._styleNameList.addEventListener("change",$bind(this,this.styleNameList_changeHandler));
+	}
+	,setSizeInternal: function(width,height,canInvalidate) {
+		var changed = this.saveMeasurements(width,height,this.actualMinWidth,this.actualMinHeight);
+		if(canInvalidate && changed) {
+			this.invalidate("size");
+		}
+		return changed;
+	}
+	,saveMeasurements: function(width,height,minWidth,minHeight) {
+		if(minHeight == null) {
+			minHeight = 0;
+		}
+		if(minWidth == null) {
+			minWidth = 0;
+		}
+		if(this._explicitMinWidth == this._explicitMinWidth) {
+			minWidth = this._explicitMinWidth;
+		} else if(minWidth > this._explicitMaxWidth) {
+			minWidth = this._explicitMaxWidth;
+		}
+		if(this._explicitMinHeight == this._explicitMinHeight) {
+			minHeight = this._explicitMinHeight;
+		} else if(minHeight > this._explicitMaxHeight) {
+			minHeight = this._explicitMaxHeight;
+		}
+		if(this._explicitWidth == this._explicitWidth) {
+			width = this._explicitWidth;
+		} else if(width < minWidth) {
+			width = minWidth;
+		} else if(width > this._explicitMaxWidth) {
+			width = this._explicitMaxWidth;
+		}
+		if(this._explicitHeight == this._explicitHeight) {
+			height = this._explicitHeight;
+		} else if(height < minHeight) {
+			height = minHeight;
+		} else if(height > this._explicitMaxHeight) {
+			height = this._explicitMaxHeight;
+		}
+		if(width != width) {
+			throw new openfl_errors_ArgumentError("A component's width cannot be NaN.");
+		}
+		if(height != height) {
+			throw new openfl_errors_ArgumentError("A component's height cannot be NaN.");
+		}
+		var scaleX = this.get_scaleX();
+		if(scaleX < 0) {
+			scaleX = -scaleX;
+		}
+		var scaleY = this.get_scaleY();
+		if(scaleY < 0) {
+			scaleY = -scaleY;
+		}
+		var resized = false;
+		if(this.actualWidth != width) {
+			this.actualWidth = width;
+			this.refreshHitAreaX();
+			resized = true;
+		}
+		if(this.actualHeight != height) {
+			this.actualHeight = height;
+			this.refreshHitAreaY();
+			resized = true;
+		}
+		if(this.actualMinWidth != minWidth) {
+			this.actualMinWidth = minWidth;
+			resized = true;
+		}
+		if(this.actualMinHeight != minHeight) {
+			this.actualMinHeight = minHeight;
+			resized = true;
+		}
+		width = this.scaledActualWidth;
+		height = this.scaledActualHeight;
+		this.scaledActualWidth = this.actualWidth * scaleX;
+		this.scaledActualHeight = this.actualHeight * scaleY;
+		this.scaledActualMinWidth = this.actualMinWidth * scaleX;
+		this.scaledActualMinHeight = this.actualMinHeight * scaleY;
+		if(width != this.scaledActualWidth || height != this.scaledActualHeight) {
+			resized = true;
+			this.dispatchEventWith("resize");
+		}
+		return resized;
+	}
+	,initialize: function() {
+	}
+	,draw: function() {
+	}
+	,setInvalidationFlag: function(flag) {
+		if(Object.prototype.hasOwnProperty.call(this._invalidationFlags.h,flag)) {
+			return;
+		}
+		this._invalidationFlags.h[flag] = true;
+	}
+	,clearInvalidationFlag: function(flag) {
+		var _this = this._invalidationFlags;
+		if(Object.prototype.hasOwnProperty.call(_this.h,flag)) {
+			delete(_this.h[flag]);
+		}
+	}
+	,processStyleRestriction: function(key) {
+		var ignore = this._ignoreNextStyleRestriction;
+		this._ignoreNextStyleRestriction = false;
+		if(this._applyingStyles) {
+			if(this._restrictedStyles != null) {
+				return this._restrictedStyles.exists(key);
+			} else {
+				return false;
+			}
+		}
+		if(ignore) {
+			return false;
+		}
+		if(this._restrictedStyles == null) {
+			this._restrictedStyles = new feathers_core_FunctionMap();
+		}
+		this._restrictedStyles.set(key,true);
+		return false;
+	}
+	,ignoreNextStyleRestriction: function() {
+		this._ignoreNextStyleRestriction = true;
+	}
+	,refreshFocusIndicator: function() {
+		if(this._focusIndicatorSkin != null) {
+			if(this._hasFocus && this._showFocus) {
+				if(this._focusIndicatorSkin.get_parent() != this) {
+					this.addChild(this._focusIndicatorSkin);
+				} else {
+					this.setChildIndex(this._focusIndicatorSkin,this.get_numChildren() - 1);
+				}
+			} else if(this._focusIndicatorSkin.get_parent() != null) {
+				this._focusIndicatorSkin.removeFromParent(false);
+			}
+			this._focusIndicatorSkin.set_x(this._focusPaddingLeft);
+			this._focusIndicatorSkin.set_y(this._focusPaddingTop);
+			this._focusIndicatorSkin.set_width(this.actualWidth - this._focusPaddingLeft - this._focusPaddingRight);
+			this._focusIndicatorSkin.set_height(this.actualHeight - this._focusPaddingTop - this._focusPaddingBottom);
+		}
+	}
+	,refreshHitAreaX: function() {
+		if(this.actualWidth < this._minTouchWidth) {
+			this._hitArea.width = this._minTouchWidth;
+		} else {
+			this._hitArea.width = this.actualWidth;
+		}
+		var hitAreaX = (this.actualWidth - this._hitArea.width) / 2;
+		if(hitAreaX != hitAreaX) {
+			this._hitArea.x = 0;
+		} else {
+			this._hitArea.x = hitAreaX;
+		}
+	}
+	,refreshHitAreaY: function() {
+		if(this.actualHeight < this._minTouchHeight) {
+			this._hitArea.height = this._minTouchHeight;
+		} else {
+			this._hitArea.height = this.actualHeight;
+		}
+		var hitAreaY = (this.actualHeight - this._hitArea.height) / 2;
+		if(hitAreaY != hitAreaY) {
+			this._hitArea.y = 0;
+		} else {
+			this._hitArea.y = hitAreaY;
+		}
+	}
+	,focusInHandler: function(event) {
+		this._hasFocus = true;
+		this.invalidate("focus");
+		if(this._focusOutEffectContext != null) {
+			this._focusOutEffectContext.interrupt();
+			this._focusOutEffectContext = null;
+		}
+		if(this._suspendEffectsCount == 0 && this._focusInEffect != null) {
+			this._focusInEffectContext = this._focusInEffect(this);
+			this._focusInEffectContext.addEventListener("complete",$bind(this,this.focusInEffectContext_completeHandler));
+			this._focusInEffectContext.play();
+		}
+	}
+	,focusOutHandler: function(event) {
+		this._hasFocus = false;
+		this._showFocus = false;
+		this.invalidate("focus");
+		if(this._focusInEffectContext != null) {
+			this._focusInEffectContext.interrupt();
+			this._focusInEffectContext = null;
+		}
+		if(this._suspendEffectsCount == 0 && this._focusOutEffect != null) {
+			this._focusOutEffectContext = this._focusOutEffect(this);
+			this._focusOutEffectContext.addEventListener("complete",$bind(this,this.focusOutEffectContext_completeHandler));
+			this._focusOutEffectContext.play();
+		}
+	}
+	,feathersControl_addedToStageHandler: function(event) {
+		if(this.get_stage() == null) {
+			return;
+		}
+		if(!this._isInitialized) {
+			this.initializeNow();
+		}
+		this._depth = feathers_utils_display_FeathersDisplayUtil.getDisplayObjectDepthFromStage(this);
+		this._validationQueue = feathers_core_ValidationQueue.forStarling(this.get_stage().get_starling());
+		if(this.isInvalid()) {
+			this._invalidateCount = 0;
+			this._validationQueue.addControl(this);
+		}
+		if(this._removedEffectContext != null) {
+			this._removedEffectContext.interrupt();
+		}
+		if(this.get_isCreated() && this._suspendEffectsCount == 0 && this._addedEffect != null) {
+			this._addedEffectContext = this._addedEffect(this);
+			this._addedEffectContext.addEventListener("complete",$bind(this,this.addedEffectContext_completeHandler));
+			this._addedEffectContext.play();
+		}
+	}
+	,feathersControl_removedFromStageHandler: function(event) {
+		if(this._addedEffectContext != null) {
+			this._addedEffectContext.interrupt();
+		}
+		this._depth = -1;
+		this._validationQueue = null;
+	}
+	,addedEffectContext_completeHandler: function(event) {
+		this._addedEffectContext = null;
+	}
+	,removedEffectContext_completeHandler: function(event,stopped) {
+		this._removedEffectContext = null;
+		if(!stopped) {
+			this.removeFromParent(this._disposeAfterRemovedEffect);
+		}
+	}
+	,showEffectContext_completeHandler: function(event) {
+		this._showEffectContext.removeEventListener("complete",$bind(this,this.showEffectContext_completeHandler));
+		this._showEffectContext = null;
+	}
+	,hideEffectContext_completeHandler: function(event,stopped) {
+		this._hideEffectContext.removeEventListener("complete",$bind(this,this.hideEffectContext_completeHandler));
+		this._hideEffectContext = null;
+		if(!stopped) {
+			this.suspendEffects();
+			starling_display_Sprite.prototype.set_visible.call(this,this._pendingVisible);
+			this.resumeEffects();
+		}
+	}
+	,focusInEffectContext_completeHandler: function(event) {
+		this._focusInEffectContext.removeEventListener("complete",$bind(this,this.focusInEffectContext_completeHandler));
+		this._focusInEffectContext = null;
+	}
+	,focusOutEffectContext_completeHandler: function(event) {
+		this._focusOutEffectContext.removeEventListener("complete",$bind(this,this.focusOutEffectContext_completeHandler));
+		this._focusOutEffectContext = null;
+	}
+	,moveEffectContext_completeHandler: function(event) {
+		this._moveEffectContext.removeEventListener("complete",$bind(this,this.moveEffectContext_completeHandler));
+		this._moveEffectContext = null;
+	}
+	,resizeEffectContext_completeHandler: function(event) {
+		this._resizeEffectContext.removeEventListener("complete",$bind(this,this.resizeEffectContext_completeHandler));
+		this._resizeEffectContext = null;
+	}
+	,layoutData_changeHandler: function(event) {
+		this.dispatchEventWith("layoutDataChange");
+	}
+	,styleNameList_changeHandler: function(event) {
+		if(this._styleProvider == null) {
+			return;
+		}
+		if(this._applyingStyles) {
+			throw new openfl_errors_IllegalOperationError("Cannot change styleNameList while the style provider is applying styles.");
+		}
+		this._applyingStyles = true;
+		this._styleProvider.applyStyles(this);
+		this._applyingStyles = false;
+	}
+	,styleProvider_changeHandler: function(event) {
+		if(!this._isInitialized) {
+			return;
+		}
+		if(this._applyingStyles) {
+			throw new openfl_errors_IllegalOperationError("Cannot change style provider while it is applying styles.");
+		}
+		this._applyingStyles = true;
+		this._styleProvider.applyStyles(this);
+		this._applyingStyles = false;
+	}
+	,__class__: feathers_core_FeathersControl
+	,__properties__: $extend(starling_display_Sprite.prototype.__properties__,{get_depth:"get_depth",get_isCreated:"get_isCreated",get_effectsSuspended:"get_effectsSuspended",set_focusPaddingLeft:"set_focusPaddingLeft",get_focusPaddingLeft:"get_focusPaddingLeft",set_focusPaddingBottom:"set_focusPaddingBottom",get_focusPaddingBottom:"get_focusPaddingBottom",set_focusPaddingRight:"set_focusPaddingRight",get_focusPaddingRight:"get_focusPaddingRight",set_focusPaddingTop:"set_focusPaddingTop",get_focusPaddingTop:"get_focusPaddingTop",set_focusIndicatorSkin:"set_focusIndicatorSkin",get_focusIndicatorSkin:"get_focusIndicatorSkin",set_nextLeftFocus:"set_nextLeftFocus",get_nextLeftFocus:"get_nextLeftFocus",set_nextDownFocus:"set_nextDownFocus",get_nextDownFocus:"get_nextDownFocus",set_nextRightFocus:"set_nextRightFocus",get_nextRightFocus:"get_nextRightFocus",set_nextUpFocus:"set_nextUpFocus",get_nextUpFocus:"get_nextUpFocus",set_previousTabFocus:"set_previousTabFocus",get_previousTabFocus:"get_previousTabFocus",set_nextTabFocus:"set_nextTabFocus",get_nextTabFocus:"get_nextTabFocus",set_isFocusEnabled:"set_isFocusEnabled",get_isFocusEnabled:"get_isFocusEnabled",set_focusOwner:"set_focusOwner",get_focusOwner:"get_focusOwner",set_focusManager:"set_focusManager",get_focusManager:"get_focusManager",set_toolTip:"set_toolTip",get_toolTip:"get_toolTip",set_layoutData:"set_layoutData",get_layoutData:"get_layoutData",set_includeInLayout:"set_includeInLayout",get_includeInLayout:"get_includeInLayout",set_maxHeight:"set_maxHeight",get_maxHeight:"get_maxHeight",get_explicitMaxHeight:"get_explicitMaxHeight",set_maxWidth:"set_maxWidth",get_maxWidth:"get_maxWidth",get_explicitMaxWidth:"get_explicitMaxWidth",set_minHeight:"set_minHeight",get_minHeight:"get_minHeight",get_explicitMinHeight:"get_explicitMinHeight",set_minWidth:"set_minWidth",get_minWidth:"get_minWidth",get_explicitMinWidth:"get_explicitMinWidth",set_minTouchHeight:"set_minTouchHeight",get_minTouchHeight:"get_minTouchHeight",set_minTouchWidth:"set_minTouchWidth",get_minTouchWidth:"get_minTouchWidth",get_explicitHeight:"get_explicitHeight",set_moveEffect:"set_moveEffect",get_moveEffect:"get_moveEffect",set_resizeEffect:"set_resizeEffect",get_resizeEffect:"get_resizeEffect",get_explicitWidth:"get_explicitWidth",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",get_isInitialized:"get_isInitialized",set_isQuickHitAreaEnabled:"set_isQuickHitAreaEnabled",get_isQuickHitAreaEnabled:"get_isQuickHitAreaEnabled",get_defaultStyleProvider:"get_defaultStyleProvider",set_styleProvider:"set_styleProvider",get_styleProvider:"get_styleProvider",get_styleNameList:"get_styleNameList",set_styleName:"set_styleName",get_styleName:"get_styleName",set_addedEffect:"set_addedEffect",get_addedEffect:"get_addedEffect",set_focusOutEffect:"set_focusOutEffect",get_focusOutEffect:"get_focusOutEffect",set_focusInEffect:"set_focusInEffect",get_focusInEffect:"get_focusInEffect",set_hideEffect:"set_hideEffect",get_hideEffect:"get_hideEffect",set_showEffect:"set_showEffect",get_showEffect:"get_showEffect"})
+});
+var feathers_controls_LayoutGroup = function() {
+	this._ignoreChildChangesButSetFlags = false;
+	this._ignoreChildChanges = false;
+	this._autoSizeMode = "content";
+	this._clipContent = false;
+	this._layoutResult = new feathers_layout_LayoutBoundsResult();
+	this.viewPortBounds = new feathers_layout_ViewPortBounds();
+	this.items = [];
+	feathers_core_FeathersControl.call(this);
+	this.addEventListener("addedToStage",$bind(this,this.layoutGroup_addedToStageHandler));
+	this.addEventListener("removedFromStage",$bind(this,this.layoutGroup_removedFromStageHandler));
+};
+$hxClasses["feathers.controls.LayoutGroup"] = feathers_controls_LayoutGroup;
+feathers_controls_LayoutGroup.__name__ = "feathers.controls.LayoutGroup";
+feathers_controls_LayoutGroup.globalStyleProvider = null;
+feathers_controls_LayoutGroup.__super__ = feathers_core_FeathersControl;
+feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.prototype,{
+	items: null
+	,viewPortBounds: null
+	,_layoutResult: null
+	,get_defaultStyleProvider: function() {
+		return feathers_controls_LayoutGroup.globalStyleProvider;
+	}
+	,_layout: null
+	,get_layout: function() {
+		return this._layout;
+	}
+	,set_layout: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_layout))) {
+			return this.get_layout();
+		}
+		if(this._layout == value) {
+			return this.get_layout();
+		}
+		if(this._layout != null) {
+			this._layout.removeEventListener("change",$bind(this,this.layout_changeHandler));
+		}
+		this._layout = value;
+		if(this._layout != null) {
+			if(js_Boot.__implements(this._layout,feathers_layout_IVirtualLayout)) {
+				(js_Boot.__cast(this._layout , feathers_layout_IVirtualLayout)).set_useVirtualLayout(false);
+			}
+			this._layout.addEventListener("change",$bind(this,this.layout_changeHandler));
+			this.invalidate("layout");
+		}
+		this.invalidate("layout");
+		return this.get_layout();
+	}
+	,_clipContent: null
+	,get_clipContent: function() {
+		return this._clipContent;
+	}
+	,set_clipContent: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_clipContent))) {
+			return this.get_clipContent();
+		}
+		if(this._clipContent == value) {
+			return this.get_clipContent();
+		}
+		this._clipContent = value;
+		if(!value) {
+			this.set_mask(null);
+		}
+		this.invalidate("clipping");
+		return this.get_clipContent();
+	}
+	,_explicitBackgroundWidth: null
+	,_explicitBackgroundHeight: null
+	,_explicitBackgroundMinWidth: null
+	,_explicitBackgroundMinHeight: null
+	,_explicitBackgroundMaxWidth: null
+	,_explicitBackgroundMaxHeight: null
+	,currentBackgroundSkin: null
+	,_backgroundSkin: null
+	,get_backgroundSkin: function() {
+		return this._backgroundSkin;
+	}
+	,set_backgroundSkin: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_backgroundSkin))) {
+			if(value != null) {
+				value.dispose();
+			}
+			return this.get_backgroundSkin();
+		}
+		if(this._backgroundSkin == value) {
+			return this.get_backgroundSkin();
+		}
+		if(this._backgroundSkin != null && this.currentBackgroundSkin == this._backgroundSkin) {
+			this.removeCurrentBackgroundSkin(this._backgroundSkin);
+			this.currentBackgroundSkin = null;
+		}
+		this._backgroundSkin = value;
+		this.invalidate("skin");
+		return this.get_backgroundSkin();
+	}
+	,_backgroundDisabledSkin: null
+	,get_backgroundDisabledSkin: function() {
+		return this._backgroundDisabledSkin;
+	}
+	,set_backgroundDisabledSkin: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_backgroundDisabledSkin))) {
+			if(value != null) {
+				value.dispose();
+			}
+			return this.get_backgroundDisabledSkin();
+		}
+		if(this._backgroundDisabledSkin == value) {
+			return this.get_backgroundDisabledSkin();
+		}
+		if(this._backgroundDisabledSkin != null && this.currentBackgroundSkin == this._backgroundDisabledSkin) {
+			this.removeCurrentBackgroundSkin(this._backgroundDisabledSkin);
+			this.currentBackgroundSkin = null;
+		}
+		this._backgroundDisabledSkin = value;
+		this.invalidate("skin");
+		return this.get_backgroundDisabledSkin();
+	}
+	,_autoSizeMode: null
+	,get_autoSizeMode: function() {
+		return this._autoSizeMode;
+	}
+	,set_autoSizeMode: function(value) {
+		if(this._autoSizeMode == value) {
+			return this.get_autoSizeMode();
+		}
+		this._autoSizeMode = value;
+		if(this.get_stage() != null) {
+			if(this._autoSizeMode == "stage") {
+				this.get_stage().addEventListener("resize",$bind(this,this.stage_resizeHandler));
+			} else {
+				this.get_stage().removeEventListener("resize",$bind(this,this.stage_resizeHandler));
+			}
+		}
+		this.invalidate("size");
+		return this.get_autoSizeMode();
+	}
+	,_ignoreChildChanges: null
+	,_ignoreChildChangesButSetFlags: null
+	,addChildAt: function(child,index) {
+		if(js_Boot.__implements(child,feathers_core_IFeathersControl)) {
+			child.addEventListener("resize",$bind(this,this.child_resizeHandler));
+		}
+		if(js_Boot.__implements(child,feathers_layout_ILayoutDisplayObject)) {
+			child.addEventListener("layoutDataChange",$bind(this,this.child_layoutDataChangeHandler));
+		}
+		var oldIndex = this.items.indexOf(child);
+		if(oldIndex == index) {
+			return child;
+		}
+		if(oldIndex >= 0) {
+			this.items.splice(oldIndex,1);
+		}
+		this.items.splice(index,0,child);
+		this.invalidate("layout");
+		return feathers_core_FeathersControl.prototype.addChildAt.call(this,child,index);
+	}
+	,removeChildAt: function(index,dispose) {
+		if(dispose == null) {
+			dispose = false;
+		}
+		if(index >= 0 && index < this.items.length) {
+			this.items.splice(index,1);
+		}
+		var child = feathers_core_FeathersControl.prototype.removeChildAt.call(this,index,dispose);
+		if(js_Boot.__implements(child,feathers_core_IFeathersControl)) {
+			child.removeEventListener("resize",$bind(this,this.child_resizeHandler));
+		}
+		if(js_Boot.__implements(child,feathers_layout_ILayoutDisplayObject)) {
+			child.removeEventListener("layoutDataChange",$bind(this,this.child_layoutDataChangeHandler));
+		}
+		this.invalidate("layout");
+		return child;
+	}
+	,setChildIndex: function(child,index) {
+		feathers_core_FeathersControl.prototype.setChildIndex.call(this,child,index);
+		var oldIndex = this.items.indexOf(child);
+		if(oldIndex == index) {
+			return;
+		}
+		this.items.splice(oldIndex,1);
+		this.items.splice(index,0,child);
+		this.invalidate("layout");
+	}
+	,swapChildrenAt: function(index1,index2) {
+		feathers_core_FeathersControl.prototype.swapChildrenAt.call(this,index1,index2);
+		var child1 = this.items[index1];
+		var child2 = this.items[index2];
+		this.items[index1] = child2;
+		this.items[index2] = child1;
+		this.invalidate("layout");
+	}
+	,sortChildren: function(compareFunction) {
+		feathers_core_FeathersControl.prototype.sortChildren.call(this,compareFunction);
+		this.items.sort(compareFunction);
+		this.invalidate("layout");
+	}
+	,hitTest: function(localPoint) {
+		var localX = localPoint.x;
+		var localY = localPoint.y;
+		var result = feathers_core_FeathersControl.prototype.hitTest.call(this,localPoint);
+		if(result != null) {
+			if(!this._isEnabled) {
+				return this;
+			}
+			return result;
+		}
+		if(!this.get_visible() || !this.get_touchable()) {
+			return null;
+		}
+		if(this.currentBackgroundSkin != null && this._hitArea.contains(localX,localY)) {
+			return this;
+		}
+		return null;
+	}
+	,render: function(painter) {
+		if(this.currentBackgroundSkin != null && this.currentBackgroundSkin.get_visible() && this.currentBackgroundSkin.get_alpha() > 0) {
+			this.currentBackgroundSkin.setRequiresRedraw();
+			var mask = this.currentBackgroundSkin.get_mask();
+			var filter = this.currentBackgroundSkin.get_filter();
+			painter.pushState();
+			painter.setStateTo(this.currentBackgroundSkin.get_transformationMatrix(),this.currentBackgroundSkin.get_alpha(),this.currentBackgroundSkin.get_blendMode());
+			if(mask != null) {
+				painter.drawMask(mask);
+			}
+			if(filter != null) {
+				filter.render(painter);
+			} else {
+				this.currentBackgroundSkin.render(painter);
+			}
+			if(mask != null) {
+				painter.eraseMask(mask);
+			}
+			painter.popState();
+		}
+		feathers_core_FeathersControl.prototype.render.call(this,painter);
+	}
+	,dispose: function() {
+		if(this.currentBackgroundSkin != null) {
+			this.currentBackgroundSkin.__setParent(null);
+		}
+		if(this._backgroundSkin != null && this._backgroundSkin.get_parent() != this) {
+			this._backgroundSkin.dispose();
+		}
+		if(this._backgroundDisabledSkin != null && this._backgroundDisabledSkin.get_parent() != this) {
+			this._backgroundDisabledSkin.dispose();
+		}
+		this.set_layout(null);
+		feathers_core_FeathersControl.prototype.dispose.call(this);
+	}
+	,readjustLayout: function() {
+		this.invalidate("layout");
+	}
+	,validate: function() {
+		var oldIgnoreChildChanges = this._ignoreChildChangesButSetFlags;
+		this._ignoreChildChangesButSetFlags = true;
+		feathers_core_FeathersControl.prototype.validate.call(this);
+		this._ignoreChildChangesButSetFlags = oldIgnoreChildChanges;
+	}
+	,initialize: function() {
+		if(this.get_stage() != null) {
+			if(this.get_stage().get_starling().get_root() == this) {
+				this.set_autoSizeMode("stage");
+			}
+		}
+		feathers_core_FeathersControl.prototype.initialize.call(this);
+	}
+	,draw: function() {
+		this._ignoreChildChangesButSetFlags = false;
+		var layoutInvalid = this.isInvalid("layout");
+		var sizeInvalid = this.isInvalid("size");
+		var clippingInvalid = this.isInvalid("clipping");
+		var scrollInvalid = this.isInvalid("scroll");
+		var skinInvalid = this.isInvalid("skin");
+		var stateInvalid = this.isInvalid("state");
+		if(!layoutInvalid && scrollInvalid && this._layout != null && this._layout.get_requiresLayoutOnScroll()) {
+			layoutInvalid = true;
+		}
+		if(skinInvalid || stateInvalid) {
+			this.refreshBackgroundSkin();
+		}
+		if(sizeInvalid || layoutInvalid || skinInvalid || stateInvalid) {
+			this.refreshViewPortBounds();
+			if(this._layout != null) {
+				var oldIgnoreChildChanges = this._ignoreChildChanges;
+				this._ignoreChildChanges = true;
+				this._layout.layout(this.items,this.viewPortBounds,this._layoutResult);
+				this._ignoreChildChanges = oldIgnoreChildChanges;
+			} else {
+				this.handleManualLayout();
+			}
+			this.handleLayoutResult();
+			this.refreshBackgroundLayout();
+			this.validateChildren();
+		}
+		if(sizeInvalid || clippingInvalid) {
+			this.refreshClipRect();
+		}
+	}
+	,refreshBackgroundSkin: function() {
+		var oldBackgroundSkin = this.currentBackgroundSkin;
+		this.currentBackgroundSkin = this.getCurrentBackgroundSkin();
+		if(this.currentBackgroundSkin != oldBackgroundSkin) {
+			this.removeCurrentBackgroundSkin(oldBackgroundSkin);
+			if(this.currentBackgroundSkin != null) {
+				if(js_Boot.__implements(this.currentBackgroundSkin,feathers_core_IFeathersControl)) {
+					(js_Boot.__cast(this.currentBackgroundSkin , feathers_core_IFeathersControl)).initializeNow();
+				}
+				if(js_Boot.__implements(this.currentBackgroundSkin,feathers_core_IMeasureDisplayObject)) {
+					var measureSkin = js_Boot.__cast(this.currentBackgroundSkin , feathers_core_IMeasureDisplayObject);
+					this._explicitBackgroundWidth = measureSkin.get_explicitWidth();
+					this._explicitBackgroundHeight = measureSkin.get_explicitHeight();
+					this._explicitBackgroundMinWidth = measureSkin.get_explicitMinWidth();
+					this._explicitBackgroundMinHeight = measureSkin.get_explicitMinHeight();
+					this._explicitBackgroundMaxWidth = measureSkin.get_explicitMaxWidth();
+					this._explicitBackgroundMaxHeight = measureSkin.get_explicitMaxHeight();
+				} else {
+					this._explicitBackgroundWidth = this.currentBackgroundSkin.get_width();
+					this._explicitBackgroundHeight = this.currentBackgroundSkin.get_height();
+					this._explicitBackgroundMinWidth = this._explicitBackgroundWidth;
+					this._explicitBackgroundMinHeight = this._explicitBackgroundHeight;
+					this._explicitBackgroundMaxWidth = this._explicitBackgroundWidth;
+					this._explicitBackgroundMaxHeight = this._explicitBackgroundHeight;
+				}
+				this.currentBackgroundSkin.__setParent(this);
+			}
+		}
+	}
+	,removeCurrentBackgroundSkin: function(skin) {
+		if(skin == null) {
+			return;
+		}
+		if(skin.get_parent() == this) {
+			skin.set_width(this._explicitBackgroundWidth);
+			skin.set_height(this._explicitBackgroundHeight);
+			if(js_Boot.__implements(skin,feathers_core_IMeasureDisplayObject)) {
+				var measureSkin = skin;
+				measureSkin.set_minWidth(this._explicitBackgroundMinWidth);
+				measureSkin.set_minHeight(this._explicitBackgroundMinHeight);
+				measureSkin.set_maxWidth(this._explicitBackgroundMaxWidth);
+				measureSkin.set_maxHeight(this._explicitBackgroundMaxHeight);
+			}
+			this.setRequiresRedraw();
+			skin.__setParent(null);
+		}
+	}
+	,getCurrentBackgroundSkin: function() {
+		if(!this._isEnabled && this._backgroundDisabledSkin != null) {
+			return this._backgroundDisabledSkin;
+		}
+		return this._backgroundSkin;
+	}
+	,refreshBackgroundLayout: function() {
+		if(this.currentBackgroundSkin == null) {
+			return;
+		}
+		if(this.currentBackgroundSkin.get_width() != this.actualWidth || this.currentBackgroundSkin.get_height() != this.actualHeight) {
+			this.currentBackgroundSkin.set_width(this.actualWidth);
+			this.currentBackgroundSkin.set_height(this.actualHeight);
+		}
+	}
+	,refreshViewPortBounds: function() {
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
+		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
+		feathers_utils_skins_FeathersSkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentBackgroundSkin,this._explicitWidth,this._explicitHeight,this._explicitMinWidth,this._explicitMinHeight,this._explicitMaxWidth,this._explicitMaxHeight,this._explicitBackgroundWidth,this._explicitBackgroundHeight,this._explicitBackgroundMinWidth,this._explicitBackgroundMinHeight,this._explicitBackgroundMaxWidth,this._explicitBackgroundMaxHeight);
+		this.viewPortBounds.x = 0;
+		this.viewPortBounds.y = 0;
+		this.viewPortBounds.scrollX = 0;
+		this.viewPortBounds.scrollY = 0;
+		if(needsWidth && this._autoSizeMode == "stage" && this.get_stage() != null) {
+			this.viewPortBounds.explicitWidth = this.get_stage().get_stageWidth();
+		} else {
+			this.viewPortBounds.explicitWidth = this._explicitWidth;
+		}
+		if(needsHeight && this._autoSizeMode == "stage" && this.get_stage() != null) {
+			this.viewPortBounds.explicitHeight = this.get_stage().get_stageHeight();
+		} else {
+			this.viewPortBounds.explicitHeight = this._explicitHeight;
+		}
+		var viewPortMinWidth = this._explicitMinWidth;
+		if(needsMinWidth) {
+			viewPortMinWidth = 0;
+		}
+		var viewPortMinHeight = this._explicitMinHeight;
+		if(needsMinHeight) {
+			viewPortMinHeight = 0;
+		}
+		if(this.currentBackgroundSkin != null) {
+			if(this.currentBackgroundSkin.get_width() > viewPortMinWidth) {
+				viewPortMinWidth = this.currentBackgroundSkin.get_width();
+			}
+			if(this.currentBackgroundSkin.get_height() > viewPortMinHeight) {
+				viewPortMinHeight = this.currentBackgroundSkin.get_height();
+			}
+		}
+		this.viewPortBounds.minWidth = viewPortMinWidth;
+		this.viewPortBounds.minHeight = viewPortMinHeight;
+		this.viewPortBounds.maxWidth = this._explicitMaxWidth;
+		this.viewPortBounds.maxHeight = this._explicitMaxHeight;
+	}
+	,handleLayoutResult: function() {
+		var viewPortWidth = this._layoutResult.viewPortWidth;
+		var viewPortHeight = this._layoutResult.viewPortHeight;
+		this.saveMeasurements(viewPortWidth,viewPortHeight,viewPortWidth,viewPortHeight);
+	}
+	,handleManualLayout: function() {
+		var maxX = this.viewPortBounds.explicitWidth;
+		if(maxX != maxX) {
+			maxX = 0;
+		}
+		var maxY = this.viewPortBounds.explicitHeight;
+		if(maxY != maxY) {
+			maxY = 0;
+		}
+		var oldIgnoreChildChanges = this._ignoreChildChanges;
+		this._ignoreChildChanges = true;
+		var itemCount = this.items.length;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = this.items[i];
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && (js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+				continue;
+			}
+			if(js_Boot.__implements(item,feathers_core_IValidating)) {
+				(js_Boot.__cast(item , feathers_core_IValidating)).validate();
+			}
+			var itemMaxX = item.get_x() - item.get_pivotX() + item.get_width();
+			var itemMaxY = item.get_y() - item.get_pivotY() + item.get_height();
+			if(itemMaxX == itemMaxX && itemMaxX > maxX) {
+				maxX = itemMaxX;
+			}
+			if(itemMaxY == itemMaxY && itemMaxY > maxY) {
+				maxY = itemMaxY;
+			}
+		}
+		this._ignoreChildChanges = oldIgnoreChildChanges;
+		this._layoutResult.contentX = 0;
+		this._layoutResult.contentY = 0;
+		this._layoutResult.contentWidth = maxX;
+		this._layoutResult.contentHeight = maxY;
+		if(this.viewPortBounds.explicitWidth == this.viewPortBounds.explicitWidth) {
+			this._layoutResult.viewPortWidth = this.viewPortBounds.explicitWidth;
+		} else {
+			var viewPortMinWidth = this.viewPortBounds.minWidth;
+			if(maxX < viewPortMinWidth) {
+				maxX = viewPortMinWidth;
+			}
+			var viewPortMaxWidth = this.viewPortBounds.maxWidth;
+			if(maxX > viewPortMaxWidth) {
+				maxX = viewPortMaxWidth;
+			}
+			this._layoutResult.viewPortWidth = maxX;
+		}
+		if(this.viewPortBounds.explicitHeight == this.viewPortBounds.explicitHeight) {
+			this._layoutResult.viewPortHeight = this.viewPortBounds.explicitHeight;
+		} else {
+			var viewPortMinHeight = this.viewPortBounds.minHeight;
+			if(maxY < viewPortMinHeight) {
+				maxY = viewPortMinHeight;
+			}
+			var viewPortMaxHeight = this.viewPortBounds.maxHeight;
+			if(maxY > viewPortMaxHeight) {
+				maxY = viewPortMaxHeight;
+			}
+			this._layoutResult.viewPortHeight = maxY;
+		}
+	}
+	,validateChildren: function() {
+		if(js_Boot.__implements(this.currentBackgroundSkin,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.currentBackgroundSkin , feathers_core_IValidating)).validate();
+		}
+		var itemCount = this.items.length;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = this.items[i];
+			if(js_Boot.__implements(item,feathers_core_IValidating)) {
+				(js_Boot.__cast(item , feathers_core_IValidating)).validate();
+			}
+		}
+	}
+	,refreshClipRect: function() {
+		if(this.get_clipContent()) {
+			return;
+		}
+		var mask = this.get_mask();
+		if(mask != null) {
+			mask.set_x(0);
+			mask.set_y(0);
+			mask.set_width(this.actualWidth);
+			mask.set_height(this.actualHeight);
+		} else {
+			mask = new starling_display_Quad(1,1,16711935);
+			mask.set_width(this.actualWidth);
+			mask.set_height(this.actualHeight);
+			this.set_mask(mask);
+		}
+	}
+	,layoutGroup_addedToStageHandler: function(event) {
+		if(this._autoSizeMode == "stage") {
+			this.invalidate("size");
+			this.get_stage().addEventListener("resize",$bind(this,this.stage_resizeHandler));
+		}
+	}
+	,layoutGroup_removedFromStageHandler: function(event) {
+		this.get_stage().removeEventListener("resize",$bind(this,this.stage_resizeHandler));
+	}
+	,layout_changeHandler: function(event) {
+		this.invalidate("layout");
+	}
+	,child_resizeHandler: function(event) {
+		if(this._ignoreChildChanges) {
+			return;
+		}
+		if(this._ignoreChildChangesButSetFlags) {
+			this.setInvalidationFlag("layout");
+			return;
+		}
+		this.invalidate("layout");
+	}
+	,child_layoutDataChangeHandler: function(event) {
+		if(this._ignoreChildChanges) {
+			return;
+		}
+		if(this._ignoreChildChangesButSetFlags) {
+			this.setInvalidationFlag("layout");
+			return;
+		}
+		this.invalidate("layout");
+	}
+	,stage_resizeHandler: function(event) {
+		this.invalidate("layout");
+	}
+	,__class__: feathers_controls_LayoutGroup
+	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{set_autoSizeMode:"set_autoSizeMode",get_autoSizeMode:"get_autoSizeMode",set_backgroundDisabledSkin:"set_backgroundDisabledSkin",get_backgroundDisabledSkin:"get_backgroundDisabledSkin",set_backgroundSkin:"set_backgroundSkin",get_backgroundSkin:"get_backgroundSkin",set_clipContent:"set_clipContent",get_clipContent:"get_clipContent",set_layout:"set_layout",get_layout:"get_layout"})
+});
 var Game = function() {
 	starling_display_Sprite.call(this);
 };
@@ -7348,8 +9537,9 @@ Game.prototype = $extend(starling_display_Sprite.prototype,{
 		var loader = new starlingbuilder_engine_LayoutLoader(ParsedLayouts);
 		Game.assetManager.enqueue([openfl_utils_Assets.getPath("assets/textures/atlas.png"),openfl_utils_Assets.getPath("assets/textures/atlas.xml")]);
 		Game.assetManager.loadQueue(function(ratio) {
-			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 39, className : "Game", methodName : "start"});
+			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 40, className : "Game", methodName : "start"});
 			if(ratio == 1) {
+				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 42, className : "Game", methodName : "start"});
 				_gthis._sprite = new starling_display_Sprite();
 				_gthis._sprite = Game.uiBuilder.create(ParsedLayouts.game_ui,false,_gthis);
 				_gthis.addChild(_gthis._sprite);
@@ -8049,6 +10239,3241 @@ Xml.prototype = {
 		return haxe_xml_Printer.print(this);
 	}
 	,__class__: Xml
+};
+var feathers_controls_AutoSizeMode = function() { };
+$hxClasses["feathers.controls.AutoSizeMode"] = feathers_controls_AutoSizeMode;
+feathers_controls_AutoSizeMode.__name__ = "feathers.controls.AutoSizeMode";
+var feathers_core_IStateObserver = function() { };
+$hxClasses["feathers.core.IStateObserver"] = feathers_core_IStateObserver;
+feathers_core_IStateObserver.__name__ = "feathers.core.IStateObserver";
+feathers_core_IStateObserver.__isInterface__ = true;
+feathers_core_IStateObserver.prototype = {
+	get_stateContext: null
+	,set_stateContext: null
+	,__class__: feathers_core_IStateObserver
+	,__properties__: {set_stateContext:"set_stateContext",get_stateContext:"get_stateContext"}
+};
+var feathers_controls_text_BaseTextRenderer = function() {
+	this._wordWrap = false;
+	this._text = null;
+	feathers_core_FeathersControl.call(this);
+};
+$hxClasses["feathers.controls.text.BaseTextRenderer"] = feathers_controls_text_BaseTextRenderer;
+feathers_controls_text_BaseTextRenderer.__name__ = "feathers.controls.text.BaseTextRenderer";
+feathers_controls_text_BaseTextRenderer.__interfaces__ = [feathers_core_IStateObserver];
+feathers_controls_text_BaseTextRenderer.__super__ = feathers_core_FeathersControl;
+feathers_controls_text_BaseTextRenderer.prototype = $extend(feathers_core_FeathersControl.prototype,{
+	_text: null
+	,get_text: function() {
+		return this._text;
+	}
+	,set_text: function(value) {
+		if(this._text == value) {
+			return this._text;
+		}
+		this._text = value;
+		this.invalidate("data");
+		return this._text;
+	}
+	,_stateContext: null
+	,get_stateContext: function() {
+		return this._stateContext;
+	}
+	,set_stateContext: function(value) {
+		if(this._stateContext == value) {
+			return this._stateContext;
+		}
+		if(this._stateContext != null) {
+			this._stateContext.removeEventListener("stateChange",$bind(this,this.stateContext_stateChangeHandler));
+		}
+		this._stateContext = value;
+		if(this._stateContext != null) {
+			this._stateContext.addEventListener("stateChange",$bind(this,this.stateContext_stateChangeHandler));
+		}
+		this.invalidate("state");
+		return this._stateContext;
+	}
+	,_wordWrap: null
+	,get_wordWrap: function() {
+		return this._wordWrap;
+	}
+	,set_wordWrap: function(value) {
+		if(this._wordWrap == value) {
+			return this._wordWrap;
+		}
+		this._wordWrap = value;
+		this.invalidate("styles");
+		return this._wordWrap;
+	}
+	,_fontStyles: null
+	,get_fontStyles: function() {
+		return this._fontStyles;
+	}
+	,set_fontStyles: function(value) {
+		if(this._fontStyles == value) {
+			return this._fontStyles;
+		}
+		if(this._fontStyles != null) {
+			this._fontStyles.removeEventListener("change",$bind(this,this.fontStylesSet_changeHandler));
+		}
+		this._fontStyles = value;
+		if(this._fontStyles != null) {
+			this._fontStyles.addEventListener("change",$bind(this,this.fontStylesSet_changeHandler));
+		}
+		this.invalidate("styles");
+		return this._fontStyles;
+	}
+	,dispose: function() {
+		this.set_stateContext(null);
+		this.set_fontStyles(null);
+		feathers_core_FeathersControl.prototype.dispose.call(this);
+	}
+	,stateContext_stateChangeHandler: function(event) {
+		this.invalidate("state");
+	}
+	,fontStylesSet_changeHandler: function(event) {
+		this.invalidate("styles");
+	}
+	,__class__: feathers_controls_text_BaseTextRenderer
+	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_stateContext:"set_stateContext",get_stateContext:"get_stateContext",set_text:"set_text",get_text:"get_text"})
+});
+var feathers_core_ITextBaselineControl = function() { };
+$hxClasses["feathers.core.ITextBaselineControl"] = feathers_core_ITextBaselineControl;
+feathers_core_ITextBaselineControl.__name__ = "feathers.core.ITextBaselineControl";
+feathers_core_ITextBaselineControl.__isInterface__ = true;
+feathers_core_ITextBaselineControl.__interfaces__ = [feathers_core_IFeathersControl];
+feathers_core_ITextBaselineControl.prototype = {
+	get_baseline: null
+	,__class__: feathers_core_ITextBaselineControl
+	,__properties__: {get_baseline:"get_baseline"}
+};
+var feathers_core_ITextRenderer = function() { };
+$hxClasses["feathers.core.ITextRenderer"] = feathers_core_ITextRenderer;
+feathers_core_ITextRenderer.__name__ = "feathers.core.ITextRenderer";
+feathers_core_ITextRenderer.__isInterface__ = true;
+feathers_core_ITextRenderer.__interfaces__ = [feathers_core_ITextBaselineControl,feathers_core_IFeathersControl,feathers_core_IStateObserver];
+feathers_core_ITextRenderer.prototype = {
+	get_text: null
+	,set_text: null
+	,get_wordWrap: null
+	,set_wordWrap: null
+	,get_fontStyles: null
+	,set_fontStyles: null
+	,get_numLines: null
+	,measureText: null
+	,__class__: feathers_core_ITextRenderer
+	,__properties__: {set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",get_numLines:"get_numLines",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_text:"set_text",get_text:"get_text"}
+};
+var feathers_controls_text_MeasureTextResult = function(width,height,isTruncated) {
+	if(isTruncated == null) {
+		isTruncated = false;
+	}
+	if(height == null) {
+		height = 0;
+	}
+	if(width == null) {
+		width = 0;
+	}
+	this.width = width;
+	this.height = height;
+	this.isTruncated = isTruncated;
+};
+$hxClasses["feathers.controls.text.MeasureTextResult"] = feathers_controls_text_MeasureTextResult;
+feathers_controls_text_MeasureTextResult.__name__ = "feathers.controls.text.MeasureTextResult";
+feathers_controls_text_MeasureTextResult.prototype = {
+	width: null
+	,height: null
+	,isTruncated: null
+	,__class__: feathers_controls_text_MeasureTextResult
+};
+var feathers_controls_text_BitmapFontTextRenderer = function() {
+	this._lastLayoutIsTruncated = false;
+	this._lastLayoutHeight = 0;
+	this._lastLayoutWidth = 0;
+	this._image = null;
+	this._style = null;
+	this._defaultStyle = null;
+	this._useSeparateBatch = true;
+	this._truncationText = "...";
+	this._truncateToFit = true;
+	this._breakLongWords = false;
+	this._pixelSnapping = true;
+	this._textureSmoothing = null;
+	this._numLines = 0;
+	this._verticalAlignOffsetY = 0;
+	this._currentFontStyles = null;
+	this._textFormatChanged = true;
+	this._batchX = 0;
+	this._characterBatch = null;
+	feathers_controls_text_BaseTextRenderer.call(this);
+	if(feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL == null) {
+		feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL = [];
+	}
+	if(feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER == null) {
+		feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER = [];
+	}
+	this.set_isQuickHitAreaEnabled(true);
+};
+$hxClasses["feathers.controls.text.BitmapFontTextRenderer"] = feathers_controls_text_BitmapFontTextRenderer;
+feathers_controls_text_BitmapFontTextRenderer.__name__ = "feathers.controls.text.BitmapFontTextRenderer";
+feathers_controls_text_BitmapFontTextRenderer.__interfaces__ = [feathers_core_ITextRenderer];
+feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER = null;
+feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL = null;
+feathers_controls_text_BitmapFontTextRenderer.globalStyleProvider = null;
+feathers_controls_text_BitmapFontTextRenderer.__super__ = feathers_controls_text_BaseTextRenderer;
+feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_controls_text_BaseTextRenderer.prototype,{
+	_characterBatch: null
+	,_batchX: null
+	,_textFormatChanged: null
+	,_currentFontStyles: null
+	,_fontStylesTextFormat: null
+	,_currentVerticalAlign: null
+	,_verticalAlignOffsetY: null
+	,_currentTextFormat: null
+	,get_currentTextFormat: function() {
+		return this._currentTextFormat;
+	}
+	,get_defaultStyleProvider: function() {
+		return feathers_controls_text_BitmapFontTextRenderer.globalStyleProvider;
+	}
+	,set_maxWidth: function(value) {
+		var needsInvalidate = value > this._explicitMaxWidth && this._lastLayoutIsTruncated;
+		feathers_controls_text_BaseTextRenderer.prototype.set_maxWidth.call(this,value);
+		if(needsInvalidate) {
+			this.invalidate("size");
+		}
+		return value;
+	}
+	,_numLines: null
+	,get_numLines: function() {
+		return this._numLines;
+	}
+	,_textFormatForState: null
+	,_textFormat: null
+	,get_textFormat: function() {
+		return this._textFormat;
+	}
+	,set_textFormat: function(value) {
+		if(this._textFormat == value) {
+			return this._textFormat;
+		}
+		this._textFormat = value;
+		this.invalidate("styles");
+		return this._textFormat;
+	}
+	,_disabledTextFormat: null
+	,get_disabledTextFormat: function() {
+		return this._disabledTextFormat;
+	}
+	,set_disabledTextFormat: function(value) {
+		if(this._disabledTextFormat == value) {
+			return this._disabledTextFormat;
+		}
+		this._disabledTextFormat = value;
+		this.invalidate("styles");
+		return this._disabledTextFormat;
+	}
+	,_selectedTextFormat: null
+	,get_selectedTextFormat: function() {
+		return this._selectedTextFormat;
+	}
+	,set_selectedTextFormat: function(value) {
+		if(this._selectedTextFormat == value) {
+			return this._selectedTextFormat;
+		}
+		this._selectedTextFormat = value;
+		this.invalidate("styles");
+		return this._selectedTextFormat;
+	}
+	,_textureSmoothing: null
+	,get_textureSmoothing: function() {
+		return this._textureSmoothing;
+	}
+	,set_textureSmoothing: function(value) {
+		if(this._textureSmoothing == value) {
+			return this._textureSmoothing;
+		}
+		this._textureSmoothing = value;
+		this.invalidate("styles");
+		return this._textureSmoothing;
+	}
+	,_pixelSnapping: null
+	,get_pixelSnapping: function() {
+		return this._pixelSnapping;
+	}
+	,set_pixelSnapping: function(value) {
+		if(this._pixelSnapping == value) {
+			return this._pixelSnapping;
+		}
+		this._pixelSnapping = value;
+		this.invalidate("styles");
+		return this._pixelSnapping;
+	}
+	,_breakLongWords: null
+	,get_breakLongWords: function() {
+		return this._breakLongWords;
+	}
+	,set_breakLongWords: function(value) {
+		if(this._breakLongWords == value) {
+			return this._breakLongWords;
+		}
+		this._breakLongWords = value;
+		this.invalidate("styles");
+		return this._breakLongWords;
+	}
+	,_truncateToFit: null
+	,get_truncateToFit: function() {
+		return this._truncateToFit;
+	}
+	,set_truncateToFit: function(value) {
+		if(this._truncateToFit == value) {
+			return this._truncateToFit;
+		}
+		this._truncateToFit = value;
+		this.invalidate("data");
+		return this._truncateToFit;
+	}
+	,_truncationText: null
+	,get_truncationText: function() {
+		return this._truncationText;
+	}
+	,set_truncationText: function(value) {
+		if(this._truncationText == value) {
+			return this._truncationText;
+		}
+		this._truncationText = value;
+		this.invalidate("data");
+		return this._truncationText;
+	}
+	,_useSeparateBatch: null
+	,get_useSeparateBatch: function() {
+		return this._useSeparateBatch;
+	}
+	,set_useSeparateBatch: function(value) {
+		if(this._useSeparateBatch == value) {
+			return this._useSeparateBatch;
+		}
+		this._useSeparateBatch = value;
+		this.invalidate("styles");
+		return this._useSeparateBatch;
+	}
+	,_defaultStyle: null
+	,_style: null
+	,get_style: function() {
+		return this._style;
+	}
+	,set_style: function(value) {
+		if(this._style == value) {
+			return this._style;
+		}
+		this._style = value;
+		this.invalidate("styles");
+		return this._style;
+	}
+	,get_baseline: function() {
+		if(this._currentTextFormat == null) {
+			return 0;
+		}
+		var font = this._currentTextFormat.font;
+		var formatSize = this._currentTextFormat.size;
+		var fontSizeScale = formatSize / font.get_size();
+		if(fontSizeScale != fontSizeScale) {
+			fontSizeScale = 1;
+		}
+		var baseline = font.get_baseline();
+		this._compilerWorkaround = baseline;
+		if(baseline != baseline) {
+			return font.get_lineHeight() * fontSizeScale;
+		}
+		return baseline * fontSizeScale;
+	}
+	,_image: null
+	,_compilerWorkaround: null
+	,render: function(painter) {
+		this._characterBatch.set_x(this._batchX);
+		this._characterBatch.set_y(this._verticalAlignOffsetY);
+		feathers_controls_text_BaseTextRenderer.prototype.render.call(this,painter);
+	}
+	,measureText: function(result) {
+		return this.measureTextInternal(result,true);
+	}
+	,getTextFormatForState: function(state) {
+		if(this._textFormatForState == null) {
+			return null;
+		}
+		return this._textFormatForState.h[state];
+	}
+	,setTextFormatForState: function(state,textFormat) {
+		if(textFormat != null) {
+			if(this._textFormatForState == null) {
+				this._textFormatForState = new haxe_ds_StringMap();
+			}
+			this._textFormatForState.h[state] = textFormat;
+		} else {
+			var _this = this._textFormatForState;
+			if(Object.prototype.hasOwnProperty.call(_this.h,state)) {
+				delete(_this.h[state]);
+			}
+		}
+		if(this._stateContext != null && this._stateContext.get_currentState() == state) {
+			this.invalidate("state");
+		}
+	}
+	,initialize: function() {
+		if(this._characterBatch == null) {
+			this._characterBatch = new starling_display_MeshBatch();
+			this._characterBatch.set_touchable(false);
+			this.addChild(this._characterBatch);
+		}
+	}
+	,_lastLayoutWidth: null
+	,_lastLayoutHeight: null
+	,_lastLayoutIsTruncated: null
+	,draw: function() {
+		var dataInvalid = this.isInvalid("data");
+		var stylesInvalid = this.isInvalid("styles");
+		var stateInvalid = this.isInvalid("state");
+		if(stylesInvalid || stateInvalid) {
+			this.refreshTextFormat();
+		}
+		if(stylesInvalid) {
+			this._characterBatch.set_pixelSnapping(this._pixelSnapping);
+			this._characterBatch.set_batchable(!this._useSeparateBatch);
+		}
+		var newWidth = this._explicitWidth;
+		if(newWidth != newWidth) {
+			newWidth = this._explicitMaxWidth;
+		}
+		var sizeInvalid;
+		if(this._wordWrap) {
+			sizeInvalid = newWidth != this._lastLayoutWidth;
+		} else {
+			sizeInvalid = newWidth < this._lastLayoutWidth;
+			sizeInvalid = sizeInvalid || this._lastLayoutIsTruncated && newWidth != this._lastLayoutWidth;
+			sizeInvalid = sizeInvalid || openfl_text_TextFormatAlign.fromString(this._currentTextFormat.align) != 3;
+		}
+		if(dataInvalid || sizeInvalid || stylesInvalid || this._textFormatChanged) {
+			this._textFormatChanged = false;
+			this._characterBatch.clear();
+			if(this._currentTextFormat == null || this._text == null) {
+				this.saveMeasurements(0,0,0,0);
+				return;
+			}
+			this.layoutCharacters(feathers_controls_text_BitmapFontTextRenderer.HELPER_RESULT);
+			if(this._style != null) {
+				this._characterBatch.set_style(this._style);
+			} else {
+				this._defaultStyle = this._currentTextFormat.font.getDefaultMeshStyle(this._defaultStyle,this._currentFontStyles,null);
+				if(this._defaultStyle != null) {
+					this._characterBatch.set_style(this._defaultStyle);
+				}
+			}
+			this._lastLayoutWidth = feathers_controls_text_BitmapFontTextRenderer.HELPER_RESULT.width;
+			this._lastLayoutHeight = feathers_controls_text_BitmapFontTextRenderer.HELPER_RESULT.height;
+			this._lastLayoutIsTruncated = feathers_controls_text_BitmapFontTextRenderer.HELPER_RESULT.isTruncated;
+		}
+		this.saveMeasurements(this._lastLayoutWidth,this._lastLayoutHeight,this._lastLayoutWidth,this._lastLayoutHeight);
+		this._verticalAlignOffsetY = this.getVerticalAlignOffsetY();
+	}
+	,layoutCharacters: function(result) {
+		if(result == null) {
+			result = new feathers_controls_text_MeasureTextResult();
+		}
+		this._numLines = 1;
+		var font = this._currentTextFormat.font;
+		var customSize = this._currentTextFormat.size;
+		var customLetterSpacing = this._currentTextFormat.letterSpacing;
+		var isKerningEnabled = this._currentTextFormat.isKerningEnabled;
+		var scale = customSize / font.get_size();
+		if(scale != scale) {
+			scale = 1;
+		}
+		var lineHeight = font.get_lineHeight() * scale + this._currentTextFormat.leading;
+		var offsetX = font.get_offsetX() * scale;
+		var offsetY = font.get_offsetY() * scale;
+		var hasExplicitWidth = this._explicitWidth == this._explicitWidth;
+		var isAligned = openfl_text_TextFormatAlign.fromString(this._currentTextFormat.align) != 3;
+		var maxLineWidth = hasExplicitWidth ? this._explicitWidth : this._explicitMaxWidth;
+		if(isAligned && maxLineWidth == Infinity) {
+			var point = starling_utils_Pool.getPoint();
+			this.measureText(point);
+			maxLineWidth = point.x;
+			starling_utils_Pool.putPoint(point);
+		}
+		var textToDraw = this._text;
+		if(this._truncateToFit) {
+			var truncatedText = this.getTruncatedText(maxLineWidth);
+			result.isTruncated = truncatedText != textToDraw;
+			textToDraw = truncatedText;
+		} else {
+			result.isTruncated = false;
+		}
+		feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER = [];
+		var maxX = 0;
+		var currentX = 0;
+		var currentY = 0;
+		var previousCharID = NaN;
+		var isWordComplete = false;
+		var startXOfPreviousWord = 0;
+		var widthOfWhitespaceAfterWord = 0;
+		var wordLength = 0;
+		var wordCountForLine = 0;
+		var charData = null;
+		var charCount = textToDraw != null ? textToDraw.length : 0;
+		var _g = 0;
+		var _g1 = charCount;
+		while(_g < _g1) {
+			var i = _g++;
+			isWordComplete = false;
+			var charID = HxOverrides.cca(textToDraw,i);
+			if(charID == 10 || charID == 13) {
+				currentX -= customLetterSpacing;
+				if(charData != null) {
+					currentX -= (charData.get_xAdvance() - charData.get_width()) * scale;
+				}
+				if(currentX < 0) {
+					currentX = 0;
+				}
+				if(this._wordWrap || isAligned) {
+					this.alignBuffer(maxLineWidth,currentX,0);
+					this.addBufferToBatch(0);
+				}
+				if(maxX < currentX) {
+					maxX = currentX;
+				}
+				previousCharID = NaN;
+				currentX = 0;
+				currentY += lineHeight;
+				startXOfPreviousWord = 0;
+				widthOfWhitespaceAfterWord = 0;
+				wordLength = 0;
+				wordCountForLine = 0;
+				this._numLines++;
+				continue;
+			}
+			charData = font.getChar(charID);
+			if(charData == null) {
+				haxe_Log.trace("Missing character " + String.fromCodePoint(charID) + " in font " + font.get_name() + ".",{ fileName : "Source/feathers/controls/text/BitmapFontTextRenderer.hx", lineNumber : 922, className : "feathers.controls.text.BitmapFontTextRenderer", methodName : "layoutCharacters"});
+				continue;
+			}
+			if(isKerningEnabled && previousCharID == previousCharID) {
+				currentX += charData.getKerning(previousCharID | 0) * scale;
+			}
+			var xAdvance = charData.get_xAdvance() * scale;
+			var previousCharData;
+			if(this._wordWrap) {
+				var currentCharIsWhitespace = charID == 32 || charID == 9;
+				var previousCharIsWhitespace = previousCharID == 32 || previousCharID == 9;
+				if(currentCharIsWhitespace) {
+					if(!previousCharIsWhitespace) {
+						previousCharData = font.getChar(previousCharID | 0);
+						widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
+					}
+					widthOfWhitespaceAfterWord += xAdvance;
+				} else if(previousCharIsWhitespace) {
+					startXOfPreviousWord = currentX;
+					wordLength = 0;
+					++wordCountForLine;
+					isWordComplete = true;
+				}
+				if(isWordComplete && !isAligned) {
+					this.addBufferToBatch(0);
+				}
+				var charWidth = charData.get_width() * scale;
+				if(!currentCharIsWhitespace && (wordCountForLine > 0 || this._breakLongWords) && currentX + charWidth - maxLineWidth > 0.000001) {
+					if(wordCountForLine == 0) {
+						wordLength = 0;
+						startXOfPreviousWord = currentX;
+						widthOfWhitespaceAfterWord = 0;
+						if(previousCharID == previousCharID) {
+							previousCharData = font.getChar(previousCharID | 0);
+							widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
+						}
+						if(!isAligned) {
+							this.addBufferToBatch(0);
+						}
+					}
+					if(isAligned) {
+						this.trimBuffer(wordLength);
+						this.alignBuffer(maxLineWidth,startXOfPreviousWord - widthOfWhitespaceAfterWord,wordLength);
+						this.addBufferToBatch(wordLength);
+					}
+					this.moveBufferedCharacters(-startXOfPreviousWord,lineHeight,0);
+					widthOfWhitespaceAfterWord = startXOfPreviousWord - widthOfWhitespaceAfterWord;
+					if(maxX < widthOfWhitespaceAfterWord) {
+						maxX = widthOfWhitespaceAfterWord;
+					}
+					previousCharID = NaN;
+					currentX -= startXOfPreviousWord;
+					currentY += lineHeight;
+					startXOfPreviousWord = 0;
+					widthOfWhitespaceAfterWord = 0;
+					wordLength = 0;
+					isWordComplete = false;
+					wordCountForLine = 0;
+					this._numLines++;
+				}
+			}
+			if(this._wordWrap || isAligned) {
+				var charLocation = feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL.length > 0 ? feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL.shift() : new feathers_controls_text_CharLocation();
+				charLocation.char = charData;
+				charLocation.x = currentX + offsetX + charData.get_xOffset() * scale;
+				charLocation.y = currentY + offsetY + charData.get_yOffset() * scale;
+				charLocation.scale = scale;
+				feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER[feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.length] = charLocation;
+				++wordLength;
+			} else {
+				this.addCharacterToBatch(charData,currentX + offsetX + charData.get_xOffset() * scale,currentY + offsetY + charData.get_yOffset() * scale,scale);
+			}
+			currentX += xAdvance + customLetterSpacing;
+			previousCharID = charID;
+		}
+		currentX -= customLetterSpacing;
+		if(charData != null) {
+			currentX -= (charData.get_xAdvance() - charData.get_width()) * scale;
+		}
+		if(currentX < 0) {
+			currentX = 0;
+		}
+		if(this._wordWrap || isAligned) {
+			this.alignBuffer(maxLineWidth,currentX,0);
+			this.addBufferToBatch(0);
+		}
+		if(this._wordWrap) {
+			while(currentX > maxLineWidth && !starling_utils_MathUtil.isEquivalent(currentX,maxLineWidth)) {
+				currentX -= maxLineWidth;
+				currentY += lineHeight;
+				if(maxLineWidth == 0) {
+					break;
+				}
+			}
+		}
+		if(maxX < currentX) {
+			maxX = currentX;
+		}
+		if(isAligned && !hasExplicitWidth) {
+			var align = this._currentTextFormat.align;
+			if(openfl_text_TextFormatAlign.fromString(align) == 0) {
+				this._batchX = (maxX - maxLineWidth) / 2;
+			} else if(openfl_text_TextFormatAlign.fromString(align) == 4) {
+				this._batchX = maxX - maxLineWidth;
+			}
+		} else {
+			this._batchX = 0;
+		}
+		this._characterBatch.set_x(this._batchX);
+		result.width = maxX;
+		result.height = currentY + lineHeight - this._currentTextFormat.leading;
+		return result;
+	}
+	,trimBuffer: function(skipCount) {
+		var countToRemove = 0;
+		var charCount = feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.length - skipCount;
+		var i = charCount - 1;
+		while(i >= 0) {
+			var charLocation = feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER[i];
+			var charData = charLocation.char;
+			var charID = charData.get_charID();
+			if(charID == 32 || charID == 9) {
+				++countToRemove;
+			} else {
+				break;
+			}
+			--i;
+		}
+		if(countToRemove > 0) {
+			feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.splice(i + 1,countToRemove);
+		}
+	}
+	,alignBuffer: function(maxLineWidth,currentLineWidth,skipCount) {
+		var align = this._currentTextFormat.align;
+		if(openfl_text_TextFormatAlign.fromString(align) == 0) {
+			this.moveBufferedCharacters(Math.round((maxLineWidth - currentLineWidth) / 2),0,skipCount);
+		} else if(openfl_text_TextFormatAlign.fromString(align) == 4) {
+			this.moveBufferedCharacters(maxLineWidth - currentLineWidth,0,skipCount);
+		}
+	}
+	,addBufferToBatch: function(skipCount) {
+		var charCount = feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.length - skipCount;
+		var pushIndex = feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL.length;
+		var _g = 0;
+		var _g1 = charCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var charLocation = feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.shift();
+			this.addCharacterToBatch(charLocation.char,charLocation.x,charLocation.y,charLocation.scale);
+			charLocation.char = null;
+			feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL[pushIndex] = charLocation;
+			++pushIndex;
+		}
+	}
+	,moveBufferedCharacters: function(xOffset,yOffset,skipCount) {
+		var charCount = feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.length - skipCount;
+		var _g = 0;
+		var _g1 = charCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var charLocation = feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER[i];
+			charLocation.x += xOffset;
+			charLocation.y += yOffset;
+		}
+	}
+	,addCharacterToBatch: function(charData,x,y,scale,painter) {
+		var texture = charData.get_texture();
+		var frame = texture.get_frame();
+		if(frame != null) {
+			if(frame.width == 0 || frame.height == 0) {
+				return;
+			}
+		} else if(texture.get_width() == 0 || texture.get_height() == 0) {
+			return;
+		}
+		var font = this._currentTextFormat.font;
+		if(this._image == null) {
+			this._image = new starling_display_Image(texture);
+		} else {
+			this._image.set_texture(texture);
+			this._image.readjustSize();
+		}
+		this._image.set_scaleX(scale);
+		this._image.set_scaleY(scale);
+		this._image.set_x(x);
+		this._image.set_y(y);
+		this._image.set_color(this._currentTextFormat.color);
+		if(this._textureSmoothing != null) {
+			this._image.set_textureSmoothing(this._textureSmoothing);
+		} else {
+			this._image.set_textureSmoothing(font.get_smoothing());
+		}
+		if(painter != null) {
+			painter.pushState();
+			painter.setStateTo(this._image.get_transformationMatrix());
+			painter.batchMesh(this._image);
+			painter.popState();
+		} else {
+			this._characterBatch.addMesh(this._image);
+		}
+	}
+	,refreshTextFormat: function() {
+		var textFormat = null;
+		if(this._stateContext != null) {
+			if(this._textFormatForState != null) {
+				var currentState = this._stateContext.get_currentState();
+				if(Object.prototype.hasOwnProperty.call(this._textFormatForState.h,currentState)) {
+					textFormat = this._textFormatForState.h[currentState];
+				}
+			}
+			if(textFormat == null && this._disabledTextFormat != null && js_Boot.__implements(this._stateContext,feathers_core_IFeathersControl) && !(js_Boot.__cast(this._stateContext , feathers_core_IFeathersControl)).get_isEnabled()) {
+				textFormat = this._disabledTextFormat;
+			}
+			if(textFormat == null && this._selectedTextFormat != null && js_Boot.__implements(this._stateContext,feathers_core_IToggle) && (js_Boot.__cast(this._stateContext , feathers_core_IToggle)).get_isSelected()) {
+				textFormat = this._selectedTextFormat;
+			}
+		} else if(!this._isEnabled && this._disabledTextFormat != null) {
+			textFormat = this._disabledTextFormat;
+		}
+		if(textFormat == null) {
+			textFormat = this._textFormat;
+		}
+		if(textFormat == null) {
+			textFormat = this.getTextFormatFromFontStyles();
+		} else {
+			this._currentVerticalAlign = "top";
+			if(this._currentFontStyles == null) {
+				this._currentFontStyles = new starling_text_TextFormat();
+			}
+			this._currentFontStyles.set_size(textFormat.size);
+		}
+		if(this._currentTextFormat != textFormat) {
+			this._currentTextFormat = textFormat;
+			this._textFormatChanged = true;
+		}
+	}
+	,getTextFormatFromFontStyles: function() {
+		if(this.isInvalid("styles") || this.isInvalid("state")) {
+			var textFormat = null;
+			if(this._fontStyles != null) {
+				textFormat = this._fontStyles.getTextFormatForTarget(this);
+				this._currentFontStyles = textFormat;
+			}
+			if(textFormat != null) {
+				this._fontStylesTextFormat = new feathers_text_BitmapFontTextFormat(textFormat.get_font(),textFormat.get_size(),textFormat.get_color(),textFormat.get_horizontalAlign(),textFormat.get_leading());
+				this._fontStylesTextFormat.isKerningEnabled = textFormat.get_kerning();
+				this._fontStylesTextFormat.letterSpacing = textFormat.get_letterSpacing();
+				this._currentVerticalAlign = textFormat.get_verticalAlign();
+			} else if(this._fontStylesTextFormat == null) {
+				if(starling_text_TextField.getBitmapFont("mini") == null) {
+					var font = new starling_text_BitmapFont();
+					starling_text_TextField.registerCompositor(font,font.get_name());
+				}
+				this._fontStylesTextFormat = new feathers_text_BitmapFontTextFormat("mini",NaN,0);
+				this._currentVerticalAlign = "top";
+			}
+		}
+		return this._fontStylesTextFormat;
+	}
+	,measureTextInternal: function(result,useExplicit) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		var needsWidth = !useExplicit || this._explicitWidth != this._explicitWidth;
+		var needsHeight = !useExplicit || this._explicitHeight != this._explicitHeight;
+		if(!needsWidth && !needsHeight) {
+			result.x = this._explicitWidth;
+			result.y = this._explicitHeight;
+			return result;
+		}
+		if(this.isInvalid("styles") || this.isInvalid("state")) {
+			this.refreshTextFormat();
+		}
+		if(this._currentTextFormat == null || this._text == null) {
+			result.setTo(0,0);
+			return result;
+		}
+		var font = this._currentTextFormat.font;
+		var customSize = this._currentTextFormat.size;
+		var customLetterSpacing = this._currentTextFormat.letterSpacing;
+		var isKerningEnabled = this._currentTextFormat.isKerningEnabled;
+		var scale = customSize / font.get_size();
+		if(scale != scale) {
+			scale = 1;
+		}
+		var lineHeight = font.get_lineHeight() * scale + this._currentTextFormat.leading;
+		var maxLineWidth = this._explicitWidth;
+		if(maxLineWidth != maxLineWidth) {
+			maxLineWidth = this._explicitMaxWidth;
+		}
+		var maxX = 0;
+		var currentX = 0;
+		var currentY = 0;
+		var previousCharID = NaN;
+		var charCount = this._text.length;
+		var startXOfPreviousWord = 0;
+		var widthOfWhitespaceAfterWord = 0;
+		var wordCountForLine = 0;
+		var line = "";
+		var word = "";
+		var charData = null;
+		var _g = 0;
+		var _g1 = charCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var charID = HxOverrides.cca(this._text,i);
+			if(charID == 10 || charID == 13) {
+				currentX -= customLetterSpacing;
+				if(charData != null) {
+					currentX -= (charData.get_xAdvance() - charData.get_width()) * scale;
+				}
+				if(currentX < 0) {
+					currentX = 0;
+				}
+				if(maxX < currentX) {
+					maxX = currentX;
+				}
+				previousCharID = NaN;
+				currentX = 0;
+				currentY += lineHeight;
+				startXOfPreviousWord = 0;
+				wordCountForLine = 0;
+				widthOfWhitespaceAfterWord = 0;
+				continue;
+			}
+			charData = font.getChar(charID);
+			if(charData == null) {
+				haxe_Log.trace("Missing character " + String.fromCodePoint(charID) + " in font " + font.get_name() + ".",{ fileName : "Source/feathers/controls/text/BitmapFontTextRenderer.hx", lineNumber : 1334, className : "feathers.controls.text.BitmapFontTextRenderer", methodName : "measureTextInternal"});
+				continue;
+			}
+			if(isKerningEnabled && previousCharID == previousCharID) {
+				currentX += charData.getKerning(previousCharID | 0) * scale;
+			}
+			var xAdvance = charData.get_xAdvance() * scale;
+			var previousCharData;
+			if(this._wordWrap) {
+				var currentCharIsWhitespace = charID == 32 || charID == 9;
+				var previousCharIsWhitespace = previousCharID == 32 || previousCharID == 9;
+				if(currentCharIsWhitespace) {
+					if(!previousCharIsWhitespace) {
+						previousCharData = font.getChar(previousCharID | 0);
+						widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
+					}
+					widthOfWhitespaceAfterWord += xAdvance;
+				} else if(previousCharIsWhitespace) {
+					startXOfPreviousWord = currentX;
+					++wordCountForLine;
+					line += word;
+					word = "";
+				}
+				var charWidth = charData.get_width() * scale;
+				if(!currentCharIsWhitespace && (wordCountForLine > 0 || this._breakLongWords) && currentX + charWidth > maxLineWidth) {
+					if(wordCountForLine == 0) {
+						startXOfPreviousWord = currentX;
+						if(previousCharID == previousCharID) {
+							previousCharData = font.getChar(previousCharID | 0);
+							widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
+						}
+					}
+					widthOfWhitespaceAfterWord = startXOfPreviousWord - widthOfWhitespaceAfterWord;
+					if(maxX < widthOfWhitespaceAfterWord) {
+						maxX = widthOfWhitespaceAfterWord;
+					}
+					previousCharID = NaN;
+					currentX -= startXOfPreviousWord;
+					currentY += lineHeight;
+					startXOfPreviousWord = 0;
+					widthOfWhitespaceAfterWord = 0;
+					wordCountForLine = 0;
+					line = "";
+				}
+			}
+			currentX += xAdvance + customLetterSpacing;
+			previousCharID = charID;
+			word += String.fromCodePoint(charID);
+		}
+		currentX -= customLetterSpacing;
+		if(charData != null) {
+			currentX -= (charData.get_xAdvance() - charData.get_width()) * scale;
+		}
+		if(currentX < 0) {
+			currentX = 0;
+		}
+		if(this._wordWrap) {
+			while(currentX > maxLineWidth && !starling_utils_MathUtil.isEquivalent(currentX,maxLineWidth)) {
+				currentX -= maxLineWidth;
+				currentY += lineHeight;
+				if(maxLineWidth == 0) {
+					break;
+				}
+			}
+		}
+		if(maxX < currentX) {
+			maxX = currentX;
+		}
+		if(needsWidth) {
+			result.x = maxX;
+		} else {
+			result.x = this._explicitWidth;
+		}
+		if(needsHeight) {
+			result.y = currentY + lineHeight - this._currentTextFormat.leading;
+		} else {
+			result.y = this._explicitHeight;
+		}
+		return result;
+	}
+	,getTruncatedText: function(width) {
+		if(this._text == null) {
+			return "";
+		}
+		if(width == Infinity || this._wordWrap || this._text.indexOf("\n") >= 0 || this._text.indexOf("\r") >= 0) {
+			return this._text;
+		}
+		var font = this._currentTextFormat.font;
+		var customSize = this._currentTextFormat.size;
+		var customLetterSpacing = this._currentTextFormat.letterSpacing;
+		var isKerningEnabled = this._currentTextFormat.isKerningEnabled;
+		var scale = customSize / font.get_size();
+		if(scale != scale) {
+			scale = 1;
+		}
+		var currentX = 0;
+		var previousCharID = NaN;
+		var charCount = this._text.length;
+		var truncationIndex = -1;
+		var charID;
+		var charData = null;
+		var charWidth;
+		var currentKerning;
+		var difference;
+		var _g = 0;
+		var _g1 = charCount;
+		while(_g < _g1) {
+			var i = _g++;
+			charID = HxOverrides.cca(this._text,i);
+			charData = font.getChar(charID);
+			if(charData == null) {
+				continue;
+			}
+			currentKerning = 0;
+			if(isKerningEnabled && previousCharID == previousCharID) {
+				currentKerning = charData.getKerning(previousCharID | 0) * scale;
+			}
+			charWidth = charData.get_width() * scale;
+			currentX += currentKerning + charWidth;
+			if(currentX > width) {
+				difference = Math.abs(currentX - width);
+				if(difference > 0.000001) {
+					truncationIndex = i;
+					currentX += charData.get_xAdvance() * scale - charWidth;
+					break;
+				}
+			}
+			currentX += customLetterSpacing + charData.get_xAdvance() * scale - charWidth;
+			previousCharID = charID;
+		}
+		if(truncationIndex >= 0) {
+			charCount = this._truncationText.length;
+			var _g = 0;
+			var _g1 = charCount;
+			while(_g < _g1) {
+				var i = _g++;
+				charID = HxOverrides.cca(this._truncationText,i);
+				charData = font.getChar(charID);
+				if(charData == null) {
+					continue;
+				}
+				currentKerning = 0;
+				if(isKerningEnabled && previousCharID == previousCharID) {
+					currentKerning = charData.getKerning(previousCharID | 0) * scale;
+				}
+				currentX += currentKerning + charData.get_xAdvance() * scale + customLetterSpacing;
+				previousCharID = charID;
+			}
+			currentX -= customLetterSpacing;
+			if(charData != null) {
+				currentX -= (charData.get_xAdvance() - charData.get_width()) * scale;
+			}
+			var i = truncationIndex;
+			while(i >= 0) {
+				charID = HxOverrides.cca(this._text,i);
+				previousCharID = i > 0 ? HxOverrides.cca(this._text,i - 1) : NaN;
+				charData = font.getChar(charID);
+				if(charData == null) {
+					continue;
+				}
+				currentKerning = 0;
+				if(isKerningEnabled && previousCharID == previousCharID) {
+					currentKerning = charData.getKerning(previousCharID | 0) * scale;
+				}
+				currentX -= currentKerning + charData.get_xAdvance() * scale + customLetterSpacing;
+				if(currentX <= width) {
+					return HxOverrides.substr(this._text,0,i) + this._truncationText;
+				}
+				--i;
+			}
+			return this._truncationText;
+		}
+		return this._text;
+	}
+	,getVerticalAlignOffsetY: function() {
+		var font = this._currentTextFormat.font;
+		var customSize = this._currentTextFormat.size;
+		var scale = customSize / font.get_size();
+		if(scale != scale) {
+			scale = 1;
+		}
+		var lineHeight = font.get_lineHeight() * scale + this._currentTextFormat.leading;
+		var textHeight = this._numLines * lineHeight;
+		if(textHeight > this.actualHeight) {
+			return 0;
+		}
+		if(this._currentVerticalAlign == "bottom") {
+			return this.actualHeight - textHeight;
+		} else if(this._currentVerticalAlign == "center") {
+			return (this.actualHeight - textHeight) / 2;
+		}
+		return 0;
+	}
+	,__class__: feathers_controls_text_BitmapFontTextRenderer
+	,__properties__: $extend(feathers_controls_text_BaseTextRenderer.prototype.__properties__,{get_baseline:"get_baseline",set_style:"set_style",get_style:"get_style",set_useSeparateBatch:"set_useSeparateBatch",get_useSeparateBatch:"get_useSeparateBatch",set_truncationText:"set_truncationText",get_truncationText:"get_truncationText",set_truncateToFit:"set_truncateToFit",get_truncateToFit:"get_truncateToFit",set_breakLongWords:"set_breakLongWords",get_breakLongWords:"get_breakLongWords",set_pixelSnapping:"set_pixelSnapping",get_pixelSnapping:"get_pixelSnapping",set_textureSmoothing:"set_textureSmoothing",get_textureSmoothing:"get_textureSmoothing",set_selectedTextFormat:"set_selectedTextFormat",get_selectedTextFormat:"get_selectedTextFormat",set_disabledTextFormat:"set_disabledTextFormat",get_disabledTextFormat:"get_disabledTextFormat",set_textFormat:"set_textFormat",get_textFormat:"get_textFormat",get_numLines:"get_numLines",get_currentTextFormat:"get_currentTextFormat"})
+});
+var feathers_controls_text_CharLocation = function() {
+};
+$hxClasses["feathers.controls.text.CharLocation"] = feathers_controls_text_CharLocation;
+feathers_controls_text_CharLocation.__name__ = "feathers.controls.text.CharLocation";
+feathers_controls_text_CharLocation.prototype = {
+	char: null
+	,scale: null
+	,x: null
+	,y: null
+	,__class__: feathers_controls_text_CharLocation
+};
+var feathers_core_BaseTextEditor = function() {
+	this._text = "";
+	feathers_core_FeathersControl.call(this);
+};
+$hxClasses["feathers.core.BaseTextEditor"] = feathers_core_BaseTextEditor;
+feathers_core_BaseTextEditor.__name__ = "feathers.core.BaseTextEditor";
+feathers_core_BaseTextEditor.__interfaces__ = [feathers_core_IStateObserver];
+feathers_core_BaseTextEditor.__super__ = feathers_core_FeathersControl;
+feathers_core_BaseTextEditor.prototype = $extend(feathers_core_FeathersControl.prototype,{
+	_text: null
+	,get_text: function() {
+		return this._text;
+	}
+	,set_text: function(value) {
+		if(value == null) {
+			value = "";
+		}
+		if(this._text == value) {
+			return this._text;
+		}
+		this._text = value;
+		this.invalidate("data");
+		this.dispatchEventWith("change");
+		return this._text;
+	}
+	,_stateContext: null
+	,get_stateContext: function() {
+		return this._stateContext;
+	}
+	,set_stateContext: function(value) {
+		if(this._stateContext == value) {
+			return this._stateContext;
+		}
+		if(this._stateContext != null) {
+			this._stateContext.removeEventListener("stateChange",$bind(this,this.stateContext_stateChangeHandler));
+		}
+		this._stateContext = value;
+		if(this._stateContext != null) {
+			this._stateContext.addEventListener("stateChange",$bind(this,this.stateContext_stateChangeHandler));
+		}
+		this.invalidate("state");
+		return this._stateContext;
+	}
+	,_fontStyles: null
+	,get_fontStyles: function() {
+		return this._fontStyles;
+	}
+	,set_fontStyles: function(value) {
+		if(this._fontStyles == value) {
+			return this._fontStyles;
+		}
+		if(this._fontStyles != null) {
+			this._fontStyles.removeEventListener("change",$bind(this,this.fontStylesSet_changeHandler));
+		}
+		this._fontStyles = value;
+		if(this._fontStyles != null) {
+			this._fontStyles.addEventListener("change",$bind(this,this.fontStylesSet_changeHandler));
+		}
+		this.invalidate("styles");
+		return this._fontStyles;
+	}
+	,dispose: function() {
+		this.set_stateContext(null);
+		this.set_fontStyles(null);
+		feathers_core_FeathersControl.prototype.dispose.call(this);
+	}
+	,stateContext_stateChangeHandler: function(event) {
+		this.invalidate("state");
+	}
+	,fontStylesSet_changeHandler: function(event) {
+		this.invalidate("styles");
+	}
+	,__class__: feathers_core_BaseTextEditor
+	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",set_stateContext:"set_stateContext",get_stateContext:"get_stateContext",set_text:"set_text",get_text:"get_text"})
+});
+var feathers_core_IFocusDisplayObject = function() { };
+$hxClasses["feathers.core.IFocusDisplayObject"] = feathers_core_IFocusDisplayObject;
+feathers_core_IFocusDisplayObject.__name__ = "feathers.core.IFocusDisplayObject";
+feathers_core_IFocusDisplayObject.__isInterface__ = true;
+feathers_core_IFocusDisplayObject.__interfaces__ = [feathers_core_IFeathersDisplayObject];
+feathers_core_IFocusDisplayObject.prototype = {
+	get_focusManager: null
+	,set_focusManager: null
+	,get_isFocusEnabled: null
+	,set_isFocusEnabled: null
+	,get_nextTabFocus: null
+	,set_nextTabFocus: null
+	,get_previousTabFocus: null
+	,set_previousTabFocus: null
+	,get_nextUpFocus: null
+	,set_nextUpFocus: null
+	,get_nextRightFocus: null
+	,set_nextRightFocus: null
+	,get_nextDownFocus: null
+	,set_nextDownFocus: null
+	,get_nextLeftFocus: null
+	,set_nextLeftFocus: null
+	,get_focusOwner: null
+	,set_focusOwner: null
+	,get_isShowingFocus: null
+	,get_maintainTouchFocus: null
+	,showFocus: null
+	,hideFocus: null
+	,__class__: feathers_core_IFocusDisplayObject
+	,__properties__: {get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus",set_focusOwner:"set_focusOwner",get_focusOwner:"get_focusOwner",set_nextLeftFocus:"set_nextLeftFocus",get_nextLeftFocus:"get_nextLeftFocus",set_nextDownFocus:"set_nextDownFocus",get_nextDownFocus:"get_nextDownFocus",set_nextRightFocus:"set_nextRightFocus",get_nextRightFocus:"get_nextRightFocus",set_nextUpFocus:"set_nextUpFocus",get_nextUpFocus:"get_nextUpFocus",set_previousTabFocus:"set_previousTabFocus",get_previousTabFocus:"get_previousTabFocus",set_nextTabFocus:"set_nextTabFocus",get_nextTabFocus:"get_nextTabFocus",set_isFocusEnabled:"set_isFocusEnabled",get_isFocusEnabled:"get_isFocusEnabled",set_focusManager:"set_focusManager",get_focusManager:"get_focusManager"}
+};
+var feathers_core_INativeFocusOwner = function() { };
+$hxClasses["feathers.core.INativeFocusOwner"] = feathers_core_INativeFocusOwner;
+feathers_core_INativeFocusOwner.__name__ = "feathers.core.INativeFocusOwner";
+feathers_core_INativeFocusOwner.__isInterface__ = true;
+feathers_core_INativeFocusOwner.__interfaces__ = [feathers_core_IFocusDisplayObject];
+feathers_core_INativeFocusOwner.prototype = {
+	get_nativeFocus: null
+	,__class__: feathers_core_INativeFocusOwner
+	,__properties__: {get_nativeFocus:"get_nativeFocus"}
+};
+var feathers_core_ITextEditor = function() { };
+$hxClasses["feathers.core.ITextEditor"] = feathers_core_ITextEditor;
+feathers_core_ITextEditor.__name__ = "feathers.core.ITextEditor";
+feathers_core_ITextEditor.__isInterface__ = true;
+feathers_core_ITextEditor.__interfaces__ = [feathers_core_ITextBaselineControl,feathers_core_IFeathersControl];
+feathers_core_ITextEditor.prototype = {
+	get_text: null
+	,set_text: null
+	,get_displayAsPassword: null
+	,set_displayAsPassword: null
+	,get_maxChars: null
+	,set_maxChars: null
+	,get_restrict: null
+	,set_restrict: null
+	,get_isEditable: null
+	,set_isEditable: null
+	,get_isSelectable: null
+	,set_isSelectable: null
+	,get_setTouchFocusOnEndedPhase: null
+	,get_selectionBeginIndex: null
+	,get_selectionEndIndex: null
+	,get_fontStyles: null
+	,setFocus: null
+	,clearFocus: null
+	,selectRange: null
+	,measureText: null
+	,__class__: feathers_core_ITextEditor
+	,__properties__: {get_fontStyles:"get_fontStyles",get_selectionEndIndex:"get_selectionEndIndex",get_selectionBeginIndex:"get_selectionBeginIndex",get_setTouchFocusOnEndedPhase:"get_setTouchFocusOnEndedPhase",set_isSelectable:"set_isSelectable",get_isSelectable:"get_isSelectable",set_isEditable:"set_isEditable",get_isEditable:"get_isEditable",set_restrict:"set_restrict",get_restrict:"get_restrict",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_text:"set_text",get_text:"get_text"}
+};
+var feathers_core_IMultilineTextEditor = function() { };
+$hxClasses["feathers.core.IMultilineTextEditor"] = feathers_core_IMultilineTextEditor;
+feathers_core_IMultilineTextEditor.__name__ = "feathers.core.IMultilineTextEditor";
+feathers_core_IMultilineTextEditor.__isInterface__ = true;
+feathers_core_IMultilineTextEditor.__interfaces__ = [feathers_core_ITextEditor];
+feathers_core_IMultilineTextEditor.prototype = {
+	get_multiline: null
+	,set_multiline: null
+	,__class__: feathers_core_IMultilineTextEditor
+	,__properties__: {set_multiline:"set_multiline",get_multiline:"get_multiline"}
+};
+var feathers_controls_text_StageTextTextEditor = function() {
+	this._clearButtonMode = "whileEditing";
+	this._updateSnapshotOnScaleChange = false;
+	this._lastGlobalScaleY = 0;
+	this._lastGlobalScaleX = 0;
+	this._maintainTouchFocus = false;
+	this._softKeyboardType = "default";
+	this._returnKeyLabel = "default";
+	this._multiline = false;
+	this._maxChars = 0;
+	this._locale = "en";
+	this._fontSize = 12;
+	this._fontFamily = null;
+	this._isSelectable = true;
+	this._isEditable = true;
+	this._displayAsPassword = false;
+	this._disabledColor = 10066329;
+	this._color = -1;
+	this._autoCorrect = false;
+	this._autoCapitalize = "none";
+	this._stageTextIsComplete = false;
+	this._pendingSelectionEndIndex = -1;
+	this._pendingSelectionBeginIndex = -1;
+	this._isWaitingToSetFocus = false;
+	this._stageTextHasFocus = false;
+	this._stageTextIsTextField = false;
+	this._ignoreStageTextChanges = false;
+	this._needsTextureUpdate = false;
+	this._needsNewTexture = false;
+	feathers_core_BaseTextEditor.call(this);
+	this._stageTextIsTextField = true;
+	this.set_isQuickHitAreaEnabled(true);
+	this.addEventListener("removedFromStage",$bind(this,this.textEditor_removedFromStageHandler));
+};
+$hxClasses["feathers.controls.text.StageTextTextEditor"] = feathers_controls_text_StageTextTextEditor;
+feathers_controls_text_StageTextTextEditor.__name__ = "feathers.controls.text.StageTextTextEditor";
+feathers_controls_text_StageTextTextEditor.__interfaces__ = [feathers_core_INativeFocusOwner,feathers_core_IMultilineTextEditor];
+feathers_controls_text_StageTextTextEditor.globalStyleProvider = null;
+feathers_controls_text_StageTextTextEditor.__super__ = feathers_core_BaseTextEditor;
+feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_BaseTextEditor.prototype,{
+	get_defaultStyleProvider: function() {
+		return feathers_controls_text_StageTextTextEditor.globalStyleProvider;
+	}
+	,stageText: null
+	,get_nativeFocus: function() {
+		if(!this._isEditable) {
+			return null;
+		}
+		return this.stageText;
+	}
+	,textSnapshot: null
+	,_needsNewTexture: null
+	,_needsTextureUpdate: null
+	,_ignoreStageTextChanges: null
+	,_measureTextField: null
+	,_stageTextIsTextField: null
+	,_stageTextHasFocus: null
+	,_isWaitingToSetFocus: null
+	,_pendingSelectionBeginIndex: null
+	,get_selectionBeginIndex: function() {
+		if(this._pendingSelectionBeginIndex >= 0) {
+			return this._pendingSelectionBeginIndex;
+		}
+		if(this.stageText) {
+			return this.stageText.selectionAnchorIndex;
+		}
+		return 0;
+	}
+	,_pendingSelectionEndIndex: null
+	,get_selectionEndIndex: function() {
+		if(this._pendingSelectionEndIndex >= 0) {
+			return this._pendingSelectionEndIndex;
+		}
+		if(this.stageText) {
+			return this.stageText.selectionActiveIndex;
+		}
+		return 0;
+	}
+	,_stageTextIsComplete: null
+	,get_baseline: function() {
+		if(this._measureTextField == null) {
+			return 0;
+		}
+		return this._measureTextField.getLineMetrics(0).ascent;
+	}
+	,_autoCapitalize: null
+	,get_autoCapitalize: function() {
+		return this._autoCapitalize;
+	}
+	,set_autoCapitalize: function(value) {
+		if(this._autoCapitalize == value) {
+			return this._autoCapitalize;
+		}
+		this._autoCapitalize = value;
+		this.invalidate("styles");
+		return this._autoCapitalize;
+	}
+	,_autoCorrect: null
+	,get_autoCorrect: function() {
+		return this._autoCorrect;
+	}
+	,set_autoCorrect: function(value) {
+		if(this._autoCorrect == value) {
+			return this._autoCorrect;
+		}
+		this._autoCorrect = value;
+		this.invalidate("styles");
+		return this._autoCorrect;
+	}
+	,_color: null
+	,get_color: function() {
+		return this._color;
+	}
+	,set_color: function(value) {
+		if(this._color == value) {
+			return this._color;
+		}
+		this._color = value;
+		this.invalidate("styles");
+		return this._color;
+	}
+	,_disabledColor: null
+	,get_disabledColor: function() {
+		return this._disabledColor;
+	}
+	,set_disabledColor: function(value) {
+		if(this._disabledColor == value) {
+			return this._disabledColor;
+		}
+		this._disabledColor = value;
+		this.invalidate("styles");
+		return this._disabledColor;
+	}
+	,_displayAsPassword: null
+	,get_displayAsPassword: function() {
+		return this._displayAsPassword;
+	}
+	,set_displayAsPassword: function(value) {
+		if(this._displayAsPassword == value) {
+			return this._displayAsPassword;
+		}
+		this._displayAsPassword = value;
+		this.invalidate("styles");
+		return this._displayAsPassword;
+	}
+	,_isEditable: null
+	,get_isEditable: function() {
+		return this._isEditable;
+	}
+	,set_isEditable: function(value) {
+		if(this._isEditable == value) {
+			return this._isEditable;
+		}
+		this._isEditable = value;
+		this.invalidate("styles");
+		return this._isEditable;
+	}
+	,_isSelectable: null
+	,get_isSelectable: function() {
+		return this._isSelectable;
+	}
+	,set_isSelectable: function(value) {
+		if(this._isSelectable == value) {
+			return this._isSelectable;
+		}
+		this._isSelectable = value;
+		this.invalidate("styles");
+		return this._isSelectable;
+	}
+	,get_setTouchFocusOnEndedPhase: function() {
+		return true;
+	}
+	,_fontFamily: null
+	,get_fontFamily: function() {
+		return this._fontFamily;
+	}
+	,set_fontFamily: function(value) {
+		if(this._fontFamily == value) {
+			return this._fontFamily;
+		}
+		this._fontFamily = value;
+		this.invalidate("styles");
+		return this._fontFamily;
+	}
+	,_fontSize: null
+	,get_fontSize: function() {
+		return this._fontSize;
+	}
+	,set_fontSize: function(value) {
+		if(this._fontSize == value) {
+			return this._fontSize;
+		}
+		this._fontSize = value;
+		this.invalidate("styles");
+		return this._fontSize;
+	}
+	,_locale: null
+	,get_locale: function() {
+		return this._locale;
+	}
+	,set_locale: function(value) {
+		if(this._locale == value) {
+			return this._locale;
+		}
+		this._locale = value;
+		this.invalidate("styles");
+		return this._locale;
+	}
+	,_maxChars: null
+	,get_maxChars: function() {
+		return this._maxChars;
+	}
+	,set_maxChars: function(value) {
+		if(this._maxChars == value) {
+			return this._maxChars;
+		}
+		this._maxChars = value;
+		this.invalidate("styles");
+		return this._maxChars;
+	}
+	,_multiline: null
+	,get_multiline: function() {
+		return this._multiline;
+	}
+	,set_multiline: function(value) {
+		if(this._multiline == value) {
+			return this._multiline;
+		}
+		this._multiline = value;
+		this.invalidate("styles");
+		return this._multiline;
+	}
+	,_restrict_: null
+	,get_restrict: function() {
+		return this._restrict_;
+	}
+	,set_restrict: function(value) {
+		if(this._restrict_ == value) {
+			return this._restrict_;
+		}
+		this._restrict_ = value;
+		this.invalidate("styles");
+		return this._restrict_;
+	}
+	,_returnKeyLabel: null
+	,get_returnKeyLabel: function() {
+		return this._returnKeyLabel;
+	}
+	,set_returnKeyLabel: function(value) {
+		if(this._returnKeyLabel == value) {
+			return this._returnKeyLabel;
+		}
+		this._returnKeyLabel = value;
+		this.invalidate("styles");
+		return this._returnKeyLabel;
+	}
+	,_softKeyboardType: null
+	,get_softKeyboardType: function() {
+		return this._softKeyboardType;
+	}
+	,set_softKeyboardType: function(value) {
+		if(this._softKeyboardType == value) {
+			return this._softKeyboardType;
+		}
+		this._softKeyboardType = value;
+		this.invalidate("styles");
+		return this._softKeyboardType;
+	}
+	,_textAlign: null
+	,get_textAlign: function() {
+		return this._textAlign;
+	}
+	,set_textAlign: function(value) {
+		if(this._textAlign == value) {
+			return this._textAlign;
+		}
+		this._textAlign = value;
+		this.invalidate("styles");
+		return this._textAlign;
+	}
+	,_maintainTouchFocus: null
+	,get_maintainTouchFocus: function() {
+		return this._maintainTouchFocus;
+	}
+	,set_maintainTouchFocus: function(value) {
+		this._maintainTouchFocus = value;
+		return this._maintainTouchFocus;
+	}
+	,_lastGlobalScaleX: null
+	,_lastGlobalScaleY: null
+	,_updateSnapshotOnScaleChange: null
+	,get_updateSnapshotOnScaleChange: function() {
+		return this._updateSnapshotOnScaleChange;
+	}
+	,set_updateSnapshotOnScaleChange: function(value) {
+		if(this._updateSnapshotOnScaleChange == value) {
+			return this.get_updateSnapshotOnScaleChange();
+		}
+		this._updateSnapshotOnScaleChange = value;
+		this.invalidate("data");
+		return this.get_updateSnapshotOnScaleChange();
+	}
+	,_clearButtonMode: null
+	,get_clearButtonMode: function() {
+		return this._clearButtonMode;
+	}
+	,set_clearButtonMode: function(value) {
+		if(this._clearButtonMode == value) {
+			return this._clearButtonMode;
+		}
+		this._clearButtonMode = value;
+		this.invalidate("styles");
+		return this._clearButtonMode;
+	}
+	,dispose: function() {
+		if(this._measureTextField != null) {
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			starling.get_nativeStage().removeChild(this._measureTextField);
+			this._measureTextField = null;
+		}
+		if(this.stageText) {
+			this.disposeStageText();
+		}
+		if(this.textSnapshot != null) {
+			this.textSnapshot.get_texture().dispose();
+			this.removeChild(this.textSnapshot,true);
+			this.textSnapshot = null;
+		}
+		feathers_core_BaseTextEditor.prototype.dispose.call(this);
+	}
+	,render: function(painter) {
+		if(this._stageTextHasFocus) {
+			painter.excludeFromCache(this);
+		}
+		if(this.textSnapshot != null && this._updateSnapshotOnScaleChange) {
+			var matrix = starling_utils_Pool.getMatrix();
+			this.getTransformationMatrix(this.get_stage(),matrix);
+			if(feathers_utils_geom_FeathersGeomUtils.matrixToScaleX(matrix) != this._lastGlobalScaleX || feathers_utils_geom_FeathersGeomUtils.matrixToScaleY(matrix) != this._lastGlobalScaleY) {
+				this.invalidate("size");
+				this.validate();
+			}
+			starling_utils_Pool.putMatrix(matrix);
+		}
+		if(this._needsTextureUpdate) {
+			this._needsTextureUpdate = false;
+			var hasText = this._text.length > 0;
+			if(hasText) {
+				this.refreshSnapshot();
+			}
+			if(this.textSnapshot != null) {
+				this.textSnapshot.set_visible(!this._stageTextHasFocus);
+				this.textSnapshot.set_alpha(hasText ? 1 : 0);
+			}
+			if(!this._stageTextHasFocus) {
+				this.stageText.visible = false;
+			}
+		}
+		if(this.stageText != null && this.stageText.visible) {
+			this.refreshViewPortAndFontSize();
+		}
+		if(this.textSnapshot != null) {
+			this.positionSnapshot();
+		}
+		feathers_core_BaseTextEditor.prototype.render.call(this,painter);
+	}
+	,setFocus: function(position) {
+		if(!this._isEditable && starling_utils_SystemUtil.get_platform() == "AND") {
+			return;
+		}
+		if(!this._isEditable && !this._isSelectable) {
+			return;
+		}
+		if(this.get_stage() != null && this.stageText.stage == null) {
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			this.stageText.stage = starling.get_nativeStage();
+		}
+		if(this.stageText && this._stageTextIsComplete) {
+			if(position != null) {
+				var positionX = position.x + 2;
+				var positionY = position.y + 2;
+				if(positionX < 0) {
+					this._pendingSelectionBeginIndex = this._pendingSelectionEndIndex = 0;
+				} else {
+					this._pendingSelectionBeginIndex = this._measureTextField.getCharIndexAtPoint(positionX,positionY);
+					if(this._pendingSelectionBeginIndex < 0) {
+						if(this._multiline) {
+							var lineIndex = positionY / this._measureTextField.getLineMetrics(0).height | 0;
+							try {
+								this._pendingSelectionBeginIndex = this._measureTextField.getLineOffset(lineIndex) + this._measureTextField.getLineLength(lineIndex);
+								if(this._pendingSelectionBeginIndex != this._text.length) {
+									this._pendingSelectionBeginIndex--;
+								}
+							} catch( _g ) {
+								if(((haxe_Exception.caught(_g)) instanceof openfl_errors_Error)) {
+									this._pendingSelectionBeginIndex = this._text.length;
+								} else {
+									throw _g;
+								}
+							}
+						} else {
+							this._pendingSelectionBeginIndex = this._measureTextField.getCharIndexAtPoint(positionX,this._measureTextField.getLineMetrics(0).ascent / 2);
+							if(this._pendingSelectionBeginIndex < 0) {
+								this._pendingSelectionBeginIndex = this._text.length;
+							}
+						}
+					} else {
+						var bounds = this._measureTextField.getCharBoundaries(this._pendingSelectionBeginIndex);
+						var boundsX = bounds.x;
+						if(bounds != null && boundsX + bounds.width - positionX < positionX - boundsX) {
+							this._pendingSelectionBeginIndex++;
+						}
+					}
+					this._pendingSelectionEndIndex = this._pendingSelectionBeginIndex;
+				}
+			} else {
+				this._pendingSelectionBeginIndex = this._pendingSelectionEndIndex = -1;
+			}
+			this.stageText.visible = true;
+			if(!this._isEditable) {
+				this.stageText.editable = true;
+			}
+			if(!this._stageTextHasFocus) {
+				this.stageText.assignFocus();
+			}
+		} else {
+			this._isWaitingToSetFocus = true;
+		}
+	}
+	,clearFocus: function() {
+		if(!this._stageTextHasFocus) {
+			return;
+		}
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		starling.get_nativeStage().set_focus(null);
+		if(!this.isParentChainVisible()) {
+			this.stageText.visible = false;
+		}
+	}
+	,selectRange: function(beginIndex,endIndex) {
+		if(this._stageTextIsComplete && this.stageText) {
+			this._pendingSelectionBeginIndex = -1;
+			this._pendingSelectionEndIndex = -1;
+			this.stageText.selectRange(beginIndex,endIndex);
+		} else {
+			this._pendingSelectionBeginIndex = beginIndex;
+			this._pendingSelectionEndIndex = endIndex;
+		}
+	}
+	,measureText: function(result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		if(!needsWidth && !needsHeight) {
+			result.x = this._explicitWidth;
+			result.y = this._explicitHeight;
+			return result;
+		}
+		if(!this._isInitialized) {
+			this.initializeNow();
+		}
+		var stylesInvalid = this.isInvalid("styles");
+		var dataInvalid = this.isInvalid("data");
+		if(stylesInvalid || dataInvalid) {
+			this.refreshMeasureProperties();
+		}
+		result = this.measure(result);
+		return result;
+	}
+	,initialize: function() {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		if(this._measureTextField != null && this._measureTextField.parent == null) {
+			starling.get_nativeStage().addChild(this._measureTextField);
+		} else if(this._measureTextField == null) {
+			this._measureTextField = new openfl_text_TextField();
+			this._measureTextField.set_visible(false);
+			this._measureTextField.mouseEnabled = false;
+			this._measureTextField.set_autoSize(1);
+			this._measureTextField.set_multiline(false);
+			this._measureTextField.set_wordWrap(false);
+			this._measureTextField.set_embedFonts(false);
+			this._measureTextField.set_defaultTextFormat(new openfl_text_TextFormat(null,11,0,false,false,false));
+			starling.get_nativeStage().addChild(this._measureTextField);
+		}
+		this.createStageText();
+	}
+	,draw: function() {
+		var sizeInvalid = this.isInvalid("size");
+		this.commit();
+		if(this.autoSizeIfNeeded()) {
+			sizeInvalid = true;
+		}
+		this.layout(sizeInvalid);
+	}
+	,commit: function() {
+		var stateInvalid = this.isInvalid("state");
+		var stylesInvalid = this.isInvalid("styles");
+		var dataInvalid = this.isInvalid("data");
+		if(stylesInvalid || dataInvalid) {
+			this.refreshMeasureProperties();
+		}
+		var oldIgnoreStageTextChanges = this._ignoreStageTextChanges;
+		this._ignoreStageTextChanges = true;
+		if(stateInvalid || stylesInvalid) {
+			this.refreshStageTextProperties();
+		}
+		if(dataInvalid) {
+			if(this.stageText.text != this._text) {
+				if(this._pendingSelectionBeginIndex < 0) {
+					this._pendingSelectionBeginIndex = this.stageText.selectionActiveIndex;
+					this._pendingSelectionEndIndex = this.stageText.selectionAnchorIndex;
+				}
+				this.stageText.text = this._text;
+			}
+		}
+		this._ignoreStageTextChanges = oldIgnoreStageTextChanges;
+		if(stylesInvalid || stateInvalid) {
+			this.stageText.editable = this._isEditable && this._isEnabled;
+		}
+	}
+	,measure: function(result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		this._measureTextField.set_autoSize(1);
+		var newWidth = this._explicitWidth;
+		if(needsWidth) {
+			newWidth = this._measureTextField.get_textWidth();
+			if(newWidth < this._explicitMinWidth) {
+				newWidth = this._explicitMinWidth;
+			} else if(newWidth > this._explicitMaxWidth) {
+				newWidth = this._explicitMaxWidth;
+			}
+		}
+		this._measureTextField.set_width(newWidth + 4);
+		var newHeight = this._explicitHeight;
+		if(needsHeight) {
+			if(this._stageTextIsTextField) {
+				newHeight = this._measureTextField.get_textHeight();
+			} else {
+				newHeight = this._measureTextField.get_height();
+			}
+			if(newHeight < this._explicitMinHeight) {
+				newHeight = this._explicitMinHeight;
+			} else if(newHeight > this._explicitMaxHeight) {
+				newHeight = this._explicitMaxHeight;
+			}
+		}
+		this._measureTextField.set_autoSize(2);
+		this._measureTextField.set_width(this.actualWidth + 4);
+		this._measureTextField.set_height(this.actualHeight);
+		result.x = newWidth;
+		result.y = newHeight;
+		return result;
+	}
+	,layout: function(sizeInvalid) {
+		var stateInvalid = this.isInvalid("state");
+		var stylesInvalid = this.isInvalid("styles");
+		var dataInvalid = this.isInvalid("data");
+		var skinInvalid = this.isInvalid("skin");
+		if(sizeInvalid || stylesInvalid || skinInvalid || stateInvalid) {
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			this.refreshViewPortAndFontSize();
+			this.refreshMeasureTextFieldDimensions();
+			var viewPort = this.stageText.viewPort;
+			var textureRoot = this.textSnapshot != null ? this.textSnapshot.get_texture().get_root() : null;
+			this._needsNewTexture = this._needsNewTexture || this.textSnapshot == null || textureRoot != null && (textureRoot.get_scale() != starling.get_contentScaleFactor() || viewPort.width != textureRoot.get_nativeWidth() || viewPort.height != textureRoot.get_nativeHeight());
+		}
+		if(!this._stageTextHasFocus && (stateInvalid || stylesInvalid || dataInvalid || sizeInvalid || this._needsNewTexture)) {
+			if(!this.isParentChainVisible()) {
+				this.stageText.visible = false;
+			}
+			this._needsTextureUpdate = true;
+			this.setRequiresRedraw();
+		}
+		this.doPendingActions();
+	}
+	,autoSizeIfNeeded: function() {
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
+		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
+		if(!needsWidth && !needsHeight && !needsMinWidth && !needsMinHeight) {
+			return false;
+		}
+		var point = starling_utils_Pool.getPoint();
+		this.measure(point);
+		var result = this.saveMeasurements(point.x,point.y,point.x,point.y);
+		starling_utils_Pool.putPoint(point);
+		return result;
+	}
+	,refreshMeasureProperties: function() {
+		this._measureTextField.set_displayAsPassword(this._displayAsPassword);
+		this._measureTextField.set_maxChars(this._maxChars);
+		this._measureTextField.set_restrict(this._restrict_);
+		this._measureTextField.set_multiline(this._multiline);
+		this._measureTextField.set_wordWrap(this._multiline);
+		var measureFormat = this._measureTextField.get_defaultTextFormat();
+		var fontStylesFormat = null;
+		if(this._fontStyles != null) {
+			fontStylesFormat = this._fontStyles.getTextFormatForTarget(this);
+		}
+		if(this._fontFamily != null) {
+			measureFormat.font = this._fontFamily;
+		} else if(fontStylesFormat != null) {
+			measureFormat.font = fontStylesFormat.get_font();
+		} else {
+			measureFormat.font = null;
+		}
+		if(this._fontSize > 0) {
+			measureFormat.size = this._fontSize;
+		} else if(fontStylesFormat != null) {
+			measureFormat.size = fontStylesFormat.get_size() | 0;
+		} else {
+			measureFormat.size = 12;
+		}
+		if(fontStylesFormat != null) {
+			measureFormat.bold = fontStylesFormat.get_bold();
+		} else {
+			measureFormat.bold = false;
+		}
+		if(fontStylesFormat != null) {
+			measureFormat.italic = fontStylesFormat.get_italic();
+		} else {
+			measureFormat.italic = false;
+		}
+		this._measureTextField.set_defaultTextFormat(measureFormat);
+		this._measureTextField.setTextFormat(measureFormat);
+		if(this._text.length == 0) {
+			this._measureTextField.set_text(" ");
+		} else {
+			this._measureTextField.set_text(this._text);
+		}
+	}
+	,refreshStageTextProperties: function() {
+		if(this.stageText.multiline != this._multiline) {
+			if(this.stageText != null) {
+				this.disposeStageText();
+			}
+			this.createStageText();
+		}
+		var textFormat = null;
+		if(this._fontStyles != null) {
+			textFormat = this._fontStyles.getTextFormatForTarget(this);
+		}
+		this.stageText.autoCapitalize = this._autoCapitalize;
+		this.stageText.autoCorrect = this._autoCorrect;
+		if(this._isEnabled) {
+			if(this._color == -1) {
+				if(textFormat != null) {
+					this.stageText.color = textFormat.get_color();
+				} else {
+					this.stageText.color = 0;
+				}
+			} else {
+				this.stageText.color = this._color;
+			}
+		} else if(this._disabledColor == -1) {
+			if(this._color == -1) {
+				if(textFormat != null) {
+					this.stageText.color = textFormat.get_color();
+				} else {
+					this.stageText.color = 0;
+				}
+			} else {
+				this.stageText.color = this._color;
+			}
+		} else {
+			this.stageText.color = this._disabledColor;
+		}
+		this.stageText.displayAsPassword = this._displayAsPassword;
+		var fontFamily = this._fontFamily;
+		if(fontFamily == null && textFormat != null) {
+			fontFamily = textFormat.get_font();
+		}
+		this.stageText.fontFamily = fontFamily;
+		this.stageText.locale = this._locale;
+		this.stageText.maxChars = this._maxChars;
+		this.stageText.restrict = this._restrict_;
+		this.stageText.returnKeyLabel = this._returnKeyLabel;
+		this.stageText.softKeyboardType = this._softKeyboardType;
+		var textAlign = this._textAlign;
+		if(textAlign == null) {
+			if(textFormat != null && textFormat.get_horizontalAlign() != null) {
+				textAlign = textFormat.get_horizontalAlign();
+			} else {
+				textAlign = "start";
+			}
+		}
+		this.stageText.textAlign = textAlign;
+		if(Object.prototype.hasOwnProperty.call(this.stageText,"clearButtonMode")) {
+			this.stageText.clearButtonMode = this._clearButtonMode;
+		}
+	}
+	,doPendingActions: function() {
+		if(this._isWaitingToSetFocus) {
+			this._isWaitingToSetFocus = false;
+			this.setFocus();
+		}
+		if(this._pendingSelectionBeginIndex >= 0) {
+			var startIndex = this._pendingSelectionBeginIndex;
+			var endIndex = this._pendingSelectionEndIndex < 0 ? this._pendingSelectionBeginIndex : this._pendingSelectionEndIndex;
+			this._pendingSelectionBeginIndex = -1;
+			this._pendingSelectionEndIndex = -1;
+			if(this.stageText.selectionAnchorIndex != startIndex || this.stageText.selectionActiveIndex != endIndex) {
+				this.selectRange(startIndex,endIndex);
+			}
+		}
+	}
+	,texture_onRestore: function() {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		if(this.textSnapshot.get_texture().get_scale() != starling.get_contentScaleFactor()) {
+			this.invalidate("size");
+		} else {
+			this.refreshSnapshot();
+			if(this.textSnapshot != null) {
+				this.textSnapshot.set_visible(!this._stageTextHasFocus);
+				this.textSnapshot.set_alpha(this._text.length > 0 ? 1 : 0);
+			}
+			if(!this._stageTextHasFocus) {
+				this.stageText.visible = false;
+			}
+		}
+	}
+	,refreshSnapshot: function() {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		if(this.get_stage() != null && this.stageText.stage == null) {
+			this.stageText.stage = starling.get_nativeStage();
+		}
+		if(this.stageText.stage == null) {
+			this.invalidate("data");
+			return;
+		}
+		var viewPort = this.stageText.viewPort;
+		if(viewPort.width == 0 || viewPort.height == 0) {
+			return;
+		}
+		var nativeScaleFactor = 1;
+		var bitmapData = null;
+		try {
+			bitmapData = new openfl_display_BitmapData(viewPort.width * nativeScaleFactor | 0,viewPort.height * nativeScaleFactor | 0,true,16711935);
+			this.stageText.drawViewPortToBitmapData(bitmapData);
+		} catch( _g ) {
+			if(((haxe_Exception.caught(_g)) instanceof openfl_errors_Error)) {
+				bitmapData.dispose();
+				bitmapData = new openfl_display_BitmapData(viewPort.width | 0,viewPort.height | 0,true,16711935);
+				this.stageText.drawViewPortToBitmapData(bitmapData);
+			} else {
+				throw _g;
+			}
+		}
+		var newTexture = null;
+		if(this.textSnapshot == null || this._needsNewTexture) {
+			var scaleFactor = starling.get_contentScaleFactor();
+			newTexture = starling_textures_Texture.empty(bitmapData.width / scaleFactor,bitmapData.height / scaleFactor,true,false,false,scaleFactor);
+			newTexture.get_root().uploadBitmapData(bitmapData);
+			newTexture.get_root().set_onRestore($bind(this,this.texture_onRestore));
+		}
+		if(this.textSnapshot == null) {
+			this.textSnapshot = new starling_display_Image(newTexture);
+			this.textSnapshot.set_pixelSnapping(true);
+			this.addChild(this.textSnapshot);
+		} else if(this._needsNewTexture) {
+			this.textSnapshot.get_texture().dispose();
+			this.textSnapshot.set_texture(newTexture);
+			this.textSnapshot.readjustSize();
+		} else {
+			var existingTexture = this.textSnapshot.get_texture();
+			existingTexture.get_root().uploadBitmapData(bitmapData);
+			this.textSnapshot.setRequiresRedraw();
+		}
+		var matrix = starling_utils_Pool.getMatrix();
+		this.getTransformationMatrix(this.get_stage(),matrix);
+		var globalScaleX = feathers_utils_geom_FeathersGeomUtils.matrixToScaleX(matrix);
+		var globalScaleY = feathers_utils_geom_FeathersGeomUtils.matrixToScaleY(matrix);
+		starling_utils_Pool.putMatrix(matrix);
+		if(this._updateSnapshotOnScaleChange) {
+			this.textSnapshot.set_scaleX(1 / globalScaleX);
+			this.textSnapshot.set_scaleY(1 / globalScaleY);
+			this._lastGlobalScaleX = globalScaleX;
+			this._lastGlobalScaleY = globalScaleY;
+		} else {
+			this.textSnapshot.set_scaleX(1);
+			this.textSnapshot.set_scaleY(1);
+		}
+		if(nativeScaleFactor > 1 && bitmapData.width == viewPort.width) {
+			var fh = this.textSnapshot;
+			fh.set_scaleX(fh.get_scaleX() * nativeScaleFactor);
+			var fh = this.textSnapshot;
+			fh.set_scaleY(fh.get_scaleY() * nativeScaleFactor);
+		}
+		bitmapData.dispose();
+		this._needsNewTexture = false;
+	}
+	,refreshViewPortAndFontSize: function() {
+		var matrix = starling_utils_Pool.getMatrix();
+		var point = starling_utils_Pool.getPoint();
+		var desktopGutterPositionOffset = 0;
+		var desktopGutterDimensionsOffset = 0;
+		if(this._stageTextIsTextField) {
+			desktopGutterPositionOffset = 2;
+			desktopGutterDimensionsOffset = 4;
+		}
+		this.getTransformationMatrix(this.get_stage(),matrix);
+		var globalScaleX;
+		var globalScaleY;
+		var smallerGlobalScale;
+		if(this._stageTextHasFocus || this._updateSnapshotOnScaleChange) {
+			globalScaleX = feathers_utils_geom_FeathersGeomUtils.matrixToScaleX(matrix);
+			globalScaleY = feathers_utils_geom_FeathersGeomUtils.matrixToScaleY(matrix);
+			smallerGlobalScale = globalScaleX;
+			if(globalScaleY < smallerGlobalScale) {
+				smallerGlobalScale = globalScaleY;
+			}
+		} else {
+			globalScaleX = 1;
+			globalScaleY = 1;
+			smallerGlobalScale = 1;
+		}
+		var verticalAlignOffsetY = this.getVerticalAlignmentOffsetY();
+		if(this.get_is3D()) {
+			var matrix3D = starling_utils_Pool.getMatrix3D();
+			var point3D = starling_utils_Pool.getPoint3D();
+			this.getTransformationMatrix3D(this.get_stage(),matrix3D);
+			starling_utils_MatrixUtil.transformCoords3D(matrix3D,-desktopGutterPositionOffset,-desktopGutterPositionOffset + verticalAlignOffsetY,0,point3D);
+			point.setTo(point3D.x,point3D.y);
+			starling_utils_Pool.putPoint3D(point3D);
+			starling_utils_Pool.putMatrix3D(matrix3D);
+		} else {
+			starling_utils_MatrixUtil.transformCoords(matrix,-desktopGutterPositionOffset,-desktopGutterPositionOffset + verticalAlignOffsetY,point);
+		}
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var nativeScaleFactor = 1;
+		var scaleFactor = starling.get_contentScaleFactor() / nativeScaleFactor;
+		var starlingViewPort = starling.get_viewPort();
+		var stageTextViewPort = this.stageText.viewPort;
+		if(stageTextViewPort == null) {
+			stageTextViewPort = new openfl_geom_Rectangle();
+		}
+		var viewPortWidth = Math.round((this.actualWidth + desktopGutterDimensionsOffset) * scaleFactor * globalScaleX);
+		if(viewPortWidth < 1 || viewPortWidth != viewPortWidth) {
+			viewPortWidth = 1;
+		}
+		var viewPortHeight = Math.round((this.actualHeight + desktopGutterDimensionsOffset) * scaleFactor * globalScaleY);
+		if(viewPortHeight < 1 || viewPortHeight != viewPortHeight) {
+			viewPortHeight = 1;
+		}
+		stageTextViewPort.width = viewPortWidth;
+		stageTextViewPort.height = viewPortHeight;
+		var viewPortX = Math.round(starlingViewPort.x + point.x * scaleFactor);
+		if(viewPortX + viewPortWidth > 8191) {
+			viewPortX = 8191 - viewPortWidth;
+		}
+		if(viewPortX < -8192) {
+			viewPortX = -8192;
+		}
+		var viewPortY = Math.round(starlingViewPort.y + point.y * scaleFactor);
+		if(viewPortY + viewPortHeight > 8191) {
+			viewPortY = 8191 - viewPortHeight;
+		}
+		if(viewPortY < -8192) {
+			viewPortY = -8192;
+		}
+		stageTextViewPort.x = viewPortX;
+		stageTextViewPort.y = viewPortY;
+		this.stageText.viewPort = stageTextViewPort;
+		var fontSize = 12;
+		if(this._fontSize > 0) {
+			fontSize = this._fontSize;
+		} else if(this._fontStyles != null) {
+			var textFormat = this._fontStyles.getTextFormatForTarget(this);
+			if(textFormat != null) {
+				fontSize = textFormat.get_size() | 0;
+			}
+		}
+		var newFontSize = fontSize * scaleFactor * smallerGlobalScale | 0;
+		if(this.stageText.fontSize != newFontSize) {
+			this.stageText.fontSize = newFontSize;
+		}
+		starling_utils_Pool.putPoint(point);
+		starling_utils_Pool.putMatrix(matrix);
+	}
+	,refreshMeasureTextFieldDimensions: function() {
+		this._measureTextField.set_width(this.actualWidth + 4);
+		this._measureTextField.set_height(this.actualHeight);
+	}
+	,positionSnapshot: function() {
+		var matrix = starling_utils_Pool.getMatrix();
+		this.getTransformationMatrix(this.get_stage(),matrix);
+		var desktopGutterPositionOffset = 0;
+		if(this._stageTextIsTextField) {
+			desktopGutterPositionOffset = 2;
+		}
+		this.textSnapshot.set_x(Math.round(matrix.tx) - matrix.tx - desktopGutterPositionOffset);
+		this.textSnapshot.set_y(Math.round(matrix.ty) - matrix.ty - desktopGutterPositionOffset + this.getVerticalAlignmentOffsetY());
+		starling_utils_Pool.putMatrix(matrix);
+	}
+	,disposeStageText: function() {
+		if(this.stageText == null) {
+			return;
+		}
+		this.stageText.removeEventListener("change",$bind(this,this.stageText_changeHandler));
+		this.stageText.removeEventListener("keyDown",$bind(this,this.stageText_keyDownHandler));
+		this.stageText.removeEventListener("keyUp",$bind(this,this.stageText_keyUpHandler));
+		this.stageText.removeEventListener("focusIn",$bind(this,this.stageText_focusInHandler));
+		this.stageText.removeEventListener("focusOut",$bind(this,this.stageText_focusOutHandler));
+		this.stageText.removeEventListener("complete",$bind(this,this.stageText_completeHandler));
+		this.stageText.stage = null;
+		this.stageText.dispose();
+		this.stageText = null;
+	}
+	,createStageText: function() {
+		this._stageTextIsComplete = false;
+		var StageTextType;
+		var initOptions;
+		StageTextType = feathers_text_StageTextField;
+		initOptions = { multiline : this._multiline};
+		this.stageText = Type.createInstance(StageTextType,[initOptions]);
+		this.stageText.visible = false;
+		this.stageText.addEventListener("change",$bind(this,this.stageText_changeHandler));
+		this.stageText.addEventListener("keyDown",$bind(this,this.stageText_keyDownHandler));
+		this.stageText.addEventListener("keyUp",$bind(this,this.stageText_keyUpHandler));
+		this.stageText.addEventListener("focusIn",$bind(this,this.stageText_focusInHandler));
+		this.stageText.addEventListener("focusOut",$bind(this,this.stageText_focusOutHandler));
+		this.stageText.addEventListener("complete",$bind(this,this.stageText_completeHandler));
+		this.stageText.addEventListener("mouseFocusChange",$bind(this,this.stageText_mouseFocusChangeHandler));
+		this.invalidate();
+	}
+	,getVerticalAlignment: function() {
+		var verticalAlign = null;
+		if(this._fontStyles != null) {
+			var format = this._fontStyles.getTextFormatForTarget(this);
+			if(format != null) {
+				verticalAlign = format.get_verticalAlign();
+			}
+		}
+		if(verticalAlign == null) {
+			verticalAlign = "top";
+		}
+		return verticalAlign;
+	}
+	,getVerticalAlignmentOffsetY: function() {
+		var verticalAlign = this.getVerticalAlignment();
+		if(this._measureTextField.get_textHeight() > this.actualHeight) {
+			return 0;
+		}
+		if(verticalAlign == "bottom") {
+			return this.actualHeight - this._measureTextField.get_textHeight();
+		} else if(verticalAlign == "center") {
+			return (this.actualHeight - this._measureTextField.get_textHeight()) / 2;
+		}
+		return 0;
+	}
+	,dispatchKeyFocusChangeEvent: function(event) {
+		var focusEvent = new openfl_events_FocusEvent("keyFocusChange",true,false,null,event.shiftKey,event.keyCode);
+		this.get_stage().get_starling().get_nativeStage().dispatchEvent(focusEvent);
+	}
+	,dispatchKeyboardEventToStage: function(event) {
+		this.get_stage().get_starling().get_nativeStage().dispatchEvent(event);
+	}
+	,isParentChainVisible: function() {
+		var target = this;
+		while(true) {
+			if(!target.get_visible()) {
+				return false;
+			}
+			target = target.get_parent();
+			if(!(target != null)) {
+				break;
+			}
+		}
+		return true;
+	}
+	,textEditor_removedFromStageHandler: function(event) {
+		this.stageText.stage = null;
+	}
+	,stageText_changeHandler: function(event) {
+		if(this._ignoreStageTextChanges) {
+			return;
+		}
+		this.set_text(this.stageText.text);
+	}
+	,stageText_completeHandler: function(event) {
+		this.stageText.removeEventListener("complete",$bind(this,this.stageText_completeHandler));
+		this.invalidate();
+		this._stageTextIsComplete = true;
+	}
+	,stageText_focusInHandler: function(event) {
+		this._stageTextHasFocus = true;
+		if(!this._isEditable) {
+			this.stageText.editable = false;
+		}
+		this.addEventListener("enterFrame",$bind(this,this.hasFocus_enterFrameHandler));
+		if(this.textSnapshot != null) {
+			this.textSnapshot.set_visible(false);
+		}
+		this.invalidate("skin");
+		this.dispatchEventWith("focusIn");
+	}
+	,stageText_focusOutHandler: function(event) {
+		this._stageTextHasFocus = false;
+		this.stageText.selectRange(1,1);
+		this.invalidate("data");
+		this.invalidate("skin");
+		this.dispatchEventWith("focusOut");
+	}
+	,hasFocus_enterFrameHandler: function(event) {
+		if(this._stageTextHasFocus) {
+			if(!this.isParentChainVisible()) {
+				this.stageText.stage.focus = null;
+			}
+		} else {
+			this.removeEventListener("enterFrame",$bind(this,this.hasFocus_enterFrameHandler));
+		}
+	}
+	,stageText_mouseFocusChangeHandler: function(event) {
+		var nativeStage = this.get_stage().get_starling().get_nativeStage();
+		var point = starling_utils_Pool.getPoint(nativeStage.get_mouseX(),nativeStage.get_mouseY());
+		feathers_utils_display_FeathersUIUtils.nativeToGlobal(point,this.get_stage().get_starling(),point);
+		var result = this.get_stage().hitTest(point);
+		while(result != null) {
+			var focusResult = result;
+			if(focusResult != null) {
+				var focusOwner = focusResult.get_focusOwner();
+				if(focusOwner != null) {
+					if(((focusOwner) instanceof starling_display_DisplayObjectContainer) && (js_Boot.__cast(focusOwner , starling_display_DisplayObjectContainer)).contains(this)) {
+						event.preventDefault();
+					}
+					break;
+				} else if(focusResult.get_isFocusEnabled()) {
+					break;
+				}
+			}
+			result = result.get_parent();
+		}
+		if(!this._maintainTouchFocus) {
+			return;
+		}
+		event.preventDefault();
+	}
+	,stageText_keyDownHandler: function(event) {
+	}
+	,stageText_keyUpHandler: function(event) {
+	}
+	,__class__: feathers_controls_text_StageTextTextEditor
+	,__properties__: $extend(feathers_core_BaseTextEditor.prototype.__properties__,{set_clearButtonMode:"set_clearButtonMode",get_clearButtonMode:"get_clearButtonMode",set_updateSnapshotOnScaleChange:"set_updateSnapshotOnScaleChange",get_updateSnapshotOnScaleChange:"get_updateSnapshotOnScaleChange",set_maintainTouchFocus:"set_maintainTouchFocus",get_maintainTouchFocus:"get_maintainTouchFocus",set_textAlign:"set_textAlign",get_textAlign:"get_textAlign",set_softKeyboardType:"set_softKeyboardType",get_softKeyboardType:"get_softKeyboardType",set_returnKeyLabel:"set_returnKeyLabel",get_returnKeyLabel:"get_returnKeyLabel",set_restrict:"set_restrict",get_restrict:"get_restrict",set_multiline:"set_multiline",get_multiline:"get_multiline",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_locale:"set_locale",get_locale:"get_locale",set_fontSize:"set_fontSize",get_fontSize:"get_fontSize",set_fontFamily:"set_fontFamily",get_fontFamily:"get_fontFamily",get_setTouchFocusOnEndedPhase:"get_setTouchFocusOnEndedPhase",set_isSelectable:"set_isSelectable",get_isSelectable:"get_isSelectable",set_isEditable:"set_isEditable",get_isEditable:"get_isEditable",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_disabledColor:"set_disabledColor",get_disabledColor:"get_disabledColor",set_color:"set_color",get_color:"get_color",set_autoCorrect:"set_autoCorrect",get_autoCorrect:"get_autoCorrect",set_autoCapitalize:"set_autoCapitalize",get_autoCapitalize:"get_autoCapitalize",get_baseline:"get_baseline",get_selectionEndIndex:"get_selectionEndIndex",get_selectionBeginIndex:"get_selectionBeginIndex",get_nativeFocus:"get_nativeFocus",get_isShowingFocus:"get_isShowingFocus"})
+});
+var feathers_core_FunctionMap = function() {
+	this._keys = [];
+	this._values = [];
+};
+$hxClasses["feathers.core.FunctionMap"] = feathers_core_FunctionMap;
+feathers_core_FunctionMap.__name__ = "feathers.core.FunctionMap";
+feathers_core_FunctionMap.__interfaces__ = [haxe_IMap];
+feathers_core_FunctionMap.prototype = {
+	_keys: null
+	,_values: null
+	,get: function(k) {
+		var keyIndex = this.index(k);
+		if(keyIndex < 0) {
+			return null;
+		} else {
+			return this._values[keyIndex];
+		}
+	}
+	,set: function(k,v) {
+		var keyIndex = this.index(k);
+		if(keyIndex < 0) {
+			this._keys.push(k);
+			this._values.push(v);
+		} else {
+			this._values[keyIndex] = v;
+		}
+	}
+	,exists: function(k) {
+		return this.index(k) >= 0;
+	}
+	,remove: function(k) {
+		var keyIndex = this.index(k);
+		if(keyIndex < 0) {
+			return false;
+		} else {
+			this._keys.splice(keyIndex,1);
+			this._values.splice(keyIndex,1);
+			return true;
+		}
+	}
+	,keys: function() {
+		return new haxe_iterators_ArrayIterator(this._keys);
+	}
+	,iterator: function() {
+		return new haxe_iterators_ArrayIterator(this._values);
+	}
+	,toString: function() {
+		var s_b = "";
+		s_b += "{";
+		var _g = 0;
+		var _g1 = this._keys.length;
+		while(_g < _g1) {
+			var i = _g++;
+			s_b += "<function>";
+			s_b += " => ";
+			s_b += Std.string(Std.string(this._values[i]));
+			if(i < this._keys.length - 1) {
+				s_b += ", ";
+			}
+		}
+		s_b += "}";
+		return s_b;
+	}
+	,index: function(key) {
+		var _g = 0;
+		var _g1 = this._keys.length;
+		while(_g < _g1) {
+			var i = _g++;
+			if(Reflect.compareMethods(key,this._keys[i])) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	,keyValueIterator: function() {
+		var a = [];
+		return new haxe_iterators_ArrayIterator(a);
+	}
+	,copy: function() {
+		return null;
+	}
+	,clear: function() {
+		this._keys = [];
+		this._values = [];
+	}
+	,__class__: feathers_core_FunctionMap
+};
+var feathers_core_IFocusManager = function() { };
+$hxClasses["feathers.core.IFocusManager"] = feathers_core_IFocusManager;
+feathers_core_IFocusManager.__name__ = "feathers.core.IFocusManager";
+feathers_core_IFocusManager.__isInterface__ = true;
+feathers_core_IFocusManager.prototype = {
+	get_isEnabled: null
+	,set_isEnabled: null
+	,get_focus: null
+	,set_focus: null
+	,get_root: null
+	,__class__: feathers_core_IFocusManager
+	,__properties__: {get_root:"get_root",set_focus:"set_focus",get_focus:"get_focus",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled"}
+};
+var feathers_core_IStateContext = function() { };
+$hxClasses["feathers.core.IStateContext"] = feathers_core_IStateContext;
+feathers_core_IStateContext.__name__ = "feathers.core.IStateContext";
+feathers_core_IStateContext.__isInterface__ = true;
+feathers_core_IStateContext.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
+feathers_core_IStateContext.prototype = {
+	get_currentState: null
+	,__class__: feathers_core_IStateContext
+	,__properties__: {get_currentState:"get_currentState"}
+};
+var feathers_core_IToggle = function() { };
+$hxClasses["feathers.core.IToggle"] = feathers_core_IToggle;
+feathers_core_IToggle.__name__ = "feathers.core.IToggle";
+feathers_core_IToggle.__isInterface__ = true;
+feathers_core_IToggle.__interfaces__ = [feathers_core_IFeathersControl];
+feathers_core_IToggle.prototype = {
+	get_isSelected: null
+	,set_isSelected: null
+	,__class__: feathers_core_IToggle
+	,__properties__: {set_isSelected:"set_isSelected",get_isSelected:"get_isSelected"}
+};
+var feathers_core_TokenList = function() {
+	this.names = [];
+	this._joinedNames = null;
+	starling_events_EventDispatcher.call(this);
+};
+$hxClasses["feathers.core.TokenList"] = feathers_core_TokenList;
+feathers_core_TokenList.__name__ = "feathers.core.TokenList";
+feathers_core_TokenList.__super__ = starling_events_EventDispatcher;
+feathers_core_TokenList.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_joinedNames: null
+	,names: null
+	,get_value: function() {
+		if(this._joinedNames == null) {
+			this._joinedNames = this.names.join(" ");
+		}
+		return this._joinedNames;
+	}
+	,set_value: function(value) {
+		if(this.get_value() == value) {
+			return this.get_value();
+		}
+		this._joinedNames = value;
+		this.names = [];
+		this.names = value.split(" ");
+		this.dispatchEventWith("change");
+		return this.get_value();
+	}
+	,get_length: function() {
+		return this.names.length;
+	}
+	,item: function(index) {
+		if(index < 0 || index >= this.names.length) {
+			return null;
+		}
+		return this.names[index];
+	}
+	,add: function(name) {
+		var index = this.names.indexOf(name);
+		if(index >= 0) {
+			return;
+		}
+		if(this._joinedNames != null) {
+			this._joinedNames += " " + name;
+		}
+		this.names[this.names.length] = name;
+		this.dispatchEventWith("change");
+	}
+	,remove: function(name) {
+		var index = this.names.indexOf(name);
+		this.removeAt(index);
+	}
+	,toggle: function(name) {
+		var index = this.names.indexOf(name);
+		if(index < 0) {
+			if(this._joinedNames != null) {
+				this._joinedNames += " " + name;
+			}
+			this.names[this.names.length] = name;
+			this.dispatchEventWith("change");
+		} else {
+			this.removeAt(index);
+		}
+	}
+	,contains: function(name) {
+		return this.names.indexOf(name) >= 0;
+	}
+	,removeAt: function(index) {
+		if(index < 0) {
+			return;
+		}
+		this._joinedNames = null;
+		this.names.splice(index,1);
+		this.dispatchEventWith("change");
+	}
+	,__class__: feathers_core_TokenList
+	,__properties__: {get_length:"get_length",set_value:"set_value",get_value:"get_value"}
+});
+var starling_animation_IAnimatable = function() { };
+$hxClasses["starling.animation.IAnimatable"] = starling_animation_IAnimatable;
+starling_animation_IAnimatable.__name__ = "starling.animation.IAnimatable";
+starling_animation_IAnimatable.__isInterface__ = true;
+starling_animation_IAnimatable.prototype = {
+	advanceTime: null
+	,__class__: starling_animation_IAnimatable
+};
+var feathers_core_ValidationQueue = function(starling) {
+	this._queue = [];
+	this._isValidating = false;
+	this._starling = starling;
+};
+$hxClasses["feathers.core.ValidationQueue"] = feathers_core_ValidationQueue;
+feathers_core_ValidationQueue.__name__ = "feathers.core.ValidationQueue";
+feathers_core_ValidationQueue.__interfaces__ = [starling_animation_IAnimatable];
+feathers_core_ValidationQueue.forStarling = function(starling) {
+	if(starling == null) {
+		return null;
+	}
+	var queue = feathers_core_ValidationQueue.STARLING_TO_VALIDATION_QUEUE.h[starling.__id__];
+	if(queue == null) {
+		var this1 = feathers_core_ValidationQueue.STARLING_TO_VALIDATION_QUEUE;
+		queue = new feathers_core_ValidationQueue(starling);
+		this1.set(starling,queue);
+	}
+	return queue;
+};
+feathers_core_ValidationQueue.prototype = {
+	_starling: null
+	,_isValidating: null
+	,get_isValidating: function() {
+		return this._isValidating;
+	}
+	,_queue: null
+	,dispose: function() {
+		if(this._starling != null) {
+			this._starling.get_juggler().remove(this);
+			this._starling = null;
+		}
+	}
+	,addControl: function(control) {
+		if(!this._starling.get_juggler().contains(this)) {
+			this._starling.get_juggler().add(this);
+		}
+		if(this._queue.indexOf(control) >= 0) {
+			return;
+		}
+		var queueLength = this._queue.length;
+		if(this._isValidating) {
+			var depth = control.get_depth();
+			var i = queueLength - 1;
+			while(i >= 0) {
+				var otherControl = js_Boot.__cast(this._queue[i] , feathers_core_IValidating);
+				var otherDepth = otherControl.get_depth();
+				if(depth >= otherDepth) {
+					break;
+				}
+				--i;
+			}
+			++i;
+			this._queue.splice(i,0,control);
+		} else {
+			this._queue[queueLength] = control;
+		}
+	}
+	,advanceTime: function(time) {
+		if(this._isValidating || !this._starling.get_contextValid()) {
+			return;
+		}
+		var queueLength = this._queue.length;
+		if(queueLength == 0) {
+			return;
+		}
+		this._isValidating = true;
+		if(queueLength > 1) {
+			this._queue.sort($bind(this,this.queueSortFunction));
+		}
+		while(this._queue.length > 0) {
+			var item = this._queue.shift();
+			if(item.get_depth() < 0) {
+				continue;
+			}
+			item.validate();
+		}
+		this._isValidating = false;
+	}
+	,queueSortFunction: function(first,second) {
+		var difference = second.get_depth() - first.get_depth();
+		if(difference > 0) {
+			return -1;
+		} else if(difference < 0) {
+			return 1;
+		}
+		return 0;
+	}
+	,__class__: feathers_core_ValidationQueue
+	,__properties__: {get_isValidating:"get_isValidating"}
+};
+var feathers_events_FeathersEventType = function() { };
+$hxClasses["feathers.events.FeathersEventType"] = feathers_events_FeathersEventType;
+feathers_events_FeathersEventType.__name__ = "feathers.events.FeathersEventType";
+var feathers_layout_ILayout = function() { };
+$hxClasses["feathers.layout.ILayout"] = feathers_layout_ILayout;
+feathers_layout_ILayout.__name__ = "feathers.layout.ILayout";
+feathers_layout_ILayout.__isInterface__ = true;
+feathers_layout_ILayout.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
+feathers_layout_ILayout.prototype = {
+	get_requiresLayoutOnScroll: null
+	,layout: null
+	,calculateNavigationDestination: null
+	,getScrollPositionForIndex: null
+	,getNearestScrollPositionForIndex: null
+	,__class__: feathers_layout_ILayout
+	,__properties__: {get_requiresLayoutOnScroll:"get_requiresLayoutOnScroll"}
+};
+var feathers_layout_ILayoutData = function() { };
+$hxClasses["feathers.layout.ILayoutData"] = feathers_layout_ILayoutData;
+feathers_layout_ILayoutData.__name__ = "feathers.layout.ILayoutData";
+feathers_layout_ILayoutData.__isInterface__ = true;
+feathers_layout_ILayoutData.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
+var feathers_layout_IVirtualLayout = function() { };
+$hxClasses["feathers.layout.IVirtualLayout"] = feathers_layout_IVirtualLayout;
+feathers_layout_IVirtualLayout.__name__ = "feathers.layout.IVirtualLayout";
+feathers_layout_IVirtualLayout.__isInterface__ = true;
+feathers_layout_IVirtualLayout.__interfaces__ = [feathers_layout_ILayout];
+feathers_layout_IVirtualLayout.prototype = {
+	get_useVirtualLayout: null
+	,set_useVirtualLayout: null
+	,get_typicalItem: null
+	,set_typicalItem: null
+	,measureViewPort: null
+	,getVisibleIndicesAtScrollPosition: null
+	,__class__: feathers_layout_IVirtualLayout
+	,__properties__: {set_typicalItem:"set_typicalItem",get_typicalItem:"get_typicalItem",set_useVirtualLayout:"set_useVirtualLayout",get_useVirtualLayout:"get_useVirtualLayout"}
+};
+var feathers_layout_LayoutBoundsResult = function() {
+	this.contentY = 0;
+	this.contentX = 0;
+};
+$hxClasses["feathers.layout.LayoutBoundsResult"] = feathers_layout_LayoutBoundsResult;
+feathers_layout_LayoutBoundsResult.__name__ = "feathers.layout.LayoutBoundsResult";
+feathers_layout_LayoutBoundsResult.prototype = {
+	contentX: null
+	,contentY: null
+	,viewPortWidth: null
+	,viewPortHeight: null
+	,contentWidth: null
+	,contentHeight: null
+	,__class__: feathers_layout_LayoutBoundsResult
+};
+var feathers_layout_ViewPortBounds = function() {
+	this.maxHeight = Infinity;
+	this.maxWidth = Infinity;
+	this.minHeight = 0;
+	this.minWidth = 0;
+	this.explicitHeight = NaN;
+	this.explicitWidth = NaN;
+	this.scrollY = 0;
+	this.scrollX = 0;
+	this.y = 0;
+	this.x = 0;
+};
+$hxClasses["feathers.layout.ViewPortBounds"] = feathers_layout_ViewPortBounds;
+feathers_layout_ViewPortBounds.__name__ = "feathers.layout.ViewPortBounds";
+feathers_layout_ViewPortBounds.prototype = {
+	x: null
+	,y: null
+	,scrollX: null
+	,scrollY: null
+	,explicitWidth: null
+	,explicitHeight: null
+	,minWidth: null
+	,minHeight: null
+	,maxWidth: null
+	,maxHeight: null
+	,__class__: feathers_layout_ViewPortBounds
+};
+var feathers_motion_effectClasses_IEffectContext = function() { };
+$hxClasses["feathers.motion.effectClasses.IEffectContext"] = feathers_motion_effectClasses_IEffectContext;
+feathers_motion_effectClasses_IEffectContext.__name__ = "feathers.motion.effectClasses.IEffectContext";
+feathers_motion_effectClasses_IEffectContext.__isInterface__ = true;
+feathers_motion_effectClasses_IEffectContext.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
+feathers_motion_effectClasses_IEffectContext.prototype = {
+	get_target: null
+	,get_duration: null
+	,get_position: null
+	,set_position: null
+	,play: null
+	,playReverse: null
+	,pause: null
+	,stop: null
+	,toEnd: null
+	,interrupt: null
+	,__class__: feathers_motion_effectClasses_IEffectContext
+	,__properties__: {set_position:"set_position",get_position:"get_position",get_duration:"get_duration",get_target:"get_target"}
+};
+var feathers_motion_effectClasses_IMoveEffectContext = function() { };
+$hxClasses["feathers.motion.effectClasses.IMoveEffectContext"] = feathers_motion_effectClasses_IMoveEffectContext;
+feathers_motion_effectClasses_IMoveEffectContext.__name__ = "feathers.motion.effectClasses.IMoveEffectContext";
+feathers_motion_effectClasses_IMoveEffectContext.__isInterface__ = true;
+feathers_motion_effectClasses_IMoveEffectContext.__interfaces__ = [feathers_motion_effectClasses_IEffectContext];
+feathers_motion_effectClasses_IMoveEffectContext.prototype = {
+	get_oldX: null
+	,set_oldX: null
+	,get_oldY: null
+	,set_oldY: null
+	,get_newX: null
+	,set_newX: null
+	,get_newY: null
+	,set_newY: null
+	,__class__: feathers_motion_effectClasses_IMoveEffectContext
+	,__properties__: {set_newY:"set_newY",get_newY:"get_newY",set_newX:"set_newX",get_newX:"get_newX",set_oldY:"set_oldY",get_oldY:"get_oldY",set_oldX:"set_oldX",get_oldX:"get_oldX"}
+};
+var feathers_motion_effectClasses_IResizeEffectContext = function() { };
+$hxClasses["feathers.motion.effectClasses.IResizeEffectContext"] = feathers_motion_effectClasses_IResizeEffectContext;
+feathers_motion_effectClasses_IResizeEffectContext.__name__ = "feathers.motion.effectClasses.IResizeEffectContext";
+feathers_motion_effectClasses_IResizeEffectContext.__isInterface__ = true;
+feathers_motion_effectClasses_IResizeEffectContext.__interfaces__ = [feathers_motion_effectClasses_IEffectContext];
+feathers_motion_effectClasses_IResizeEffectContext.prototype = {
+	get_oldWidth: null
+	,set_oldWidth: null
+	,get_oldHeight: null
+	,set_oldHeight: null
+	,get_newWidth: null
+	,set_newWidth: null
+	,get_newHeight: null
+	,set_newHeight: null
+	,__class__: feathers_motion_effectClasses_IResizeEffectContext
+	,__properties__: {set_newHeight:"set_newHeight",get_newHeight:"get_newHeight",set_newWidth:"set_newWidth",get_newWidth:"get_newWidth",set_oldHeight:"set_oldHeight",get_oldHeight:"get_oldHeight",set_oldWidth:"set_oldWidth",get_oldWidth:"get_oldWidth"}
+};
+var feathers_skins_IStyleProvider = function() { };
+$hxClasses["feathers.skins.IStyleProvider"] = feathers_skins_IStyleProvider;
+feathers_skins_IStyleProvider.__name__ = "feathers.skins.IStyleProvider";
+feathers_skins_IStyleProvider.__isInterface__ = true;
+feathers_skins_IStyleProvider.prototype = {
+	applyStyles: null
+	,__class__: feathers_skins_IStyleProvider
+};
+var feathers_text_BitmapFontTextFormat = function(font,size,color,align,leading) {
+	if(leading == null) {
+		leading = 0;
+	}
+	if(align == null) {
+		align = "left";
+	}
+	if(color == null) {
+		color = 16777215;
+	}
+	this.isKerningEnabled = true;
+	this.align = "left";
+	this.letterSpacing = 0;
+	if(typeof(font) == "string") {
+		font = starling_text_TextField.getBitmapFont(js_Boot.__cast(font , String));
+	}
+	if(!((font) instanceof starling_text_BitmapFont)) {
+		throw new openfl_errors_ArgumentError("BitmapFontTextFormat font must be a BitmapFont instance or a String representing the name of a registered bitmap font.");
+	}
+	this.font = font;
+	this.size = size;
+	this.color = color;
+	this.align = align;
+	this.leading = leading;
+};
+$hxClasses["feathers.text.BitmapFontTextFormat"] = feathers_text_BitmapFontTextFormat;
+feathers_text_BitmapFontTextFormat.__name__ = "feathers.text.BitmapFontTextFormat";
+feathers_text_BitmapFontTextFormat.prototype = {
+	get_fontName: function() {
+		if(this.font != null) {
+			return this.font.get_name();
+		} else {
+			return null;
+		}
+	}
+	,font: null
+	,color: null
+	,size: null
+	,letterSpacing: null
+	,align: null
+	,leading: null
+	,isKerningEnabled: null
+	,__class__: feathers_text_BitmapFontTextFormat
+	,__properties__: {get_fontName:"get_fontName"}
+};
+var feathers_text_FontStylesSet = function() {
+	this._stateToFormat = null;
+	starling_events_EventDispatcher.call(this);
+};
+$hxClasses["feathers.text.FontStylesSet"] = feathers_text_FontStylesSet;
+feathers_text_FontStylesSet.__name__ = "feathers.text.FontStylesSet";
+feathers_text_FontStylesSet.__super__ = starling_events_EventDispatcher;
+feathers_text_FontStylesSet.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_stateToFormat: null
+	,_format: null
+	,get_format: function() {
+		return this._format;
+	}
+	,set_format: function(value) {
+		if(this._format == value) {
+			return this._format;
+		}
+		if(this._format != null) {
+			this._format.removeEventListener("change",$bind(this,this.format_changeHandler));
+		}
+		this._format = value;
+		if(this._format != null) {
+			this._format.addEventListener("change",$bind(this,this.format_changeHandler));
+		}
+		this.dispatchEventWith("change");
+		return this._format;
+	}
+	,_disabledFormat: null
+	,get_disabledFormat: function() {
+		return this._disabledFormat;
+	}
+	,set_disabledFormat: function(value) {
+		if(this._disabledFormat == value) {
+			return this._disabledFormat;
+		}
+		if(this._disabledFormat != null) {
+			this._disabledFormat.removeEventListener("change",$bind(this,this.format_changeHandler));
+		}
+		this._disabledFormat = value;
+		if(this._disabledFormat != null) {
+			this._disabledFormat.addEventListener("change",$bind(this,this.format_changeHandler));
+		}
+		this.dispatchEventWith("change");
+		return this._disabledFormat;
+	}
+	,_selectedFormat: null
+	,get_selectedFormat: function() {
+		return this._selectedFormat;
+	}
+	,set_selectedFormat: function(value) {
+		if(this._selectedFormat == value) {
+			return this._selectedFormat;
+		}
+		if(this._selectedFormat != null) {
+			this._selectedFormat.removeEventListener("change",$bind(this,this.format_changeHandler));
+		}
+		this._selectedFormat = value;
+		if(this._selectedFormat != null) {
+			this._selectedFormat.addEventListener("change",$bind(this,this.format_changeHandler));
+		}
+		this.dispatchEventWith("change");
+		return this._selectedFormat;
+	}
+	,dispose: function() {
+		this.set_format(null);
+		this.set_disabledFormat(null);
+		this.set_selectedFormat(null);
+		var h = this._stateToFormat.h;
+		var state_h = h;
+		var state_keys = Object.keys(h);
+		var state_length = state_keys.length;
+		var state_current = 0;
+		while(state_current < state_length) {
+			var state = state_keys[state_current++];
+			this.setFormatForState(state,null);
+		}
+	}
+	,getFormatForState: function(state) {
+		if(this._stateToFormat == null) {
+			return null;
+		}
+		return this._stateToFormat.h[state];
+	}
+	,setFormatForState: function(state,value) {
+		var oldFormat = null;
+		if(value != null) {
+			if(this._stateToFormat == null) {
+				this._stateToFormat = new haxe_ds_StringMap();
+			} else {
+				oldFormat = this._stateToFormat.h[state];
+			}
+			if(oldFormat != null) {
+				oldFormat.removeEventListener("change",$bind(this,this.format_changeHandler));
+			}
+			this._stateToFormat.h[state] = value;
+			value.addEventListener("change",$bind(this,this.format_changeHandler));
+		} else if(this._stateToFormat != null) {
+			oldFormat = this._stateToFormat.h[state];
+			if(oldFormat != null) {
+				oldFormat.removeEventListener("change",$bind(this,this.format_changeHandler));
+				var _this = this._stateToFormat;
+				if(Object.prototype.hasOwnProperty.call(_this.h,state)) {
+					delete(_this.h[state]);
+				}
+			}
+		}
+	}
+	,getTextFormatForTarget: function(target) {
+		var textFormat = null;
+		var stateContext = null;
+		if(js_Boot.__implements(target,feathers_core_IStateObserver)) {
+			stateContext = (js_Boot.__cast(target , feathers_core_IStateObserver)).get_stateContext();
+		}
+		if(stateContext != null) {
+			if(this._stateToFormat != null) {
+				var currentState = stateContext.get_currentState();
+				if(Object.prototype.hasOwnProperty.call(this._stateToFormat.h,currentState)) {
+					textFormat = this._stateToFormat.h[currentState];
+				}
+			}
+			if(textFormat == null && this._disabledFormat != null && js_Boot.__implements(stateContext,feathers_core_IFeathersControl) && !(js_Boot.__cast(stateContext , feathers_core_IFeathersControl)).get_isEnabled()) {
+				textFormat = this._disabledFormat;
+			}
+			if(textFormat == null && this._selectedFormat != null && js_Boot.__implements(stateContext,feathers_core_IToggle) && (js_Boot.__cast(stateContext , feathers_core_IToggle)).get_isSelected()) {
+				textFormat = this._selectedFormat;
+			}
+		} else if(this._disabledFormat != null && !target.get_isEnabled()) {
+			textFormat = this._disabledFormat;
+		}
+		if(textFormat == null) {
+			textFormat = this._format;
+		}
+		return textFormat;
+	}
+	,format_changeHandler: function(event) {
+		this.dispatchEventWith("change");
+	}
+	,__class__: feathers_text_FontStylesSet
+	,__properties__: {set_selectedFormat:"set_selectedFormat",get_selectedFormat:"get_selectedFormat",set_disabledFormat:"set_disabledFormat",get_disabledFormat:"get_disabledFormat",set_format:"set_format",get_format:"get_format"}
+});
+var feathers_text_StageTextField = function(initOptions) {
+	this._viewPort = new openfl_geom_Rectangle();
+	this._textAlign = 5;
+	this._softKeyboardType = "default";
+	this._returnKeyLabel = "default";
+	this._locale = "en";
+	this._fontFamily = null;
+	this._color = 0;
+	this._autoCorrect = false;
+	this._autoCapitalize = "none";
+	this._isComplete = false;
+	openfl_events_EventDispatcher.call(this);
+	this.initialize(initOptions);
+};
+$hxClasses["feathers.text.StageTextField"] = feathers_text_StageTextField;
+feathers_text_StageTextField.__name__ = "feathers.text.StageTextField";
+feathers_text_StageTextField.__super__ = openfl_events_EventDispatcher;
+feathers_text_StageTextField.prototype = $extend(openfl_events_EventDispatcher.prototype,{
+	_textField: null
+	,_textFormat: null
+	,_isComplete: null
+	,_autoCapitalize: null
+	,get_autoCapitalize: function() {
+		return this._autoCapitalize;
+	}
+	,set_autoCapitalize: function(value) {
+		this._autoCapitalize = value;
+		return this.get_autoCapitalize();
+	}
+	,_autoCorrect: null
+	,get_autoCorrect: function() {
+		return this._autoCorrect;
+	}
+	,set_autoCorrect: function(value) {
+		this._autoCorrect = value;
+		return this.get_autoCorrect();
+	}
+	,_color: null
+	,get_color: function() {
+		return this._textFormat.color;
+	}
+	,set_color: function(value) {
+		if(this._textFormat.color == value) {
+			return this.get_color();
+		}
+		this._textFormat.color = value;
+		this._textField.set_defaultTextFormat(this._textFormat);
+		this._textField.setTextFormat(this._textFormat);
+		return this.get_color();
+	}
+	,get_displayAsPassword: function() {
+		return this._textField.get_displayAsPassword();
+	}
+	,set_displayAsPassword: function(value) {
+		this._textField.set_displayAsPassword(value);
+		return this.get_displayAsPassword();
+	}
+	,get_editable: function() {
+		return this._textField.get_type() == 1;
+	}
+	,set_editable: function(value) {
+		this._textField.set_type(value ? 1 : 0);
+		return this.get_editable();
+	}
+	,_fontFamily: null
+	,get_fontFamily: function() {
+		return this._textFormat.font;
+	}
+	,set_fontFamily: function(value) {
+		if(this._textFormat.font == value) {
+			return this.get_fontFamily();
+		}
+		this._textFormat.font = value;
+		this._textField.set_defaultTextFormat(this._textFormat);
+		this._textField.setTextFormat(this._textFormat);
+		return this.get_fontFamily();
+	}
+	,get_fontSize: function() {
+		return this._textFormat.size | 0;
+	}
+	,set_fontSize: function(value) {
+		if(this._textFormat.size == value) {
+			return this.get_fontSize();
+		}
+		this._textFormat.size = value;
+		this._textField.set_defaultTextFormat(this._textFormat);
+		this._textField.setTextFormat(this._textFormat);
+		return this.get_fontSize();
+	}
+	,_locale: null
+	,get_locale: function() {
+		return this._locale;
+	}
+	,set_locale: function(value) {
+		this._locale = value;
+		return this.get_locale();
+	}
+	,get_maxChars: function() {
+		return this._textField.get_maxChars();
+	}
+	,set_maxChars: function(value) {
+		this._textField.set_maxChars(value);
+		return this.get_maxChars();
+	}
+	,get_multiline: function() {
+		return this._textField.get_multiline();
+	}
+	,get_restrict: function() {
+		return this._textField.get_restrict();
+	}
+	,set_restrict: function(value) {
+		this._textField.set_restrict(value);
+		return this.get_restrict();
+	}
+	,_returnKeyLabel: null
+	,get_returnKeyLabel: function() {
+		return this._returnKeyLabel;
+	}
+	,set_returnKeyLabel: function(value) {
+		this._returnKeyLabel = value;
+		return this.get_returnKeyLabel();
+	}
+	,get_selectionActiveIndex: function() {
+		return this._textField.get_selectionBeginIndex();
+	}
+	,get_selectionAnchorIndex: function() {
+		return this._textField.get_selectionEndIndex();
+	}
+	,_softKeyboardType: null
+	,get_softKeyboardType: function() {
+		return this._softKeyboardType;
+	}
+	,set_softKeyboardType: function(value) {
+		this._softKeyboardType = value;
+		return this.get_softKeyboardType();
+	}
+	,get_stage: function() {
+		return this._textField.stage;
+	}
+	,set_stage: function(value) {
+		if(this._textField.stage == value) {
+			return this.get_stage();
+		}
+		if(this._textField.stage != null) {
+			this._textField.parent.removeChild(this._textField);
+		}
+		if(value != null) {
+			value.addChild(this._textField);
+			this.dispatchCompleteIfPossible();
+		}
+		return this.get_stage();
+	}
+	,get_text: function() {
+		return this._textField.get_text();
+	}
+	,set_text: function(value) {
+		this._textField.set_text(value);
+		return this.get_text();
+	}
+	,_textAlign: null
+	,get_textAlign: function() {
+		return this._textAlign;
+	}
+	,set_textAlign: function(value) {
+		if(this._textAlign == value) {
+			return this.get_textAlign();
+		}
+		this._textAlign = value;
+		if(value == 5) {
+			value = 3;
+		} else if(value == 1) {
+			value = 4;
+		}
+		this._textFormat.align = value;
+		this._textField.set_defaultTextFormat(this._textFormat);
+		this._textField.setTextFormat(this._textFormat);
+		return this.get_textAlign();
+	}
+	,_viewPort: null
+	,get_viewPort: function() {
+		return this._viewPort;
+	}
+	,set_viewPort: function(value) {
+		if(value == null || value.width < 0 || value.height < 0) {
+			throw new openfl_errors_RangeError("The Rectangle value is not valid.");
+		}
+		this._viewPort = value;
+		this._textField.set_x(this._viewPort.x);
+		this._textField.set_y(this._viewPort.y);
+		this._textField.set_width(this._viewPort.width);
+		this._textField.set_height(this._viewPort.height);
+		this.dispatchCompleteIfPossible();
+		return this.get_viewPort();
+	}
+	,get_visible: function() {
+		return this._textField.get_visible();
+	}
+	,set_visible: function(value) {
+		this._textField.set_visible(value);
+		return this.get_visible();
+	}
+	,assignFocus: function() {
+		if(this._textField.parent == null) {
+			return;
+		}
+		this._textField.stage.set_focus(this._textField);
+	}
+	,dispose: function() {
+		this.set_stage(null);
+		this._textField = null;
+		this._textFormat = null;
+	}
+	,drawViewPortToBitmapData: function(bitmap) {
+		if(bitmap == null) {
+			throw new openfl_errors_Error("The bitmap is null.");
+		}
+		if(bitmap.width != this._viewPort.width || bitmap.height != this._viewPort.height) {
+			throw new openfl_errors_ArgumentError("The bitmap's width or height is different from view port's width or height.");
+		}
+		bitmap.draw(this._textField);
+	}
+	,selectRange: function(anchorIndex,activeIndex) {
+		this._textField.setSelection(anchorIndex,activeIndex);
+	}
+	,dispatchCompleteIfPossible: function() {
+		if(this._textField.stage == null || this._viewPort.isEmpty()) {
+			this._isComplete = false;
+		}
+		if(this._textField.stage != null && !this._viewPort.isEmpty()) {
+			this._isComplete = true;
+			this.dispatchEvent(new openfl_events_Event("complete"));
+		}
+	}
+	,initialize: function(initOptions) {
+		this._textField = new openfl_text_TextField();
+		this._textField.set_type(1);
+		var isMultiline = initOptions && initOptions.hasOwnProperty("multiline") && initOptions.multiline;
+		this._textField.set_multiline(isMultiline);
+		this._textField.set_wordWrap(isMultiline);
+		this._textField.addEventListener("change",$bind(this,this.textField_eventHandler));
+		this._textField.addEventListener("focusIn",$bind(this,this.textField_eventHandler));
+		this._textField.addEventListener("focusOut",$bind(this,this.textField_eventHandler));
+		this._textField.addEventListener("keyDown",$bind(this,this.textField_eventHandler));
+		this._textField.addEventListener("keyUp",$bind(this,this.textField_eventHandler));
+		this._textFormat = new openfl_text_TextFormat(null,11,0,false,false,false);
+		this._textField.set_defaultTextFormat(this._textFormat);
+	}
+	,textField_eventHandler: function(event) {
+		this.dispatchEvent(event);
+	}
+	,textField_keyFocusChangeHandler: function(event) {
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		event.stopPropagation();
+	}
+	,__class__: feathers_text_StageTextField
+	,__properties__: {set_visible:"set_visible",get_visible:"get_visible",set_viewPort:"set_viewPort",get_viewPort:"get_viewPort",set_textAlign:"set_textAlign",get_textAlign:"get_textAlign",set_text:"set_text",get_text:"get_text",set_stage:"set_stage",get_stage:"get_stage",set_softKeyboardType:"set_softKeyboardType",get_softKeyboardType:"get_softKeyboardType",get_selectionAnchorIndex:"get_selectionAnchorIndex",get_selectionActiveIndex:"get_selectionActiveIndex",set_returnKeyLabel:"set_returnKeyLabel",get_returnKeyLabel:"get_returnKeyLabel",set_restrict:"set_restrict",get_restrict:"get_restrict",get_multiline:"get_multiline",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_locale:"set_locale",get_locale:"get_locale",set_fontSize:"set_fontSize",get_fontSize:"get_fontSize",set_fontFamily:"set_fontFamily",get_fontFamily:"get_fontFamily",set_editable:"set_editable",get_editable:"get_editable",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_color:"set_color",get_color:"get_color",set_autoCorrect:"set_autoCorrect",get_autoCorrect:"get_autoCorrect",set_autoCapitalize:"set_autoCapitalize",get_autoCapitalize:"get_autoCapitalize"}
+});
+var feathers_utils_display_FeathersDisplayUtil = function() { };
+$hxClasses["feathers.utils.display.FeathersDisplayUtil"] = feathers_utils_display_FeathersDisplayUtil;
+feathers_utils_display_FeathersDisplayUtil.__name__ = "feathers.utils.display.FeathersDisplayUtil";
+feathers_utils_display_FeathersDisplayUtil.getDisplayObjectDepthFromStage = function(target) {
+	if(target.get_stage() != null) {
+		return -1;
+	}
+	var count = 0;
+	while(target.get_parent() != null) {
+		target = target.get_parent();
+		++count;
+	}
+	return count;
+};
+var feathers_utils_display_FeathersUIUtils = function() { };
+$hxClasses["feathers.utils.display.FeathersUIUtils"] = feathers_utils_display_FeathersUIUtils;
+feathers_utils_display_FeathersUIUtils.__name__ = "feathers.utils.display.FeathersUIUtils";
+feathers_utils_display_FeathersUIUtils.nativeToGlobal = function(nativePosition,starling,result) {
+	if(starling == null) {
+		starling = starling_core_Starling.get_current();
+	}
+	var nativeScaleFactor = 1;
+	if(starling.get_supportHighResolutions()) {
+		nativeScaleFactor = starling.get_nativeStage().get_contentsScaleFactor();
+	}
+	var scaleFactor = starling.get_contentScaleFactor() / nativeScaleFactor;
+	var viewPort = starling.get_viewPort();
+	var resultX = (nativePosition.x - viewPort.x) / scaleFactor;
+	var resultY = (nativePosition.y - viewPort.y) / scaleFactor;
+	if(result == null) {
+		result = new openfl_geom_Point(resultX,resultY);
+	} else {
+		result.setTo(resultX,resultY);
+	}
+	return result;
+};
+var feathers_utils_geom_FeathersGeomUtils = function() { };
+$hxClasses["feathers.utils.geom.FeathersGeomUtils"] = feathers_utils_geom_FeathersGeomUtils;
+feathers_utils_geom_FeathersGeomUtils.__name__ = "feathers.utils.geom.FeathersGeomUtils";
+feathers_utils_geom_FeathersGeomUtils.matrixToScaleX = function(matrix) {
+	var a = matrix.a;
+	var b = matrix.b;
+	return Math.sqrt(a * a + b * b);
+};
+feathers_utils_geom_FeathersGeomUtils.matrixToScaleY = function(matrix) {
+	var c = matrix.c;
+	var d = matrix.d;
+	return Math.sqrt(c * c + d * d);
+};
+feathers_utils_geom_FeathersGeomUtils.matrixToRotation = function(matrix) {
+	var c = matrix.c;
+	var d = matrix.d;
+	return -Math.atan(c / d);
+};
+var feathers_utils_skins_FeathersSkinsUtils = function() { };
+$hxClasses["feathers.utils.skins.FeathersSkinsUtils"] = feathers_utils_skins_FeathersSkinsUtils;
+feathers_utils_skins_FeathersSkinsUtils.__name__ = "feathers.utils.skins.FeathersSkinsUtils";
+feathers_utils_skins_FeathersSkinsUtils.resetFluidChildDimensionsForMeasurement = function(child,parentExplicitWidth,parentExplicitHeight,parentExplicitMinWidth,parentExplicitMinHeight,parentExplicitMaxWidth,parentExplicitMaxHeight,childExplicitWidth,childExplicitHeight,childExplicitMinWidth,childExplicitMinHeight,childExplicitMaxWidth,childExplicitMaxHeight) {
+	if(child == null) {
+		return;
+	}
+	var needsWidth = parentExplicitWidth != parentExplicitWidth;
+	var needsHeight = parentExplicitHeight != parentExplicitHeight;
+	if(needsWidth) {
+		child.set_width(childExplicitWidth);
+	} else {
+		child.set_width(parentExplicitWidth);
+	}
+	if(needsHeight) {
+		child.set_height(childExplicitHeight);
+	} else {
+		child.set_height(parentExplicitHeight);
+	}
+	var measureChild = child;
+	var compilerWorkaround;
+	if(measureChild != null) {
+		var childMinWidth = parentExplicitMinWidth;
+		compilerWorkaround = childMinWidth;
+		if(childMinWidth != childMinWidth || childExplicitMinWidth > childMinWidth) {
+			childMinWidth = childExplicitMinWidth;
+		}
+		measureChild.set_minWidth(childMinWidth);
+		var childMinHeight = parentExplicitMinHeight;
+		compilerWorkaround = childMinHeight;
+		if(childMinHeight != childMinHeight || childExplicitMinHeight > childMinHeight) {
+			childMinHeight = childExplicitMinHeight;
+		}
+		measureChild.set_minHeight(childMinHeight);
+		var childMaxWidth = parentExplicitMaxWidth;
+		compilerWorkaround = childMaxWidth;
+		if(childMaxWidth != childMaxWidth || childExplicitMaxWidth < childMaxWidth) {
+			childMaxWidth = childExplicitMaxWidth;
+		}
+		measureChild.set_maxWidth(childMaxWidth);
+		var childMaxHeight = parentExplicitMaxHeight;
+		compilerWorkaround = childMaxHeight;
+		if(childMaxHeight != childMaxHeight || childExplicitMaxHeight < childMaxHeight) {
+			childMaxHeight = childExplicitMaxHeight;
+		}
+		measureChild.set_maxHeight(childMaxHeight);
+	}
 };
 var format_amf_Reader = function(i) {
 	this.i = i;
@@ -31550,7 +36975,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 321715;
+	this.version = 733522;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -82526,14 +87951,6 @@ openfl_utils__$internal_TouchData.prototype = {
 	}
 	,__class__: openfl_utils__$internal_TouchData
 };
-var starling_animation_IAnimatable = function() { };
-$hxClasses["starling.animation.IAnimatable"] = starling_animation_IAnimatable;
-starling_animation_IAnimatable.__name__ = "starling.animation.IAnimatable";
-starling_animation_IAnimatable.__isInterface__ = true;
-starling_animation_IAnimatable.prototype = {
-	advanceTime: null
-	,__class__: starling_animation_IAnimatable
-};
 var starling_animation_DelayedCall = function(callback,delay,args) {
 	starling_events_EventDispatcher.call(this);
 	this.reset(callback,delay,args);
@@ -97066,8 +102483,12 @@ starlingbuilder_engine_UIBuilder.prototype = {
 	,__class__: starlingbuilder_engine_UIBuilder
 	,__properties__: {set_displayObjectHandler:"set_displayObjectHandler",get_displayObjectHandler:"get_displayObjectHandler",set_localizationHandler:"set_localizationHandler",get_localizationHandler:"get_localizationHandler",set_localization:"set_localization",get_localization:"get_localization",set_tweenBuilder:"set_tweenBuilder",get_tweenBuilder:"get_tweenBuilder"}
 };
-var starlingbuilder_engine_UIElementFactory = function(assetMediator) {
+var starlingbuilder_engine_UIElementFactory = function(assetMediator,forEditor) {
+	if(forEditor == null) {
+		forEditor = false;
+	}
 	this._assetMediator = assetMediator;
+	this._forEditor = forEditor;
 };
 $hxClasses["starlingbuilder.engine.UIElementFactory"] = starlingbuilder_engine_UIElementFactory;
 starlingbuilder_engine_UIElementFactory.__name__ = "starlingbuilder.engine.UIElementFactory";
@@ -97095,6 +102516,7 @@ starlingbuilder_engine_UIElementFactory.compare = function(a,b) {
 };
 starlingbuilder_engine_UIElementFactory.prototype = {
 	_assetMediator: null
+	,_forEditor: null
 	,setDefaultParams: function(obj,data) {
 	}
 	,setDirectParams: function(obj,data) {
@@ -97113,20 +102535,28 @@ starlingbuilder_engine_UIElementFactory.prototype = {
 			var id = array[_g];
 			++_g;
 			var item = data.params[id];
-			if(item && Object.prototype.hasOwnProperty.call(item,"cls")) {
+			if(item != null && Object.prototype.hasOwnProperty.call(item,"cls")) {
 				try {
 					Reflect.setProperty(obj,id,this.create(item));
 				} catch( _g1 ) {
-					if(!((haxe_Exception.caught(_g1)) instanceof openfl_errors_Error)) {
+					var _g2 = haxe_Exception.caught(_g1);
+					if(((_g2) instanceof openfl_errors_Error)) {
+						var e = _g2;
+						haxe_Log.trace(e,{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 44, className : "starlingbuilder.engine.UIElementFactory", methodName : "setDirectParams"});
+					} else {
 						throw _g1;
 					}
 				}
 			} else {
 				try {
 					Reflect.setProperty(obj,id,item);
-				} catch( _g2 ) {
-					if(!((haxe_Exception.caught(_g2)) instanceof openfl_errors_Error)) {
-						throw _g2;
+				} catch( _g3 ) {
+					var _g4 = haxe_Exception.caught(_g3);
+					if(((_g4) instanceof openfl_errors_Error)) {
+						var e1 = _g4;
+						haxe_Log.trace(e1,{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 50, className : "starlingbuilder.engine.UIElementFactory", methodName : "setDirectParams"});
+					} else {
+						throw _g3;
 					}
 				}
 			}
@@ -97142,6 +102572,7 @@ starlingbuilder_engine_UIElementFactory.prototype = {
 		var cls;
 		var data;
 		var clsName = param.cls;
+		haxe_Log.trace("clsName = " + clsName,{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 68, className : "starlingbuilder.engine.UIElementFactory", methodName : "createTexture"});
 		switch(clsName) {
 		case "Object":
 			data = this._assetMediator.getObject(param.name);
@@ -97157,10 +102588,7 @@ starlingbuilder_engine_UIElementFactory.prototype = {
 			return data;
 		case "__AS3__.vec.Vector.<starling.textures.Texture>":
 			return this._assetMediator.getTextures(param.value);
-		case "feathers.data.HierarchicalCollection":
-			cls = $hxClasses[clsName];
-			return Type.createInstance(cls,[param.data]);
-		case "feathers.data.ListCollection":
+		case "feathers.data.ArrayCollection":case "feathers.data.ArrayHierarchicalCollection":case "feathers.data.HierarchicalCollection":case "feathers.data.ListCollection":
 			cls = $hxClasses[clsName];
 			return Type.createInstance(cls,[param.data]);
 		case "feathers.textures.Scale3Textures":
@@ -97197,57 +102625,53 @@ starlingbuilder_engine_UIElementFactory.prototype = {
 				throw new openfl_errors_Error("Texture " + Std.string(param.textureName) + " not found");
 			}
 			return texture;
+		case "starlingbuilder.engine.IAssetMediator":
+			return this._assetMediator;
 		default:
 			return null;
 		}
 	}
 	,create: function(data) {
-		haxe_Log.trace("data = " + Std.string(data),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 139, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
+		haxe_Log.trace("data = " + Std.string(data),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 166, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
 		var obj;
 		var constructorParams = data.constructorParams;
 		var res = this.createTexture(data);
-		if(res) {
+		if(res != null) {
 			return res;
 		}
 		var cls = null;
-		if(data.customParams && data.customParams.customComponentClass && data.customParams.customComponentClass != "null") {
+		if(!this._forEditor && data.customParams != null && data.customParams.customComponentClass != null && data.customParams.customComponentClass != "null") {
 			try {
 				var name = data.customParams.customComponentClass;
 				cls = $hxClasses[name];
-				haxe_Log.trace("cls is : ",{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 152, className : "starlingbuilder.engine.UIElementFactory", methodName : "create", customParams : [cls]});
+				haxe_Log.trace("cls is : ",{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 182, className : "starlingbuilder.engine.UIElementFactory", methodName : "create", customParams : [cls]});
 			} catch( _g ) {
 				if(((haxe_Exception.caught(_g)) instanceof openfl_errors_Error)) {
-					haxe_Log.trace("Class " + Std.string(data.customParams.customComponentClass) + " can't be instantiated.",{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 154, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
+					haxe_Log.trace("Class " + Std.string(data.customParams.customComponentClass) + " can't be instantiated.",{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 184, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
 				} else {
 					throw _g;
 				}
 			}
 		} else {
-			haxe_Log.trace("else condition",{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 157, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
+			haxe_Log.trace("else condition",{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 187, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
 		}
-		haxe_Log.trace("data class " + Std.string(data.cls),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 160, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
+		haxe_Log.trace("data class " + Std.string(data.cls),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 190, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
 		if(data.cls == "flash.geom.Rectangle") {
 			data.cls = "openfl.geom.Rectangle";
 		}
 		if(cls == null) {
-			haxe_Log.trace("cls is null so cls is " + Std.string(data.cls),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 170, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
+			haxe_Log.trace("cls is null so cls is " + Std.string(data.cls),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 200, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
 			var name = data.cls;
 			cls = $hxClasses[name];
 		}
 		var args = this.createArgumentsFromParams(constructorParams);
 		try {
-			if(cls == null) {
-				haxe_Log.trace("cls is null so cls is " + Std.string(data.cls),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 179, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
-				var name = data.cls;
-				cls = $hxClasses[name];
-			}
-			haxe_Log.trace("cls : " + Std.string(cls) + " args: " + Std.string(args),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 183, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
 			obj = Type.createInstance(cls,args);
 		} catch( _g ) {
 			var _g1 = haxe_Exception.caught(_g);
 			if(((_g1) instanceof openfl_errors_Error)) {
 				var e = _g1;
-				haxe_Log.trace("Error " + Std.string(e),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 186, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
+				haxe_Log.trace("Error " + Std.string(e),{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 209, className : "starlingbuilder.engine.UIElementFactory", methodName : "create"});
 				obj = Type.createInstance(cls,[]);
 			} else {
 				throw _g;
@@ -97269,6 +102693,8 @@ starlingbuilder_engine_UIElementFactory.prototype = {
 					args.push(param.value);
 				}
 			}
+		} else {
+			haxe_Log.trace("params null",{ fileName : "Source/starlingbuilder/engine/UIElementFactory.hx", lineNumber : 229, className : "starlingbuilder.engine.UIElementFactory", methodName : "createArgumentsFromParams"});
 		}
 		return args;
 	}
@@ -97564,7 +102990,25 @@ starling_display_DisplayObjectContainer.sBroadcastListeners = openfl_Vector.toOb
 starling_display_DisplayObjectContainer.sSortBuffer = openfl_Vector.toObjectVector(null);
 starling_display_DisplayObjectContainer.sCacheToken = new starling_rendering_BatchToken();
 starling_display_Button.MAX_DRAG_DIST = 50;
-Game.linkers = [starling_display_Button];
+feathers_core_FeathersControl.HELPER_POINT = new openfl_geom_Point();
+feathers_core_FeathersControl.INVALIDATION_FLAG_ALL = "all";
+feathers_core_FeathersControl.INVALIDATION_FLAG_STATE = "state";
+feathers_core_FeathersControl.INVALIDATION_FLAG_SIZE = "size";
+feathers_core_FeathersControl.INVALIDATION_FLAG_STYLES = "styles";
+feathers_core_FeathersControl.INVALIDATION_FLAG_SKIN = "skin";
+feathers_core_FeathersControl.INVALIDATION_FLAG_LAYOUT = "layout";
+feathers_core_FeathersControl.INVALIDATION_FLAG_DATA = "data";
+feathers_core_FeathersControl.INVALIDATION_FLAG_SCROLL = "scroll";
+feathers_core_FeathersControl.INVALIDATION_FLAG_SELECTED = "selected";
+feathers_core_FeathersControl.INVALIDATION_FLAG_FOCUS = "focus";
+feathers_core_FeathersControl.INVALIDATION_FLAG_TEXT_RENDERER = "textRenderer";
+feathers_core_FeathersControl.INVALIDATION_FLAG_TEXT_EDITOR = "textEditor";
+feathers_core_FeathersControl.ILLEGAL_WIDTH_ERROR = "A component's width cannot be NaN.";
+feathers_core_FeathersControl.ILLEGAL_HEIGHT_ERROR = "A component's height cannot be NaN.";
+feathers_core_FeathersControl.ABSTRACT_CLASS_ERROR = "FeathersControl is an abstract class. For a lightweight Feathers wrapper, use feathers.controls.LayoutGroup.";
+feathers_controls_LayoutGroup.INVALIDATION_FLAG_CLIPPING = "clipping";
+feathers_controls_LayoutGroup.ALTERNATE_STYLE_NAME_TOOLBAR = "feathers-toolbar-layout-group";
+Game.linkers = [starling_display_Button,feathers_controls_LayoutGroup];
 Xml.Element = 0;
 Xml.PCData = 1;
 Xml.CData = 2;
@@ -97572,6 +103016,48 @@ Xml.Comment = 3;
 Xml.DocType = 4;
 Xml.ProcessingInstruction = 5;
 Xml.Document = 6;
+feathers_controls_AutoSizeMode.STAGE = "stage";
+feathers_controls_AutoSizeMode.CONTENT = "content";
+feathers_controls_text_BitmapFontTextRenderer.HELPER_RESULT = new feathers_controls_text_MeasureTextResult();
+feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_SPACE = 32;
+feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_TAB = 9;
+feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_LINE_FEED = 10;
+feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_CARRIAGE_RETURN = 13;
+feathers_controls_text_BitmapFontTextRenderer.FUZZY_MAX_WIDTH_PADDING = 0.000001;
+feathers_controls_text_StageTextTextEditor.MIN_VIEW_PORT_POSITION = -8192;
+feathers_controls_text_StageTextTextEditor.MAX_VIEW_PORT_POSITION = 8191;
+feathers_core_ValidationQueue.STARLING_TO_VALIDATION_QUEUE = new haxe_ds_ObjectMap();
+feathers_events_FeathersEventType.INITIALIZE = "initialize";
+feathers_events_FeathersEventType.CREATION_COMPLETE = "creationComplete";
+feathers_events_FeathersEventType.RESIZE = "resize";
+feathers_events_FeathersEventType.ENTER = "enter";
+feathers_events_FeathersEventType.CLEAR = "clear";
+feathers_events_FeathersEventType.SCROLL_START = "scrollStart";
+feathers_events_FeathersEventType.SCROLL_COMPLETE = "scrollComplete";
+feathers_events_FeathersEventType.BEGIN_INTERACTION = "beginInteraction";
+feathers_events_FeathersEventType.END_INTERACTION = "endInteraction";
+feathers_events_FeathersEventType.TRANSITION_START = "transitionStart";
+feathers_events_FeathersEventType.TRANSITION_COMPLETE = "transitionComplete";
+feathers_events_FeathersEventType.TRANSITION_IN_START = "transitionInStart";
+feathers_events_FeathersEventType.TRANSITION_IN_COMPLETE = "transitionInComplete";
+feathers_events_FeathersEventType.TRANSITION_OUT_START = "transitionOutStart";
+feathers_events_FeathersEventType.TRANSITION_OUT_COMPLETE = "transitionOutComplete";
+feathers_events_FeathersEventType.TRANSITION_CANCEL = "transitionCancel";
+feathers_events_FeathersEventType.FOCUS_IN = "focusIn";
+feathers_events_FeathersEventType.FOCUS_OUT = "focusOut";
+feathers_events_FeathersEventType.RENDERER_ADD = "rendererAdd";
+feathers_events_FeathersEventType.RENDERER_REMOVE = "rendererRemove";
+feathers_events_FeathersEventType.ERROR = "error";
+feathers_events_FeathersEventType.LAYOUT_DATA_CHANGE = "layoutDataChange";
+feathers_events_FeathersEventType.LONG_PRESS = "longPress";
+feathers_events_FeathersEventType.SOFT_KEYBOARD_ACTIVATE = "softKeyboardActivate";
+feathers_events_FeathersEventType.SOFT_KEYBOARD_ACTIVATING = "softKeyboardActivating";
+feathers_events_FeathersEventType.SOFT_KEYBOARD_DEACTIVATE = "softKeyboardDeactivate";
+feathers_events_FeathersEventType.PROGRESS = "progress";
+feathers_events_FeathersEventType.LOCATION_CHANGE = "locationChange";
+feathers_events_FeathersEventType.LOCATION_CHANGING = "locationChanging";
+feathers_events_FeathersEventType.STATE_CHANGE = "stateChange";
+feathers_events_FeathersEventType.PULLING = "pulling";
 format_amf3_Amf3Array.__meta__ = { fields : { extra : { optional : null}}};
 haxe_Serializer.USE_CACHE = false;
 haxe_Serializer.USE_ENUM_INDEX = false;

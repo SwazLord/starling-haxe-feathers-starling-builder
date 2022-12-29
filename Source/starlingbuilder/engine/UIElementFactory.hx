@@ -17,9 +17,11 @@ import starling.textures.Texture;
  */
 class UIElementFactory {
 	private var _assetMediator:IAssetMediator;
+	private var _forEditor:Bool;
 
-	public function new(assetMediator:IAssetMediator) {
+	public function new(assetMediator:IAssetMediator, forEditor:Bool = false) {
 		_assetMediator = assetMediator;
+		_forEditor = forEditor;
 	}
 
 	private function setDefaultParams(obj:Dynamic, data:Dynamic):Void {}
@@ -35,14 +37,18 @@ class UIElementFactory {
 		for (id in array) {
 			var item:Dynamic = data.params[id];
 
-			if (item && Reflect.hasField(item, "cls")) {
+			if (item != null && Reflect.hasField(item, "cls")) {
 				try {
 					Reflect.setProperty(obj, id, create(item));
-				} catch (e:Error) {}
+				} catch (e:Error) {
+					trace(e);
+				}
 			} else {
 				try {
 					Reflect.setProperty(obj, id, item);
-				} catch (e:Error) {}
+				} catch (e:Error) {
+					trace(e);
+				}
 			}
 		}
 	}
@@ -59,77 +65,98 @@ class UIElementFactory {
 		var data:Dynamic;
 
 		var clsName:String = param.cls;
-
+		trace("clsName = " + clsName);
 		switch (clsName) {
 			case "starling.textures.Texture":
-				texture = _assetMediator.getTexture(param.textureName);
+				{
+					texture = _assetMediator.getTexture(param.textureName);
 
-				if (texture == null)
-					throw new Error("Texture " + param.textureName + " not found");
+					if (texture == null)
+						throw new Error("Texture " + param.textureName + " not found");
 
-				return texture;
+					return texture;
+				}
 			case "feathers.textures.Scale3Textures":
-				texture = _assetMediator.getTexture(param.textureName);
+				{
+					texture = _assetMediator.getTexture(param.textureName);
 
-				if (texture == null)
-					throw new Error("Texture " + param.textureName + " not found");
+					if (texture == null)
+						throw new Error("Texture " + param.textureName + " not found");
 
-				scaleRatio = param.scaleRatio;
+					scaleRatio = param.scaleRatio;
 
-				var direction:String = "horizontal";
+					var direction:String = "horizontal";
 
-				if (scaleRatio.length == 3) {
-					direction = scaleRatio[2];
+					if (scaleRatio.length == 3) {
+						direction = scaleRatio[2];
+					}
+
+					var s3t:Dynamic;
+					cls = Type.resolveClass("feathers.textures.Scale3Textures");
+					if (direction == "horizontal") {
+						s3t = Type.createInstance(cls, [texture, texture.width * scaleRatio[0], texture.width * scaleRatio[1], direction]);
+					} else {
+						s3t = Type.createInstance(cls, [
+							texture,
+							texture.height * scaleRatio[0],
+							texture.height * scaleRatio[1],
+							direction
+						]);
+					}
+
+					return s3t;
 				}
 
-				var s3t:Dynamic;
-				cls = Type.resolveClass("feathers.textures.Scale3Textures");
-				if (direction == "horizontal") {
-					s3t = Type.createInstance(cls, [texture, texture.width * scaleRatio[0], texture.width * scaleRatio[1], direction]);
-				} else {
-					s3t = Type.createInstance(cls, [
-						texture,
-						texture.height * scaleRatio[0],
-						texture.height * scaleRatio[1],
-						direction
-					]);
-				}
-
-				return s3t;
 			case "feathers.textures.Scale9Textures":
-				texture = _assetMediator.getTexture(param.textureName);
+				{
+					texture = _assetMediator.getTexture(param.textureName);
 
-				if (texture == null)
-					throw new Error("Texture " + param.textureName + " not found");
+					if (texture == null)
+						throw new Error("Texture " + param.textureName + " not found");
 
-				scaleRatio = param.scaleRatio;
-				var rect:Rectangle = new Rectangle(texture.width * scaleRatio[0], texture.height * scaleRatio[1], texture.width * scaleRatio[2],
-					texture.height * scaleRatio[3]);
-				cls = Type.resolveClass("feathers.textures.Scale9Textures");
-				var s9t:Dynamic = Type.createInstance(cls, [texture, rect]);
-				return s9t;
+					scaleRatio = param.scaleRatio;
+					var rect:Rectangle = new Rectangle(texture.width * scaleRatio[0], texture.height * scaleRatio[1], texture.width * scaleRatio[2],
+						texture.height * scaleRatio[3]);
+					cls = Type.resolveClass("feathers.textures.Scale9Textures");
+					var s9t:Dynamic = Type.createInstance(cls, [texture, rect]);
+					return s9t;
+				}
+
 			case "__AS3__.vec.Vector.<starling.textures.Texture>":
-				return _assetMediator.getTextures(param.value);
+				{
+					return _assetMediator.getTextures(param.value);
+				}
+
 			case "XML":
-				data = _assetMediator.getXml(param.name);
+				{
+					data = _assetMediator.getXml(param.name);
 
-				if (data == null)
-					throw new Error("XML " + param.name + " not found");
+					if (data == null)
+						throw new Error("XML " + param.name + " not found");
 
-				return data;
+					return data;
+				}
+
 			case "Object":
-				data = _assetMediator.getObject(param.name);
+				{
+					data = _assetMediator.getObject(param.name);
 
-				if (data == null)
-					throw new Error("Object " + param.name + " not found");
+					if (data == null)
+						throw new Error("Object " + param.name + " not found");
 
-				return data;
-			case "feathers.data.ListCollection":
-				cls = Type.resolveClass(clsName);
-				return Type.createInstance(cls, [param.data]);
-			case "feathers.data.HierarchicalCollection":
-				cls = Type.resolveClass(clsName);
-				return Type.createInstance(cls, [param.data]);
+					return data;
+				}
+
+			case "feathers.data.ListCollection" | "feathers.data.HierarchicalCollection" | "feathers.data.ArrayCollection" |
+				"feathers.data.ArrayHierarchicalCollection":
+				{
+					cls = Type.resolveClass(clsName);
+					return Type.createInstance(cls, [param.data]);
+				}
+			case "starlingbuilder.engine.IAssetMediator":
+				{
+					return _assetMediator;
+				}
 			default:
 				return null;
 		}
@@ -138,24 +165,27 @@ class UIElementFactory {
 	public function create(data:Dynamic):Dynamic {
 		trace("data = " + data);
 		var obj:Dynamic;
-		var constructorParams:Array<Dynamic> = data.constructorParams;
+		var constructorParams:Array<Dynamic> = cast data.constructorParams;
 
 		var res:Dynamic = createTexture(data);
-		if (res)
+		if (res != null)
 			return res;
 
 		var cls:Class<Dynamic> = null;
 
-		if (data.customParams && data.customParams.customComponentClass && data.customParams.customComponentClass != "null") {
+		if (!_forEditor
+			&& data.customParams != null
+			&& data.customParams.customComponentClass != null
+			&& data.customParams.customComponentClass != "null") {
 			try {
 				cls = Type.resolveClass(data.customParams.customComponentClass);
 				trace("cls is : ", cls);
 			} catch (e:Error) {
 				trace("Class " + data.customParams.customComponentClass + " can't be instantiated.");
 			}
-		}else{
-            trace("else condition");
-        }
+		} else {
+			trace("else condition");
+		}
 
 		trace("data class " + data.cls);
 
@@ -174,13 +204,6 @@ class UIElementFactory {
 		var args:Array<Dynamic> = createArgumentsFromParams(constructorParams);
 
 		try {
-
-            if (cls == null) {
-                trace("cls is null so cls is " + data.cls);
-                cls = Type.resolveClass(data.cls);
-            }
-            
-			trace("cls : " + cls + " args: " + args);
 			obj = Type.createInstance(cls, args);
 		} catch (e:Error) {
 			trace("Error " + e);
@@ -202,6 +225,8 @@ class UIElementFactory {
 					args.push(param.value);
 				}
 			}
+		} else {
+			trace("params null");
 		}
 
 		return args;

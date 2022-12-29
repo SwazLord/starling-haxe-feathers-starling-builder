@@ -1172,7 +1172,7 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @private
 	 */
 	private function refreshTextFormat():Void {
-		var textFormat:BitmapFontTextFormat;
+		var textFormat:BitmapFontTextFormat = null;
 		if (this._stateContext != null) {
 			if (this._textFormatForState != null) {
 				var currentState:String = this._stateContext.currentState;
@@ -1225,7 +1225,7 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 */
 	private function getTextFormatFromFontStyles():BitmapFontTextFormat {
 		if (this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES) || this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE)) {
-			var textFormat:TextFormat;
+			var textFormat:TextFormat = null;
 			if (this._fontStyles != null) {
 				textFormat = this._fontStyles.getTextFormatForTarget(this);
 				this._currentFontStyles = textFormat;
@@ -1460,7 +1460,7 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 		var charCount:Int = this._text.length;
 		var truncationIndex:Int = -1;
 		var charID:Int;
-		var charData:BitmapChar;
+		var charData:BitmapChar = null;
 		var charWidth:Float;
 		var currentKerning:Float;
 		var difference:Float;
@@ -1523,7 +1523,7 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 
 			// then work our way backwards until we fit into the width
 			// for (i = truncationIndex; i >= 0; i--)
-			var i:Int;
+			var i:Int = truncationIndex;
 			while (i >= 0) {
 				charID = this._text.charCodeAt(i);
 				previousCharID = (i > 0) ? this._text.charCodeAt(i - 1) : Math.NaN;

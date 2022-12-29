@@ -237,8 +237,8 @@ class FontStylesSet extends EventDispatcher {
 	 * @see http://doc.starling-framework.org/current/starling/text/TextFormat.html starling.text.TextFormat
 	 */
 	public function getTextFormatForTarget(target:IFeathersControl):TextFormat {
-		var textFormat:TextFormat;
-		var stateContext:IStateContext;
+		var textFormat:TextFormat = null;
+		var stateContext:IStateContext = null;
 		if (Std.isOfType(target, IStateObserver)) {
 			stateContext = cast(target, IStateObserver).stateContext;
 		}
