@@ -8,6 +8,10 @@
 
 package feathers.core;
 
+import feathers.utils.focus.FeathersFocusUtils;
+import starling.events.Touch;
+import starling.events.TouchPhase;
+import openfl.system.Capabilities;
 import feathers.layout.RelativePosition;
 import feathers.system.DeviceCapabilities;
 import openfl.ui.Keyboard;
@@ -642,7 +646,7 @@ class DefaultFocusManager extends EventDispatcher implements IFocusManager {
 			if (focusableObject == this._focus) {
 				continue;
 			}
-			if (isBetterFocusForRelativePosition(focusableObject, result, focusedRect, position)) {
+			if (FeathersFocusUtils.isBetterFocusForRelativePosition(focusableObject, result, focusedRect, position)) {
 				result = focusableObject;
 			}
 		}
@@ -808,7 +812,7 @@ class DefaultFocusManager extends EventDispatcher implements IFocusManager {
 	/**
 	 * @private
 	 */
-	private function stage_gestureDirectionalTapHandler(event:TransformGestureEvent):Void {
+	/* private function stage_gestureDirectionalTapHandler(event:TransformGestureEvent):Void {
 		if (event.isDefaultPrevented()) {
 			// something else has already handled this event
 			return;
@@ -833,6 +837,163 @@ class DefaultFocusManager extends EventDispatcher implements IFocusManager {
 		}
 		if (this._focus != null) {
 			this._focus.showFocus();
+		}
+	}*/
+	/**
+	 * @private
+	 */
+	private function stage_keyFocusChangeHandler(event:FocusEvent):Void {
+		// keyCode 0 is sent by IE, for some reason
+		if (event.keyCode != Keyboard.TAB && event.keyCode != 0) {
+			return;
+		}
+
+		var newFocus:IFocusDisplayObject;
+		var currentFocus:IFocusDisplayObject = this._focus;
+		if (currentFocus != null && currentFocus.focusOwner != null) {
+			newFocus = currentFocus.focusOwner;
+		} else if (event.shiftKey) {
+			if (currentFocus != null) {
+				if (currentFocus.previousTabFocus != null) {
+					newFocus = currentFocus.previousTabFocus;
+				} else {
+					newFocus = this.findPreviousContainerFocus(currentFocus.parent, cast(currentFocus, DisplayObject), true);
+				}
+			}
+			if (newFocus == null) {
+				newFocus = this.findPreviousContainerFocus(this._root, null, false);
+			}
+		} else {
+			if (currentFocus != null) {
+				if (currentFocus.nextTabFocus != null) {
+					newFocus = currentFocus.nextTabFocus;
+				} else if (Std.isOfType(currentFocus, IFocusContainer) && cast(currentFocus, IFocusContainer).isChildFocusEnabled) {
+					newFocus = this.findNextContainerFocus(cast(currentFocus, DisplayObjectContainer), null, true);
+				} else {
+					newFocus = this.findNextContainerFocus(currentFocus.parent, cast(currentFocus, DisplayObject), true);
+				}
+			}
+			if (newFocus == null) {
+				newFocus = this.findNextContainerFocus(this._root, null, false);
+			}
+		}
+		if (newFocus != null) {
+			event.preventDefault();
+		}
+		this.focus = newFocus;
+		if (this._focus != null) {
+			this._focus.showFocus();
+		}
+	}
+
+	/**
+	 * @private
+	 */
+	private function topLevelContainer_addedHandler(event:Event):Void {
+		this.setFocusManager(cast(event.target, DisplayObject));
+	}
+
+	/**
+	 * @private
+	 */
+	private function topLevelContainer_removedHandler(event:Event):Void {
+		this.clearFocusManager(cast(event.target, DisplayObject));
+	}
+
+	/**
+	 * @private
+	 */
+	private function topLevelContainer_touchHandler(event:TouchEvent):Void {
+		if (Capabilities.os.indexOf("tvOS") != -1) {
+			return;
+		}
+		var touch:Touch = event.getTouch(this._root, TouchPhase.BEGAN);
+		if (touch == null) {
+			return;
+		}
+		if (this._focus != null && this._focus.maintainTouchFocus) {
+			return;
+		}
+
+		var focusTarget:IFocusDisplayObject = null;
+		var target:DisplayObject = touch.target;
+		var tempFocusTarget:IFocusDisplayObject;
+		do {
+			if (Std.isOfType(target, IFocusDisplayObject)) {
+				tempFocusTarget = cast(target, IFocusDisplayObject);
+				if (this.isValidFocus(tempFocusTarget)) {
+					if (focusTarget == null
+						|| !(Std.isOfType(tempFocusTarget, IFocusContainer))
+						|| !(cast(tempFocusTarget, IFocusContainer).isChildFocusEnabled)) {
+						focusTarget = tempFocusTarget;
+					}
+				}
+			}
+			target = target.parent;
+		} while (target != null);
+		if (this._focus != null && focusTarget != null) {
+			// ignore touches on focusOwner because we consider the
+			// focusOwner to indirectly have focus already
+			var focusOwner:IFocusDisplayObject = this._focus.focusOwner;
+			if (focusOwner == focusTarget) {
+				return;
+			}
+			// similarly, ignore touches on display objects that have a
+			// focusOwner and that owner is the currently focused object
+			var result:DisplayObject = cast(focusTarget, DisplayObject);
+			while (result != null) {
+				var focusResult:IFocusDisplayObject = cast result;
+				if (focusResult != null) {
+					focusOwner = focusResult.focusOwner;
+					if (focusOwner != null) {
+						if (focusOwner == this._focus) {
+							// the current focus is the touch target's owner,
+							// so we don't need to clear focus
+							focusTarget = focusOwner;
+						}
+						// if we've found a display object with a focus owner,
+						// then we've gone far enough up the display list
+						break;
+					} else if (focusResult.isFocusEnabled) {
+						// if focus in enabled, then we've gone far enough up
+						// the display list
+						break;
+					}
+				}
+				result = result.parent;
+			}
+		}
+		this.focus = focusTarget;
+	}
+
+	/**
+	 * @private
+	 */
+	private function nativeFocus_focusOutHandler(event:FocusEvent):Void {
+		var nativeFocus:Dynamic = event.currentTarget;
+		var nativeStage:Stage = this._starling.nativeStage;
+		if (nativeStage.focus != null && nativeStage.focus != nativeFocus) {
+			// we should stop listening for this event because something else
+			// has focus now
+			if (nativeFocus is IEventDispatcher) {
+				cast(nativeFocus, IEventDispatcher).removeEventListener(FocusEvent.FOCUS_OUT, nativeFocus_focusOutHandler);
+			}
+		} else if (this._focus != null) {
+			if (Std.isOfType(this._focus, INativeFocusOwner) && cast(this._focus, INativeFocusOwner).nativeFocus != nativeFocus) {
+				return;
+			}
+			// if there's still a feathers focus, but the native stage object has
+			// lost focus for some reason, and there's no focus at all, force it
+			// back into focus.
+			// this can happen on app deactivate!
+			if (Std.isOfType(nativeFocus, InteractiveObject)) {
+				nativeStage.focus = cast(nativeFocus, InteractiveObject);
+			} else // nativeFocus is IAdvancedNativeFocusOwner
+			{
+				// let the focused component handle giving focus to its
+				// nativeFocus because it may have a custom API
+				cast(this._focus, IAdvancedNativeFocusOwner).setFocus();
+			}
 		}
 	}
 }

@@ -1,15 +1,18 @@
 /*
-Feathers
-Copyright 2012-2015 Bowler Hat LLC. All Rights Reserved.
+	Feathers
+	Copyright 2012-2015 Bowler Hat LLC. All Rights Reserved.
 
-This program is free software. You can redistribute and/or modify it in
-accordance with the terms of the accompanying license agreement.
-*/
+	This program is free software. You can redistribute and/or modify it in
+	accordance with the terms of the accompanying license agreement.
+ */
+
 package feathers.core;
+
 import haxe.Constraints.Function;
 import starling.events.Event;
+
 interface IFeathersEventDispatcher {
-    /**
+	/**
 	 * Adds a listener for an event type.
 	 *
 	 * @see http://doc.starling-framework.org/core/starling/events/EventDispatcher.html#addEventListener() Full description of starling.events.EventDispatcher.addEventListener() in Gamua's Starling Framework API Reference

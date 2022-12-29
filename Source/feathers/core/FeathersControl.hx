@@ -1362,6 +1362,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 *
 	 * @default 0
 	 */
+	public var minWidth(get, set):Float;
+
 	public function get_minWidth():Float {
 		return this.scaledActualMinWidth;
 	}
