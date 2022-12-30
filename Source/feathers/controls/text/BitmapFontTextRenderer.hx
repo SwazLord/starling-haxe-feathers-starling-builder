@@ -689,7 +689,7 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 		if (this._textFormatForState == null) {
 			return null;
 		}
-		return cast this._textFormatForState.get(state);
+		return cast(this._textFormatForState.get(state), BitmapFontTextFormat);
 	}
 
 	/**

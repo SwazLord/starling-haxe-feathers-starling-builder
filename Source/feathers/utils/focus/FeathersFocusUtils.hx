@@ -33,10 +33,10 @@ class FeathersFocusUtils {
 		var secondaryDistance2:Float;
 		var onSameAxis2:Bool;
 		if (object2 == null) {
-			var minPrimaryDistance2:Float = Math.POSITIVE_INFINITY;
-			var maxPrimaryDistance2:Float = Math.POSITIVE_INFINITY;
-			var secondaryDistance2:Float = Math.POSITIVE_INFINITY;
-			var onSameAxis2:Bool = false;
+			minPrimaryDistance2 = Math.POSITIVE_INFINITY;
+			maxPrimaryDistance2 = Math.POSITIVE_INFINITY;
+			secondaryDistance2 = Math.POSITIVE_INFINITY;
+			onSameAxis2 = false;
 		} else {
 			object2.getBounds(object2.stage, rect);
 			minPrimaryDistance2 = calculateMinPrimaryAxisDistanceForRelativePosition(focusedRect, rect, relativePosition);

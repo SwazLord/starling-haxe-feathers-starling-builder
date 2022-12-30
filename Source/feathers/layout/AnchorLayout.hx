@@ -458,8 +458,8 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 */
 	private function getLeftOffset(item:DisplayObject):Float {
 		if (item is ILayoutDisplayObject) {
-			var layoutItem:ILayoutDisplayObject = cast item;
-			var layoutData:AnchorLayoutData = cast layoutItem.layoutData;
+			var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
+			var layoutData:AnchorLayoutData = cast(layoutItem.layoutData, AnchorLayoutData);
 			if (layoutData != null) {
 				var left:Float = layoutData.left;
 				var hasLeftPosition:Bool = left == left; // !isNaN

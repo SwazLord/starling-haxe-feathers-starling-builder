@@ -9,7 +9,6 @@
 	<haxelib name="openfl" />
 	<haxelib name="starling" />
 	<haxelib name="format" />
-	
-	<assets path="Assets" rename="assets" />
+	<assets path="Assets" rename="assets"/>
 	
 </project>

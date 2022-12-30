@@ -9,7 +9,7 @@
 package feathers.controls;
 
 import starling.display.Quad;
-import feathers.utils.skins.FeathersSkinsUtils;
+import feathers.utils.skins.SkinsUtils;
 import feathers.core.IValidating;
 import feathers.core.IMeasureDisplayObject;
 import starling.rendering.Painter;
@@ -756,10 +756,9 @@ class LayoutGroup extends FeathersControl {
 		var needsMinWidth:Bool = this._explicitMinWidth != this._explicitMinWidth; // isNaN
 		var needsMinHeight:Bool = this._explicitMinHeight != this._explicitMinHeight; // isNaN
 
-		FeathersSkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentBackgroundSkin, this._explicitWidth, this._explicitHeight,
-			this._explicitMinWidth, this._explicitMinHeight, this._explicitMaxWidth, this._explicitMaxHeight, this._explicitBackgroundWidth,
-			this._explicitBackgroundHeight, this._explicitBackgroundMinWidth, this._explicitBackgroundMinHeight, this._explicitBackgroundMaxWidth,
-			this._explicitBackgroundMaxHeight);
+		SkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentBackgroundSkin, this._explicitWidth, this._explicitHeight, this._explicitMinWidth,
+			this._explicitMinHeight, this._explicitMaxWidth, this._explicitMaxHeight, this._explicitBackgroundWidth, this._explicitBackgroundHeight,
+			this._explicitBackgroundMinWidth, this._explicitBackgroundMinHeight, this._explicitBackgroundMaxWidth, this._explicitBackgroundMaxHeight);
 
 		this.viewPortBounds.x = 0;
 		this.viewPortBounds.y = 0;
@@ -907,7 +906,7 @@ class LayoutGroup extends FeathersControl {
 			return;
 		}
 
-		var mask:Quad = cast this.mask;
+		var mask:Quad = cast(this.mask, Quad);
 		if (mask != null) {
 			mask.x = 0;
 			mask.y = 0;

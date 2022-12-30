@@ -7,6 +7,9 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
+var ASCompat = function() { };
+$hxClasses["ASCompat"] = ASCompat;
+ASCompat.__name__ = "ASCompat";
 var lime_app_IModule = function() { };
 $hxClasses["lime.app.IModule"] = lime_app_IModule;
 lime_app_IModule.__name__ = "lime.app.IModule";
@@ -915,7 +918,7 @@ ApplicationMain.main = function() {
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
-	app.meta.h["build"] = "6";
+	app.meta.h["build"] = "7";
 	app.meta.h["company"] = "Company Name";
 	app.meta.h["file"] = "StarlingProject";
 	app.meta.h["name"] = "StarlingProject";
@@ -9343,7 +9346,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 		var needsHeight = this._explicitHeight != this._explicitHeight;
 		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
 		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
-		feathers_utils_skins_FeathersSkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentBackgroundSkin,this._explicitWidth,this._explicitHeight,this._explicitMinWidth,this._explicitMinHeight,this._explicitMaxWidth,this._explicitMaxHeight,this._explicitBackgroundWidth,this._explicitBackgroundHeight,this._explicitBackgroundMinWidth,this._explicitBackgroundMinHeight,this._explicitBackgroundMaxWidth,this._explicitBackgroundMaxHeight);
+		feathers_utils_skins_SkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentBackgroundSkin,this._explicitWidth,this._explicitHeight,this._explicitMinWidth,this._explicitMinHeight,this._explicitMaxWidth,this._explicitMaxHeight,this._explicitBackgroundWidth,this._explicitBackgroundHeight,this._explicitBackgroundMinWidth,this._explicitBackgroundMinHeight,this._explicitBackgroundMaxWidth,this._explicitBackgroundMaxHeight);
 		this.viewPortBounds.x = 0;
 		this.viewPortBounds.y = 0;
 		this.viewPortBounds.scrollX = 0;
@@ -9467,7 +9470,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 		if(this.get_clipContent()) {
 			return;
 		}
-		var mask = this.get_mask();
+		var mask = js_Boot.__cast(this.get_mask() , starling_display_Quad);
 		if(mask != null) {
 			mask.set_x(0);
 			mask.set_y(0);
@@ -9854,8 +9857,8 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 	}
 	,getLeftOffset: function(item) {
 		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-			var layoutItem = item;
-			var layoutData = layoutItem.get_layoutData();
+			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
 			if(layoutData != null) {
 				var left = layoutData.get_left();
 				var hasLeftPosition = left == left;
@@ -10351,6 +10354,1512 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 	,__class__: feathers_layout_AnchorLayout
 	,__properties__: {get_requiresLayoutOnScroll:"get_requiresLayoutOnScroll"}
 });
+var feathers_core_IStateContext = function() { };
+$hxClasses["feathers.core.IStateContext"] = feathers_core_IStateContext;
+feathers_core_IStateContext.__name__ = "feathers.core.IStateContext";
+feathers_core_IStateContext.__isInterface__ = true;
+feathers_core_IStateContext.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
+feathers_core_IStateContext.prototype = {
+	get_currentState: null
+	,__class__: feathers_core_IStateContext
+	,__properties__: {get_currentState:"get_currentState"}
+};
+var feathers_controls_BasicButton = function() {
+	this._stateToSkin = new haxe_ds_StringMap();
+	this._keepDownStateOnRollOut = false;
+	this._currentState = "up";
+	feathers_core_FeathersControl.call(this);
+	this.set_isQuickHitAreaEnabled(true);
+};
+$hxClasses["feathers.controls.BasicButton"] = feathers_controls_BasicButton;
+feathers_controls_BasicButton.__name__ = "feathers.controls.BasicButton";
+feathers_controls_BasicButton.__interfaces__ = [feathers_core_IStateContext];
+feathers_controls_BasicButton.globalStyleProvider = null;
+feathers_controls_BasicButton.__super__ = feathers_core_FeathersControl;
+feathers_controls_BasicButton.prototype = $extend(feathers_core_FeathersControl.prototype,{
+	get_defaultStyleProvider: function() {
+		return feathers_controls_BasicButton.globalStyleProvider;
+	}
+	,touchToState: null
+	,tapToTrigger: null
+	,_currentState: null
+	,get_currentState: function() {
+		return this._currentState;
+	}
+	,currentSkin: null
+	,set_isEnabled: function(value) {
+		if(this._isEnabled == value) {
+			return value;
+		}
+		feathers_core_FeathersControl.prototype.set_isEnabled.call(this,value);
+		if(this._isEnabled) {
+			if(this._currentState == "disabled") {
+				this.changeState("up");
+			}
+		} else {
+			this.changeState("disabled");
+		}
+		return value;
+	}
+	,_keepDownStateOnRollOut: null
+	,get_keepDownStateOnRollOut: function() {
+		return this._keepDownStateOnRollOut;
+	}
+	,set_keepDownStateOnRollOut: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_keepDownStateOnRollOut))) {
+			return value;
+		}
+		if(this.touchToState != null) {
+			this.touchToState.set_keepDownStateOnRollOut(value);
+		}
+		return this._keepDownStateOnRollOut = value;
+	}
+	,_defaultSkin: null
+	,get_defaultSkin: function() {
+		return this._defaultSkin;
+	}
+	,set_defaultSkin: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_defaultSkin))) {
+			if(value != null) {
+				value.dispose();
+			}
+			return this._defaultSkin;
+		}
+		if(this._defaultSkin == value) {
+			return this._defaultSkin;
+		}
+		if(this._defaultSkin != null && this.currentSkin == this._defaultSkin) {
+			this.removeCurrentSkin(this._defaultSkin);
+			this.currentSkin = null;
+		}
+		this._defaultSkin = value;
+		this.invalidate("styles");
+		return this._defaultSkin;
+	}
+	,get_upSkin: function() {
+		return this.getSkinForState("up");
+	}
+	,set_upSkin: function(value) {
+		this.setSkinForState("up",value);
+		return value;
+	}
+	,get_downSkin: function() {
+		return this.getSkinForState("down");
+	}
+	,set_downSkin: function(value) {
+		this.setSkinForState("down",value);
+		return value;
+	}
+	,get_hoverSkin: function() {
+		return this.getSkinForState("hover");
+	}
+	,set_hoverSkin: function(value) {
+		this.setSkinForState("hover",value);
+		return value;
+	}
+	,get_disabledSkin: function() {
+		return this.getSkinForState("disabled");
+	}
+	,set_disabledSkin: function(value) {
+		this.setSkinForState("disabled",value);
+		return value;
+	}
+	,_stateToSkin: null
+	,_explicitSkinWidth: null
+	,_explicitSkinHeight: null
+	,_explicitSkinMinWidth: null
+	,_explicitSkinMinHeight: null
+	,_explicitSkinMaxWidth: null
+	,_explicitSkinMaxHeight: null
+	,getSkinForState: function(state) {
+		return this._stateToSkin.h[state];
+	}
+	,setSkinForState: function(state,skin) {
+		var key = "setSkinForState--" + state;
+		if(this.processStyleRestriction(key)) {
+			if(skin != null) {
+				skin.dispose();
+			}
+			return;
+		}
+		var oldSkin = this._stateToSkin.h[state];
+		if(oldSkin != null && this.currentSkin == oldSkin) {
+			this.removeCurrentSkin(oldSkin);
+			this.currentSkin = null;
+		}
+		if(skin != null) {
+			this._stateToSkin.h[state] = skin;
+		} else {
+			var _this = this._stateToSkin;
+			if(Object.prototype.hasOwnProperty.call(_this.h,state)) {
+				delete(_this.h[state]);
+			}
+		}
+		this.invalidate("styles");
+	}
+	,dispose: function() {
+		if(this._defaultSkin != null && this._defaultSkin.get_parent() != this) {
+			this._defaultSkin.dispose();
+		}
+		var h = this._stateToSkin.h;
+		var skin_h = h;
+		var skin_keys = Object.keys(h);
+		var skin_length = skin_keys.length;
+		var skin_current = 0;
+		while(skin_current < skin_length) {
+			var skin = skin_h[skin_keys[skin_current++]];
+			if(skin != null && skin.get_parent() != this) {
+				skin.dispose();
+			}
+		}
+		this._stateToSkin.h = Object.create(null);
+		if(this.touchToState != null) {
+			this.touchToState.set_target(null);
+		}
+		if(this.tapToTrigger != null) {
+			this.tapToTrigger.set_target(null);
+		}
+		feathers_core_FeathersControl.prototype.dispose.call(this);
+	}
+	,initialize: function() {
+		feathers_core_FeathersControl.prototype.initialize.call(this);
+		if(this.touchToState == null) {
+			this.touchToState = new feathers_utils_touch_TouchToState(this,$bind(this,this.changeState));
+		}
+		this.touchToState.set_keepDownStateOnRollOut(this._keepDownStateOnRollOut);
+		if(this.tapToTrigger == null) {
+			this.tapToTrigger = new feathers_utils_touch_TapToTrigger(this);
+		}
+	}
+	,draw: function() {
+		var stylesInvalid = this.isInvalid("styles");
+		var stateInvalid = this.isInvalid("state");
+		var sizeInvalid = this.isInvalid("size");
+		if(stylesInvalid || stateInvalid) {
+			this.refreshTriggeredEvents();
+			this.refreshSkin();
+		}
+		this.autoSizeIfNeeded();
+		this.scaleSkin();
+	}
+	,autoSizeIfNeeded: function() {
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
+		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
+		if(!needsWidth && !needsHeight && !needsMinWidth && !needsMinHeight) {
+			return false;
+		}
+		feathers_utils_skins_SkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentSkin,this._explicitWidth,this._explicitHeight,this._explicitMinWidth,this._explicitMinHeight,this._explicitMaxWidth,this._explicitMaxHeight,this._explicitSkinWidth,this._explicitSkinHeight,this._explicitSkinMinWidth,this._explicitSkinMinHeight,this._explicitSkinMaxWidth,this._explicitSkinMaxHeight);
+		var measureSkin = this.currentSkin;
+		if(js_Boot.__implements(this.currentSkin,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.currentSkin , feathers_core_IValidating)).validate();
+		}
+		var newMinWidth = this._explicitMinWidth;
+		if(needsMinWidth) {
+			if(measureSkin != null) {
+				newMinWidth = measureSkin.get_minWidth();
+			} else if(this.currentSkin != null) {
+				newMinWidth = this._explicitSkinMinWidth;
+			} else {
+				newMinWidth = 0;
+			}
+		}
+		var newMinHeight = this._explicitMinHeight;
+		if(needsMinHeight) {
+			if(measureSkin != null) {
+				newMinHeight = measureSkin.get_minHeight();
+			} else if(this.currentSkin != null) {
+				newMinHeight = this._explicitSkinMinHeight;
+			} else {
+				newMinHeight = 0;
+			}
+		}
+		var newWidth = this._explicitWidth;
+		if(needsWidth) {
+			if(this.currentSkin != null) {
+				newWidth = this.currentSkin.get_width();
+			} else {
+				newWidth = 0;
+			}
+		}
+		var newHeight = this._explicitHeight;
+		if(needsHeight) {
+			if(this.currentSkin != null) {
+				newHeight = this.currentSkin.get_height();
+			} else {
+				newHeight = 0;
+			}
+		}
+		return this.saveMeasurements(newWidth,newHeight,newMinWidth,newMinHeight);
+	}
+	,refreshSkin: function() {
+		var oldSkin = this.currentSkin;
+		this.currentSkin = this.getCurrentSkin();
+		if(this.currentSkin != oldSkin) {
+			this.removeCurrentSkin(oldSkin);
+			if(this.currentSkin != null) {
+				if(js_Boot.__implements(this.currentSkin,feathers_core_IFeathersControl)) {
+					(js_Boot.__cast(this.currentSkin , feathers_core_IFeathersControl)).initializeNow();
+				}
+				if(js_Boot.__implements(this.currentSkin,feathers_core_IMeasureDisplayObject)) {
+					var measureSkin = this.currentSkin;
+					this._explicitSkinWidth = measureSkin.get_explicitWidth();
+					this._explicitSkinHeight = measureSkin.get_explicitHeight();
+					this._explicitSkinMinWidth = measureSkin.get_explicitMinWidth();
+					this._explicitSkinMinHeight = measureSkin.get_explicitMinHeight();
+					this._explicitSkinMaxWidth = measureSkin.get_explicitMaxWidth();
+					this._explicitSkinMaxHeight = measureSkin.get_explicitMaxHeight();
+				} else {
+					this._explicitSkinWidth = this.currentSkin.get_width();
+					this._explicitSkinHeight = this.currentSkin.get_height();
+					this._explicitSkinMinWidth = this._explicitSkinWidth;
+					this._explicitSkinMinHeight = this._explicitSkinHeight;
+					this._explicitSkinMaxWidth = this._explicitSkinWidth;
+					this._explicitSkinMaxHeight = this._explicitSkinHeight;
+				}
+				if(js_Boot.__implements(this.currentSkin,feathers_core_IStateObserver)) {
+					(js_Boot.__cast(this.currentSkin , feathers_core_IStateObserver)).set_stateContext(this);
+				}
+				this.addChildAt(this.currentSkin,0);
+			}
+		}
+	}
+	,getCurrentSkin: function() {
+		var result = this._stateToSkin.h[this._currentState];
+		if(result != null) {
+			return result;
+		}
+		return this._defaultSkin;
+	}
+	,scaleSkin: function() {
+		if(this.currentSkin == null) {
+			return;
+		}
+		this.currentSkin.set_x(0);
+		this.currentSkin.set_y(0);
+		if(this.currentSkin.get_width() != this.actualWidth) {
+			this.currentSkin.set_width(this.actualWidth);
+		}
+		if(this.currentSkin.get_height() != this.actualHeight) {
+			this.currentSkin.set_height(this.actualHeight);
+		}
+		if(js_Boot.__implements(this.currentSkin,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.currentSkin , feathers_core_IValidating)).validate();
+		}
+	}
+	,removeCurrentSkin: function(skin) {
+		if(skin == null) {
+			return;
+		}
+		if(js_Boot.__implements(skin,feathers_core_IStateObserver)) {
+			(js_Boot.__cast(skin , feathers_core_IStateObserver)).set_stateContext(null);
+		}
+		if(skin.get_parent() == this) {
+			skin.set_width(this._explicitSkinWidth);
+			skin.set_height(this._explicitSkinHeight);
+			if(js_Boot.__implements(skin,feathers_core_IMeasureDisplayObject)) {
+				var measureSkin = skin;
+				measureSkin.set_minWidth(this._explicitSkinMinWidth);
+				measureSkin.set_minHeight(this._explicitSkinMinHeight);
+				measureSkin.set_maxWidth(this._explicitSkinMaxWidth);
+				measureSkin.set_maxHeight(this._explicitSkinMaxHeight);
+			}
+			this.removeChild(skin,false);
+		}
+	}
+	,refreshTriggeredEvents: function() {
+		this.tapToTrigger.set_isEnabled(this._isEnabled);
+	}
+	,changeState: function(state) {
+		if(!this._isEnabled) {
+			state = "disabled";
+		}
+		if(this._currentState == state) {
+			return;
+		}
+		this._currentState = state;
+		this.invalidate("state");
+		this.dispatchEventWith("stateChange");
+	}
+	,__class__: feathers_controls_BasicButton
+	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{set_disabledSkin:"set_disabledSkin",get_disabledSkin:"get_disabledSkin",set_hoverSkin:"set_hoverSkin",get_hoverSkin:"get_hoverSkin",set_downSkin:"set_downSkin",get_downSkin:"get_downSkin",set_upSkin:"set_upSkin",get_upSkin:"get_upSkin",set_defaultSkin:"set_defaultSkin",get_defaultSkin:"get_defaultSkin",set_keepDownStateOnRollOut:"set_keepDownStateOnRollOut",get_keepDownStateOnRollOut:"get_keepDownStateOnRollOut",get_currentState:"get_currentState"})
+});
+var feathers_core_ITextBaselineControl = function() { };
+$hxClasses["feathers.core.ITextBaselineControl"] = feathers_core_ITextBaselineControl;
+feathers_core_ITextBaselineControl.__name__ = "feathers.core.ITextBaselineControl";
+feathers_core_ITextBaselineControl.__isInterface__ = true;
+feathers_core_ITextBaselineControl.__interfaces__ = [feathers_core_IFeathersControl];
+feathers_core_ITextBaselineControl.prototype = {
+	get_baseline: null
+	,__class__: feathers_core_ITextBaselineControl
+	,__properties__: {get_baseline:"get_baseline"}
+};
+var feathers_core_IFocusDisplayObject = function() { };
+$hxClasses["feathers.core.IFocusDisplayObject"] = feathers_core_IFocusDisplayObject;
+feathers_core_IFocusDisplayObject.__name__ = "feathers.core.IFocusDisplayObject";
+feathers_core_IFocusDisplayObject.__isInterface__ = true;
+feathers_core_IFocusDisplayObject.__interfaces__ = [feathers_core_IFeathersDisplayObject];
+feathers_core_IFocusDisplayObject.prototype = {
+	get_focusManager: null
+	,set_focusManager: null
+	,get_isFocusEnabled: null
+	,set_isFocusEnabled: null
+	,get_nextTabFocus: null
+	,set_nextTabFocus: null
+	,get_previousTabFocus: null
+	,set_previousTabFocus: null
+	,get_nextUpFocus: null
+	,set_nextUpFocus: null
+	,get_nextRightFocus: null
+	,set_nextRightFocus: null
+	,get_nextDownFocus: null
+	,set_nextDownFocus: null
+	,get_nextLeftFocus: null
+	,set_nextLeftFocus: null
+	,get_focusOwner: null
+	,set_focusOwner: null
+	,get_isShowingFocus: null
+	,get_maintainTouchFocus: null
+	,showFocus: null
+	,hideFocus: null
+	,__class__: feathers_core_IFocusDisplayObject
+	,__properties__: {get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus",set_focusOwner:"set_focusOwner",get_focusOwner:"get_focusOwner",set_nextLeftFocus:"set_nextLeftFocus",get_nextLeftFocus:"get_nextLeftFocus",set_nextDownFocus:"set_nextDownFocus",get_nextDownFocus:"get_nextDownFocus",set_nextRightFocus:"set_nextRightFocus",get_nextRightFocus:"get_nextRightFocus",set_nextUpFocus:"set_nextUpFocus",get_nextUpFocus:"get_nextUpFocus",set_previousTabFocus:"set_previousTabFocus",get_previousTabFocus:"get_previousTabFocus",set_nextTabFocus:"set_nextTabFocus",get_nextTabFocus:"get_nextTabFocus",set_isFocusEnabled:"set_isFocusEnabled",get_isFocusEnabled:"get_isFocusEnabled",set_focusManager:"set_focusManager",get_focusManager:"get_focusManager"}
+};
+var feathers_controls_Button = function() {
+	this._ignoreIconResizes = false;
+	this._stateToScale = new haxe_ds_StringMap();
+	this._isLongPressEnabled = false;
+	this._longPressDuration = 0.5;
+	this._stateToIcon = new haxe_ds_StringMap();
+	this._wordWrap = false;
+	this._iconOffsetY = 0;
+	this._iconOffsetX = 0;
+	this._labelOffsetY = 0;
+	this._labelOffsetX = 0;
+	this._paddingLeft = 0;
+	this._paddingBottom = 0;
+	this._paddingRight = 0;
+	this._paddingTop = 0;
+	this._verticalAlign = "middle";
+	this._horizontalAlign = "center";
+	this._minGap = 0;
+	this._gap = 0;
+	this._iconPosition = "left";
+	this._hasLabelTextRenderer = true;
+	this._label = null;
+	this.labelStyleName = "feathers-button-label";
+	feathers_controls_BasicButton.call(this);
+	if(this._fontStylesSet == null) {
+		this._fontStylesSet = new feathers_text_FontStylesSet();
+		this._fontStylesSet.addEventListener("change",$bind(this,this.fontStyles_changeHandler));
+	}
+};
+$hxClasses["feathers.controls.Button"] = feathers_controls_Button;
+feathers_controls_Button.__name__ = "feathers.controls.Button";
+feathers_controls_Button.__interfaces__ = [feathers_core_ITextBaselineControl,feathers_core_IFocusDisplayObject];
+feathers_controls_Button.globalStyleProvider = null;
+feathers_controls_Button.__super__ = feathers_controls_BasicButton;
+feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.prototype,{
+	labelStyleName: null
+	,labelTextRenderer: null
+	,_explicitLabelWidth: null
+	,_explicitLabelHeight: null
+	,_explicitLabelMinWidth: null
+	,_explicitLabelMinHeight: null
+	,_explicitLabelMaxWidth: null
+	,_explicitLabelMaxHeight: null
+	,currentIcon: null
+	,get_defaultStyleProvider: function() {
+		return feathers_controls_Button.globalStyleProvider;
+	}
+	,keyToTrigger: null
+	,keyToState: null
+	,longPress: null
+	,dpadEnterKeyToTrigger: null
+	,dpadEnterKeyToState: null
+	,_label: null
+	,get_label: function() {
+		return this._label;
+	}
+	,set_label: function(value) {
+		if(this._label == value) {
+			return this._label;
+		}
+		this._label = value;
+		this.invalidate("data");
+		return this._label;
+	}
+	,_hasLabelTextRenderer: null
+	,get_hasLabelTextRenderer: function() {
+		return this._hasLabelTextRenderer;
+	}
+	,set_hasLabelTextRenderer: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_hasLabelTextRenderer))) {
+			return value;
+		}
+		if(this._hasLabelTextRenderer == value) {
+			return value;
+		}
+		this._hasLabelTextRenderer = value;
+		this.invalidate("textRenderer");
+		return this._hasLabelTextRenderer;
+	}
+	,_iconPosition: null
+	,get_iconPosition: function() {
+		return this._iconPosition;
+	}
+	,set_iconPosition: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_iconPosition))) {
+			return this._iconPosition;
+		}
+		if(this._iconPosition == value) {
+			return this._iconPosition;
+		}
+		this._iconPosition = value;
+		this.invalidate("styles");
+		return this._iconPosition;
+	}
+	,_gap: null
+	,get_gap: function() {
+		return this._gap;
+	}
+	,set_gap: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_gap))) {
+			return value;
+		}
+		if(this._gap == value) {
+			return value;
+		}
+		this._gap = value;
+		this.invalidate("styles");
+		return this._gap;
+	}
+	,_minGap: null
+	,get_minGap: function() {
+		return this._minGap;
+	}
+	,set_minGap: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_minGap))) {
+			return value;
+		}
+		if(this._minGap == value) {
+			return value;
+		}
+		this._minGap = value;
+		this.invalidate("styles");
+		return this._minGap;
+	}
+	,_horizontalAlign: null
+	,get_horizontalAlign: function() {
+		return this._horizontalAlign;
+	}
+	,set_horizontalAlign: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_horizontalAlign))) {
+			return value;
+		}
+		if(this._horizontalAlign == value) {
+			return value;
+		}
+		this._horizontalAlign = value;
+		this.invalidate("styles");
+		return this._horizontalAlign;
+	}
+	,_verticalAlign: null
+	,get_verticalAlign: function() {
+		return this._verticalAlign;
+	}
+	,set_verticalAlign: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_verticalAlign))) {
+			return value;
+		}
+		if(this._verticalAlign == value) {
+			return value;
+		}
+		this._verticalAlign = value;
+		this.invalidate("styles");
+		return this._verticalAlign;
+	}
+	,get_padding: function() {
+		return this._paddingTop;
+	}
+	,set_padding: function(value) {
+		this.set_paddingTop(value);
+		this.set_paddingRight(value);
+		this.set_paddingBottom(value);
+		return this.set_paddingLeft(value);
+	}
+	,_paddingTop: null
+	,get_paddingTop: function() {
+		return this._paddingTop;
+	}
+	,set_paddingTop: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingTop))) {
+			return value;
+		}
+		if(this._paddingTop == value) {
+			return value;
+		}
+		this._paddingTop = value;
+		this.invalidate("styles");
+		return this._paddingTop;
+	}
+	,_paddingRight: null
+	,get_paddingRight: function() {
+		return this._paddingRight;
+	}
+	,set_paddingRight: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingRight))) {
+			return value;
+		}
+		if(this._paddingRight == value) {
+			return value;
+		}
+		this._paddingRight = value;
+		this.invalidate("styles");
+		return this._paddingRight;
+	}
+	,_paddingBottom: null
+	,get_paddingBottom: function() {
+		return this._paddingBottom;
+	}
+	,set_paddingBottom: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingBottom))) {
+			return value;
+		}
+		if(this._paddingBottom == value) {
+			return value;
+		}
+		this._paddingBottom = value;
+		this.invalidate("styles");
+		return this._paddingBottom;
+	}
+	,_paddingLeft: null
+	,get_paddingLeft: function() {
+		return this._paddingLeft;
+	}
+	,set_paddingLeft: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingLeft))) {
+			return value;
+		}
+		if(this._paddingLeft == value) {
+			return value;
+		}
+		this._paddingLeft = value;
+		this.invalidate("styles");
+		return this._paddingLeft;
+	}
+	,_labelOffsetX: null
+	,get_labelOffsetX: function() {
+		return this._labelOffsetX;
+	}
+	,set_labelOffsetX: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_labelOffsetX))) {
+			return value;
+		}
+		if(this._labelOffsetX == value) {
+			return value;
+		}
+		this._labelOffsetX = value;
+		this.invalidate("styles");
+		return this._labelOffsetX;
+	}
+	,_labelOffsetY: null
+	,get_labelOffsetY: function() {
+		return this._labelOffsetY;
+	}
+	,set_labelOffsetY: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_labelOffsetY))) {
+			return value;
+		}
+		if(this._labelOffsetY == value) {
+			return value;
+		}
+		this._labelOffsetY = value;
+		this.invalidate("styles");
+		return this._labelOffsetY;
+	}
+	,_iconOffsetX: null
+	,get_iconOffsetX: function() {
+		return this._iconOffsetX;
+	}
+	,set_iconOffsetX: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_iconOffsetX))) {
+			return value;
+		}
+		if(this._iconOffsetX == value) {
+			return value;
+		}
+		this._iconOffsetX = value;
+		this.invalidate("styles");
+		return this._iconOffsetX;
+	}
+	,_iconOffsetY: null
+	,get_iconOffsetY: function() {
+		return this._iconOffsetY;
+	}
+	,set_iconOffsetY: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_iconOffsetY))) {
+			return value;
+		}
+		if(this._iconOffsetY == value) {
+			return value;
+		}
+		this._iconOffsetY = value;
+		this.invalidate("styles");
+		return this._iconOffsetY;
+	}
+	,_fontStylesSet: null
+	,get_fontStyles: function() {
+		return this._fontStylesSet.get_format();
+	}
+	,set_fontStyles: function(value) {
+		var _gthis = this;
+		if(this.processStyleRestriction($bind(this,this.set_fontStyles))) {
+			return value;
+		}
+		var savedCallee = $bind(this,this.set_fontStyles);
+		var changeHandler = function(event) {
+			_gthis.processStyleRestriction(savedCallee);
+		};
+		if(value != null) {
+			value.removeEventListener("change",changeHandler);
+		}
+		this._fontStylesSet.set_format(value);
+		if(value != null) {
+			value.addEventListener("change",changeHandler);
+		}
+		return value;
+	}
+	,get_disabledFontStyles: function() {
+		return this._fontStylesSet.get_disabledFormat();
+	}
+	,set_disabledFontStyles: function(value) {
+		var _gthis = this;
+		if(this.processStyleRestriction($bind(this,this.set_disabledFontStyles))) {
+			return value;
+		}
+		var savedCallee = $bind(this,this.set_disabledFontStyles);
+		var changeHandler = function(event) {
+			_gthis.processStyleRestriction(savedCallee);
+		};
+		if(value != null) {
+			value.removeEventListener("change",changeHandler);
+		}
+		this._fontStylesSet.set_disabledFormat(value);
+		if(value != null) {
+			value.addEventListener("change",changeHandler);
+		}
+		return value;
+	}
+	,_wordWrap: null
+	,get_wordWrap: function() {
+		return this._wordWrap;
+	}
+	,set_wordWrap: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_wordWrap))) {
+			return value;
+		}
+		this._wordWrap = value;
+		this.invalidate("styles");
+		return this._wordWrap;
+	}
+	,_labelFactory: null
+	,get_labelFactory: function() {
+		return this._labelFactory;
+	}
+	,set_labelFactory: function(value) {
+		if(this._labelFactory == value) {
+			return value;
+		}
+		this._labelFactory = value;
+		this.invalidate("textRenderer");
+		return this._labelFactory;
+	}
+	,_customLabelStyleName: null
+	,get_customLabelStyleName: function() {
+		return this._customLabelStyleName;
+	}
+	,set_customLabelStyleName: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_customLabelStyleName))) {
+			return value;
+		}
+		if(this._customLabelStyleName == value) {
+			return value;
+		}
+		this._customLabelStyleName = value;
+		this.invalidate("textRenderer");
+		return this._customLabelStyleName;
+	}
+	,_defaultLabelProperties: null
+	,get_defaultLabelProperties: function() {
+		if(this._defaultLabelProperties == null) {
+			this._defaultLabelProperties = new feathers_core_PropertyProxy($bind(this,this.childProperties_onChange));
+		}
+		return this._defaultLabelProperties;
+	}
+	,set_defaultLabelProperties: function(value) {
+		if(!((value) instanceof feathers_core_PropertyProxy)) {
+			value = feathers_core_PropertyProxy.fromObject(value);
+		}
+		if(this._defaultLabelProperties == null) {
+			this._defaultLabelProperties.removeOnChangeCallback($bind(this,this.childProperties_onChange));
+		}
+		this._defaultLabelProperties = value;
+		if(this._defaultLabelProperties != null) {
+			this._defaultLabelProperties.addOnChangeCallback($bind(this,this.childProperties_onChange));
+		}
+		this.invalidate("styles");
+		return this._defaultLabelProperties;
+	}
+	,_defaultIcon: null
+	,get_defaultIcon: function() {
+		return this._defaultIcon;
+	}
+	,set_defaultIcon: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_defaultIcon))) {
+			if(value != null) {
+				value.dispose();
+			}
+			return this._defaultIcon;
+		}
+		if(this._defaultIcon == value) {
+			return this._defaultIcon;
+		}
+		if(this._defaultIcon != null && this.currentIcon == this._defaultIcon) {
+			this.removeCurrentIcon(this._defaultIcon);
+			this.currentIcon = null;
+		}
+		this._defaultIcon = value;
+		this.invalidate("styles");
+		return this._defaultIcon;
+	}
+	,_stateToIcon: null
+	,get_upIcon: function() {
+		return this.getIconForState("up");
+	}
+	,set_upIcon: function(value) {
+		this.setIconForState("up",value);
+		return value;
+	}
+	,get_downIcon: function() {
+		return this.getIconForState("down");
+	}
+	,set_downIcon: function(value) {
+		this.setIconForState("down",value);
+		return value;
+	}
+	,get_hoverIcon: function() {
+		return this.getIconForState("hover");
+	}
+	,set_hoverIcon: function(value) {
+		this.setIconForState("hover",value);
+		return value;
+	}
+	,get_disabledIcon: function() {
+		return this.getIconForState("disabled");
+	}
+	,set_disabledIcon: function(value) {
+		this.setIconForState("disabled",value);
+		return value;
+	}
+	,_longPressDuration: null
+	,get_longPressDuration: function() {
+		return this._longPressDuration;
+	}
+	,set_longPressDuration: function(value) {
+		if(this._longPressDuration == value) {
+			return this._longPressDuration;
+		}
+		this._longPressDuration = value;
+		this.invalidate("styles");
+		return this._longPressDuration;
+	}
+	,_isLongPressEnabled: null
+	,get_isLongPressEnabled: function() {
+		return this._isLongPressEnabled;
+	}
+	,set_isLongPressEnabled: function(value) {
+		if(this._isLongPressEnabled == value) {
+			return this._isLongPressEnabled;
+		}
+		this._isLongPressEnabled = value;
+		this.invalidate("styles");
+		return this._isLongPressEnabled;
+	}
+	,_stateToScale: null
+	,get_scaleWhenDown: function() {
+		return this.getScaleForState("down");
+	}
+	,set_scaleWhenDown: function(value) {
+		this.setScaleForState("down",value);
+		return value;
+	}
+	,get_scaleWhenHovering: function() {
+		return this.getScaleForState("hover");
+	}
+	,set_scaleWhenHovering: function(value) {
+		this.setScaleForState("hover",value);
+		return value;
+	}
+	,get_baseline: function() {
+		if(this.labelTextRenderer == null) {
+			return this.scaledActualHeight;
+		}
+		return this.get_scaleY() * (this.labelTextRenderer.get_y() + this.labelTextRenderer.get_baseline());
+	}
+	,get_numLines: function() {
+		if(this.labelTextRenderer == null) {
+			return 0;
+		}
+		return this.labelTextRenderer.get_numLines();
+	}
+	,_ignoreIconResizes: null
+	,render: function(painter) {
+		var scale = this.getScaleForCurrentState();
+		if(scale != 1) {
+			var matrix = starling_utils_Pool.getMatrix();
+			matrix.scale(scale,scale);
+			matrix.translate(Math.round((1 - scale) / 2 * this.actualWidth),Math.round((1 - scale) / 2 * this.actualHeight));
+			painter.get_state().transformModelviewMatrix(matrix);
+			starling_utils_Pool.putMatrix(matrix);
+		}
+		feathers_controls_BasicButton.prototype.render.call(this,painter);
+	}
+	,dispose: function() {
+		if(this._defaultIcon != null && this._defaultIcon.get_parent() != this) {
+			this._defaultIcon.dispose();
+		}
+		var h = this._stateToIcon.h;
+		var icon_h = h;
+		var icon_keys = Object.keys(h);
+		var icon_length = icon_keys.length;
+		var icon_current = 0;
+		while(icon_current < icon_length) {
+			var icon = icon_h[icon_keys[icon_current++]];
+			if(icon != null && icon.get_parent() != this) {
+				icon.dispose();
+			}
+		}
+		this._stateToIcon.h = Object.create(null);
+		this._stateToScale.h = Object.create(null);
+		this._stateToSkin.h = Object.create(null);
+		if(this.keyToState != null) {
+			this.keyToState.set_target(null);
+		}
+		if(this.keyToTrigger != null) {
+			this.keyToTrigger.set_target(null);
+		}
+		if(this.dpadEnterKeyToState != null) {
+			this.dpadEnterKeyToState.set_target(null);
+		}
+		if(this.dpadEnterKeyToTrigger != null) {
+			this.dpadEnterKeyToTrigger.set_target(null);
+		}
+		if(this._fontStylesSet != null) {
+			this._fontStylesSet.dispose();
+			this._fontStylesSet = null;
+		}
+		if(this._defaultLabelProperties != null) {
+			this._defaultLabelProperties.dispose();
+		}
+		feathers_controls_BasicButton.prototype.dispose.call(this);
+	}
+	,getFontStylesForState: function(state) {
+		if(this._fontStylesSet == null) {
+			return null;
+		}
+		return this._fontStylesSet.getFormatForState(state);
+	}
+	,setFontStylesForState: function(state,format) {
+		var _gthis = this;
+		var key = "setFontStylesForState--" + state;
+		if(this.processStyleRestriction(key)) {
+			return;
+		}
+		var changeHandler = function(event) {
+			_gthis.processStyleRestriction(key);
+		};
+		if(format != null) {
+			format.removeEventListener("change",changeHandler);
+		}
+		this._fontStylesSet.setFormatForState(state,format);
+		if(format != null) {
+			format.addEventListener("change",changeHandler);
+		}
+	}
+	,getIconForState: function(state) {
+		return this._stateToIcon.h[state];
+	}
+	,setIconForState: function(state,icon) {
+		var key = "setIconForState--" + state;
+		if(this.processStyleRestriction(key)) {
+			if(icon != null) {
+				icon.dispose();
+			}
+			return;
+		}
+		var oldIcon = this._stateToIcon.h[state];
+		if(oldIcon != null && this.currentIcon == oldIcon) {
+			this.removeCurrentIcon(oldIcon);
+			this.currentIcon = null;
+		}
+		if(icon != null) {
+			this._stateToIcon.h[state] = icon;
+		} else {
+			var _this = this._stateToIcon;
+			if(Object.prototype.hasOwnProperty.call(_this.h,state)) {
+				delete(_this.h[state]);
+			}
+		}
+		this.invalidate("styles");
+	}
+	,getScaleForState: function(state) {
+		if(Object.prototype.hasOwnProperty.call(this._stateToScale.h,state)) {
+			return this._stateToScale.h[state];
+		}
+		return NaN;
+	}
+	,setScaleForState: function(state,scale) {
+		var key = "setScaleForState--" + state;
+		if(this.processStyleRestriction(key)) {
+			return;
+		}
+		if(scale == scale) {
+			this._stateToScale.h[state] = scale;
+		} else {
+			var _this = this._stateToScale;
+			if(Object.prototype.hasOwnProperty.call(_this.h,state)) {
+				delete(_this.h[state]);
+			}
+		}
+	}
+	,initialize: function() {
+		feathers_controls_BasicButton.prototype.initialize.call(this);
+		if(this.keyToState == null) {
+			this.keyToState = new feathers_utils_keyboard_KeyToState(this,$bind(this,this.changeState));
+		}
+		if(this.keyToTrigger == null) {
+			this.keyToTrigger = new feathers_utils_keyboard_KeyToTrigger(this);
+		}
+		if(this.longPress == null) {
+			this.longPress = new feathers_utils_touch_LongPress(this);
+		}
+		if(this.dpadEnterKeyToState == null) {
+			this.dpadEnterKeyToState = new feathers_utils_keyboard_KeyToState(this,$bind(this,this.changeState));
+			this.dpadEnterKeyToState.set_keyCode(13);
+			this.dpadEnterKeyToState.set_keyLocation(4);
+		}
+		if(this.dpadEnterKeyToTrigger == null) {
+			this.dpadEnterKeyToTrigger = new feathers_utils_keyboard_KeyToTrigger(this,13);
+			this.dpadEnterKeyToTrigger.set_keyLocation(4);
+		}
+		this.longPress.set_tapToTrigger(this.tapToTrigger);
+	}
+	,draw: function() {
+		var dataInvalid = this.isInvalid("data");
+		var stylesInvalid = this.isInvalid("styles");
+		var sizeInvalid = this.isInvalid("size");
+		var stateInvalid = this.isInvalid("state");
+		var textRendererInvalid = this.isInvalid("textRenderer");
+		var focusInvalid = this.isInvalid("focus");
+		if(textRendererInvalid) {
+			this.createLabel();
+		}
+		if(textRendererInvalid || stateInvalid || dataInvalid) {
+			this.refreshLabel();
+		}
+		if(stylesInvalid || stateInvalid) {
+			this.refreshLongPressEvents();
+			this.refreshIcon();
+		}
+		if(textRendererInvalid || stylesInvalid || stateInvalid) {
+			this.refreshLabelStyles();
+		}
+		feathers_controls_BasicButton.prototype.draw.call(this);
+		if(textRendererInvalid || stylesInvalid || stateInvalid || dataInvalid || sizeInvalid) {
+			this.layoutContent();
+		}
+		if(sizeInvalid || focusInvalid) {
+			this.refreshFocusIndicator();
+		}
+	}
+	,autoSizeIfNeeded: function() {
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
+		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
+		if(!needsWidth && !needsHeight && !needsMinWidth && !needsMinHeight) {
+			return false;
+		}
+		var labelRenderer = null;
+		if(this._label != null && this.labelTextRenderer != null) {
+			labelRenderer = this.labelTextRenderer;
+			this.refreshLabelTextRendererDimensions(true);
+			this.labelTextRenderer.measureText(feathers_controls_Button.HELPER_POINT);
+		}
+		var adjustedGap = this._gap;
+		if(adjustedGap == Infinity) {
+			adjustedGap = this._minGap;
+		}
+		feathers_utils_skins_SkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentSkin,this._explicitWidth,this._explicitHeight,this._explicitMinWidth,this._explicitMinHeight,this._explicitMaxWidth,this._explicitMaxHeight,this._explicitSkinWidth,this._explicitSkinHeight,this._explicitSkinMinWidth,this._explicitSkinMinHeight,this._explicitSkinMaxWidth,this._explicitSkinMaxHeight);
+		var measureSkin = this.currentSkin;
+		if(js_Boot.__implements(this.currentIcon,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.currentIcon , feathers_core_IValidating)).validate();
+		}
+		if(js_Boot.__implements(this.currentSkin,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.currentSkin , feathers_core_IValidating)).validate();
+		}
+		var newMinWidth = this._explicitMinWidth;
+		if(needsMinWidth) {
+			if(labelRenderer != null) {
+				newMinWidth = feathers_controls_Button.HELPER_POINT.x;
+			} else {
+				newMinWidth = 0;
+			}
+			if(this.currentIcon != null) {
+				if(labelRenderer != null) {
+					if(this._iconPosition != "top" && this._iconPosition != "bottom" && this._iconPosition != "manual") {
+						newMinWidth += adjustedGap;
+						if(js_Boot.__implements(this.currentIcon,feathers_core_IFeathersControl)) {
+							newMinWidth += (js_Boot.__cast(this.currentIcon , feathers_core_IFeathersControl)).get_minWidth();
+						} else {
+							newMinWidth += this.currentIcon.get_width();
+						}
+					} else if(js_Boot.__implements(this.currentIcon,feathers_core_IFeathersControl)) {
+						var iconMinWidth = (js_Boot.__cast(this.currentIcon , feathers_core_IFeathersControl)).get_minWidth();
+						if(iconMinWidth > newMinWidth) {
+							newMinWidth = iconMinWidth;
+						}
+					} else if(this.currentIcon.get_width() > newMinWidth) {
+						newMinWidth = this.currentIcon.get_width();
+					}
+				} else if(js_Boot.__implements(this.currentIcon,feathers_core_IFeathersControl)) {
+					newMinWidth = (js_Boot.__cast(this.currentIcon , feathers_core_IFeathersControl)).get_minWidth();
+				} else {
+					newMinWidth = this.currentIcon.get_width();
+				}
+			}
+			newMinWidth += this._paddingLeft + this._paddingRight;
+			if(this.currentSkin != null) {
+				if(measureSkin != null) {
+					if(measureSkin.get_minWidth() > newMinWidth) {
+						newMinWidth = measureSkin.get_minWidth();
+					}
+				} else if(this._explicitSkinMinWidth > newMinWidth) {
+					newMinWidth = this._explicitSkinMinWidth;
+				}
+			}
+		}
+		var newMinHeight = this._explicitMinHeight;
+		if(needsMinHeight) {
+			if(labelRenderer != null) {
+				newMinHeight = feathers_controls_Button.HELPER_POINT.y;
+			} else {
+				newMinHeight = 0;
+			}
+			if(this.currentIcon != null) {
+				if(labelRenderer != null) {
+					if(this._iconPosition == "top" || this._iconPosition == "bottom") {
+						newMinHeight += adjustedGap;
+						if(js_Boot.__implements(this.currentIcon,feathers_core_IFeathersControl)) {
+							newMinHeight += (js_Boot.__cast(this.currentIcon , feathers_core_IFeathersControl)).get_minHeight();
+						} else {
+							newMinHeight += this.currentIcon.get_height();
+						}
+					} else if(js_Boot.__implements(this.currentIcon,feathers_core_IFeathersControl)) {
+						var iconMinHeight = (js_Boot.__cast(this.currentIcon , feathers_core_IFeathersControl)).get_minHeight();
+						if(iconMinHeight > newMinHeight) {
+							newMinHeight = iconMinHeight;
+						}
+					} else if(this.currentIcon.get_height() > newMinHeight) {
+						newMinHeight = this.currentIcon.get_height();
+					}
+				} else if(js_Boot.__implements(this.currentIcon,feathers_core_IFeathersControl)) {
+					newMinHeight = (js_Boot.__cast(this.currentIcon , feathers_core_IFeathersControl)).get_minHeight();
+				} else {
+					newMinHeight = this.currentIcon.get_height();
+				}
+			}
+			newMinHeight += this._paddingTop + this._paddingBottom;
+			if(this.currentSkin != null) {
+				if(measureSkin != null) {
+					if(measureSkin.get_minHeight() > newMinHeight) {
+						newMinHeight = measureSkin.get_minHeight();
+					}
+				} else if(this._explicitSkinMinHeight > newMinHeight) {
+					newMinHeight = this._explicitSkinMinHeight;
+				}
+			}
+		}
+		var newWidth = this._explicitWidth;
+		if(needsWidth) {
+			if(labelRenderer != null) {
+				newWidth = feathers_controls_Button.HELPER_POINT.x;
+			} else {
+				newWidth = 0;
+			}
+			if(this.currentIcon != null) {
+				if(labelRenderer != null) {
+					if(this._iconPosition != "top" && this._iconPosition != "bottom" && this._iconPosition != "manual") {
+						newWidth += adjustedGap + this.currentIcon.get_width();
+					} else if(this.currentIcon.get_width() > newWidth) {
+						newWidth = this.currentIcon.get_width();
+					}
+				} else {
+					newWidth = this.currentIcon.get_width();
+				}
+			}
+			newWidth += this._paddingLeft + this._paddingRight;
+			if(this.currentSkin != null && this.currentSkin.get_width() > newWidth) {
+				newWidth = this.currentSkin.get_width();
+			}
+		}
+		var newHeight = this._explicitHeight;
+		if(needsHeight) {
+			if(labelRenderer != null) {
+				newHeight = feathers_controls_Button.HELPER_POINT.y;
+			} else {
+				newHeight = 0;
+			}
+			if(this.currentIcon != null) {
+				if(labelRenderer != null) {
+					if(this._iconPosition == "top" || this._iconPosition == "bottom") {
+						newHeight += adjustedGap + this.currentIcon.get_height();
+					} else if(this.currentIcon.get_height() > newHeight) {
+						newHeight = this.currentIcon.get_height();
+					}
+				} else {
+					newHeight = this.currentIcon.get_height();
+				}
+			}
+			newHeight += this._paddingTop + this._paddingBottom;
+			if(this.currentSkin != null && this.currentSkin.get_height() > newHeight) {
+				newHeight = this.currentSkin.get_height();
+			}
+		}
+		return this.saveMeasurements(newWidth,newHeight,newMinWidth,newMinHeight);
+	}
+	,changeState: function(state) {
+		var oldState = this._currentState;
+		if(oldState == state) {
+			return;
+		}
+		feathers_controls_BasicButton.prototype.changeState.call(this,state);
+		if(this.getScaleForCurrentState() != this.getScaleForCurrentState(oldState)) {
+			this.setRequiresRedraw();
+		}
+	}
+	,createLabel: function() {
+		if(this.labelTextRenderer != null) {
+			this.removeChild(this.labelTextRenderer,true);
+			this.labelTextRenderer = null;
+		}
+		if(this._hasLabelTextRenderer) {
+			var factory = this._labelFactory != null ? this._labelFactory : feathers_core_FeathersControl.defaultTextRendererFactory;
+			this.labelTextRenderer = factory();
+			var labelStyleName = this._customLabelStyleName != null ? this._customLabelStyleName : this.labelStyleName;
+			this.labelTextRenderer.get_styleNameList().add(labelStyleName);
+			if(js_Boot.__implements(this.labelTextRenderer,feathers_core_IStateObserver)) {
+				(js_Boot.__cast(this.labelTextRenderer , feathers_core_IStateObserver)).set_stateContext(this);
+			}
+			this.addChild(this.labelTextRenderer);
+			this._explicitLabelWidth = this.labelTextRenderer.get_explicitWidth();
+			this._explicitLabelHeight = this.labelTextRenderer.get_explicitHeight();
+			this._explicitLabelMinWidth = this.labelTextRenderer.get_explicitMinWidth();
+			this._explicitLabelMinHeight = this.labelTextRenderer.get_explicitMinHeight();
+			this._explicitLabelMaxWidth = this.labelTextRenderer.get_explicitMaxWidth();
+			this._explicitLabelMaxHeight = this.labelTextRenderer.get_explicitMaxHeight();
+		}
+	}
+	,refreshLabel: function() {
+		if(this.labelTextRenderer == null) {
+			return;
+		}
+		this.labelTextRenderer.set_text(this._label);
+		this.labelTextRenderer.set_visible(this._label != null && this._label.length > 0);
+		this.labelTextRenderer.set_isEnabled(this._isEnabled);
+	}
+	,refreshIcon: function() {
+		var oldIcon = this.currentIcon;
+		this.currentIcon = this.getCurrentIcon();
+		if(js_Boot.__implements(this.currentIcon,feathers_core_IFeathersControl)) {
+			(js_Boot.__cast(this.currentIcon , feathers_core_IFeathersControl)).set_isEnabled(this._isEnabled);
+		}
+		if(this.currentIcon != oldIcon) {
+			if(oldIcon != null) {
+				this.removeCurrentIcon(oldIcon);
+			}
+			if(this.currentIcon != null) {
+				if(js_Boot.__implements(this.currentIcon,feathers_core_IStateObserver)) {
+					(js_Boot.__cast(this.currentIcon , feathers_core_IStateObserver)).set_stateContext(this);
+				}
+				var index = this.get_numChildren();
+				if(this.labelTextRenderer != null) {
+					index = this.getChildIndex(this.labelTextRenderer);
+				}
+				this.addChildAt(this.currentIcon,index);
+				if(js_Boot.__implements(this.currentIcon,feathers_core_IFeathersControl)) {
+					(js_Boot.__cast(this.currentIcon , feathers_core_IFeathersControl)).addEventListener("resize",$bind(this,this.currentIcon_resizeHandler));
+				}
+			}
+		}
+	}
+	,removeCurrentIcon: function(icon) {
+		if(icon == null) {
+			return;
+		}
+		if(js_Boot.__implements(icon,feathers_core_IFeathersControl)) {
+			(js_Boot.__cast(icon , feathers_core_IFeathersControl)).removeEventListener("resize",$bind(this,this.currentIcon_resizeHandler));
+		}
+		if(js_Boot.__implements(icon,feathers_core_IStateObserver)) {
+			(js_Boot.__cast(icon , feathers_core_IStateObserver)).set_stateContext(null);
+		}
+		if(icon.get_parent() == this) {
+			this.removeChild(icon,false);
+		}
+	}
+	,getCurrentIcon: function() {
+		var result = this._stateToIcon.h[this._currentState];
+		if(result != null) {
+			return result;
+		}
+		return this._defaultIcon;
+	}
+	,getScaleForCurrentState: function(state) {
+		if(state == null) {
+			state = this._currentState;
+		}
+		if(Object.prototype.hasOwnProperty.call(this._stateToScale.h,state)) {
+			return this._stateToScale.h[state];
+		}
+		return 1;
+	}
+	,refreshLabelStyles: function() {
+		if(this.labelTextRenderer == null) {
+			return;
+		}
+		this.labelTextRenderer.set_fontStyles(this._fontStylesSet);
+		this.labelTextRenderer.set_wordWrap(this._wordWrap);
+		var _g = this._defaultLabelProperties.iterator();
+		while(_g.current < _g.array.length) {
+			var propertyName = _g.array[_g.current++];
+			var propertyValue = this._defaultLabelProperties.getProperty(propertyName);
+			Reflect.setProperty(this.labelTextRenderer,propertyName,propertyValue);
+		}
+	}
+	,refreshTriggeredEvents: function() {
+		feathers_controls_BasicButton.prototype.refreshTriggeredEvents.call(this);
+		this.keyToTrigger.set_isEnabled(this._isEnabled);
+		this.dpadEnterKeyToTrigger.set_isEnabled(this._isEnabled);
+	}
+	,refreshLongPressEvents: function() {
+		this.longPress.set_isEnabled(this._isEnabled && this._isLongPressEnabled);
+		this.longPress.set_longPressDuration(this._longPressDuration);
+	}
+	,layoutContent: function() {
+		this.refreshLabelTextRendererDimensions(false);
+		var labelRenderer = null;
+		if(this._label != null && this.labelTextRenderer != null) {
+			labelRenderer = this.labelTextRenderer;
+		}
+		var iconIsInLayout = this.currentIcon != null && this._iconPosition != "manual";
+		if(labelRenderer != null && iconIsInLayout) {
+			this.positionSingleChild(labelRenderer);
+			this.positionLabelAndIcon();
+		} else if(labelRenderer != null) {
+			this.positionSingleChild(labelRenderer);
+		} else if(iconIsInLayout) {
+			this.positionSingleChild(this.currentIcon);
+		}
+		if(this.currentIcon != null) {
+			if(this._iconPosition == "manual") {
+				this.currentIcon.set_x(this._paddingLeft);
+				this.currentIcon.set_y(this._paddingTop);
+			}
+			var fh = this.currentIcon;
+			fh.set_x(fh.get_x() + this._iconOffsetX);
+			var fh = this.currentIcon;
+			fh.set_y(fh.get_y() + this._iconOffsetY);
+		}
+		if(labelRenderer != null) {
+			var fh = this.labelTextRenderer;
+			fh.set_x(fh.get_x() + this._labelOffsetX);
+			var fh = this.labelTextRenderer;
+			fh.set_y(fh.get_y() + this._labelOffsetY);
+		}
+	}
+	,refreshLabelTextRendererDimensions: function(forMeasurement) {
+		var oldIgnoreIconResizes = this._ignoreIconResizes;
+		this._ignoreIconResizes = true;
+		if(js_Boot.__implements(this.currentIcon,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.currentIcon , feathers_core_IValidating)).validate();
+		}
+		this._ignoreIconResizes = oldIgnoreIconResizes;
+		if(this._label == null || this.labelTextRenderer == null) {
+			return;
+		}
+		var calculatedWidth = this.actualWidth;
+		var calculatedHeight = this.actualHeight;
+		if(forMeasurement) {
+			calculatedWidth = this._explicitWidth;
+			if(calculatedWidth != calculatedWidth) {
+				calculatedWidth = this._explicitMaxWidth;
+			}
+			calculatedHeight = this._explicitHeight;
+			if(calculatedHeight != calculatedHeight) {
+				calculatedHeight = this._explicitMaxHeight;
+			}
+		}
+		calculatedWidth -= this._paddingLeft + this._paddingRight;
+		calculatedHeight -= this._paddingTop + this._paddingBottom;
+		if(this.currentIcon != null) {
+			var adjustedGap = this._gap;
+			if(adjustedGap == Infinity) {
+				adjustedGap = this._minGap;
+			}
+			if(this._iconPosition == "left" || this._iconPosition == "leftBaseline" || this._iconPosition == "right" || this._iconPosition == "rightBaseline") {
+				calculatedWidth -= this.currentIcon.get_width() + adjustedGap;
+			}
+			if(this._iconPosition == "top" || this._iconPosition == "bottom") {
+				calculatedHeight -= this.currentIcon.get_height() + adjustedGap;
+			}
+		}
+		if(calculatedWidth < 0) {
+			calculatedWidth = 0;
+		}
+		if(calculatedHeight < 0) {
+			calculatedHeight = 0;
+		}
+		if(calculatedWidth > this._explicitLabelMaxWidth) {
+			calculatedWidth = this._explicitLabelMaxWidth;
+		}
+		if(calculatedHeight > this._explicitLabelMaxHeight) {
+			calculatedHeight = this._explicitLabelMaxHeight;
+		}
+		this.labelTextRenderer.set_width(this._explicitLabelWidth);
+		this.labelTextRenderer.set_height(this._explicitLabelHeight);
+		this.labelTextRenderer.set_minWidth(this._explicitLabelMinWidth);
+		this.labelTextRenderer.set_minHeight(this._explicitLabelMinHeight);
+		this.labelTextRenderer.set_maxWidth(calculatedWidth);
+		this.labelTextRenderer.set_maxHeight(calculatedHeight);
+		this.labelTextRenderer.validate();
+		if(!forMeasurement) {
+			calculatedWidth = this.labelTextRenderer.get_width();
+			calculatedHeight = this.labelTextRenderer.get_height();
+			this.labelTextRenderer.set_width(calculatedWidth);
+			this.labelTextRenderer.set_height(calculatedHeight);
+			this.labelTextRenderer.set_minWidth(calculatedWidth);
+			this.labelTextRenderer.set_minHeight(calculatedHeight);
+		}
+	}
+	,positionSingleChild: function(displayObject) {
+		if(this._horizontalAlign == "left") {
+			displayObject.set_x(this._paddingLeft);
+		} else if(this._horizontalAlign == "right") {
+			displayObject.set_x(this.actualWidth - this._paddingRight - displayObject.get_width());
+		} else {
+			displayObject.set_x(this._paddingLeft + Math.round((this.actualWidth - this._paddingLeft - this._paddingRight - displayObject.get_width()) / 2));
+		}
+		if(this._verticalAlign == "top") {
+			displayObject.set_y(this._paddingTop);
+		} else if(this._verticalAlign == "bottom") {
+			displayObject.set_y(this.actualHeight - this._paddingBottom - displayObject.get_height());
+		} else {
+			displayObject.set_y(this._paddingTop + Math.round((this.actualHeight - this._paddingTop - this._paddingBottom - displayObject.get_height()) / 2));
+		}
+	}
+	,positionLabelAndIcon: function() {
+		if(this._iconPosition == "top") {
+			if(this._gap == Infinity) {
+				this.currentIcon.set_y(this._paddingTop);
+				this.labelTextRenderer.set_y(this.actualHeight - this._paddingBottom - this.labelTextRenderer.get_height());
+			} else {
+				if(this._verticalAlign == "top") {
+					var fh = this.labelTextRenderer;
+					fh.set_y(fh.get_y() + (this.currentIcon.get_height() + this._gap));
+				} else if(this._verticalAlign == "middle") {
+					var fh = this.labelTextRenderer;
+					fh.set_y(fh.get_y() + Math.round((this.currentIcon.get_height() + this._gap) / 2));
+				}
+				this.currentIcon.set_y(this.labelTextRenderer.get_y() - this.currentIcon.get_height() - this._gap);
+			}
+		} else if(this._iconPosition == "right" || this._iconPosition == "rightBaseline") {
+			if(this._gap == Infinity) {
+				this.labelTextRenderer.set_x(this._paddingLeft);
+				this.currentIcon.set_x(this.actualWidth - this._paddingRight - this.currentIcon.get_width());
+			} else {
+				if(this._horizontalAlign == "right") {
+					var fh = this.labelTextRenderer;
+					fh.set_x(fh.get_x() - (this.currentIcon.get_width() + this._gap));
+				} else if(this._horizontalAlign == "center") {
+					var fh = this.labelTextRenderer;
+					fh.set_x(fh.get_x() - Math.round((this.currentIcon.get_width() + this._gap) / 2));
+				}
+				this.currentIcon.set_x(this.labelTextRenderer.get_x() + this.labelTextRenderer.get_width() + this._gap);
+			}
+		} else if(this._iconPosition == "bottom") {
+			if(this._gap == Infinity) {
+				this.labelTextRenderer.set_y(this._paddingTop);
+				this.currentIcon.set_y(this.actualHeight - this._paddingBottom - this.currentIcon.get_height());
+			} else {
+				if(this._verticalAlign == "bottom") {
+					var fh = this.labelTextRenderer;
+					fh.set_y(fh.get_y() - (this.currentIcon.get_height() + this._gap));
+				} else if(this._verticalAlign == "middle") {
+					var fh = this.labelTextRenderer;
+					fh.set_y(fh.get_y() - Math.round((this.currentIcon.get_height() + this._gap) / 2));
+				}
+				this.currentIcon.set_y(this.labelTextRenderer.get_y() + this.labelTextRenderer.get_height() + this._gap);
+			}
+		} else if(this._iconPosition == "left" || this._iconPosition == "leftBaseline") {
+			if(this._gap == Infinity) {
+				this.currentIcon.set_x(this._paddingLeft);
+				this.labelTextRenderer.set_x(this.actualWidth - this._paddingRight - this.labelTextRenderer.get_width());
+			} else {
+				if(this._horizontalAlign == "left") {
+					var fh = this.labelTextRenderer;
+					fh.set_x(fh.get_x() + (this._gap + this.currentIcon.get_width()));
+				} else if(this._horizontalAlign == "center") {
+					var fh = this.labelTextRenderer;
+					fh.set_x(fh.get_x() + Math.round((this._gap + this.currentIcon.get_width()) / 2));
+				}
+				this.currentIcon.set_x(this.labelTextRenderer.get_x() - this._gap - this.currentIcon.get_width());
+			}
+		}
+		if(this._iconPosition == "left" || this._iconPosition == "right") {
+			if(this._verticalAlign == "top") {
+				this.currentIcon.set_y(this._paddingTop);
+			} else if(this._verticalAlign == "bottom") {
+				this.currentIcon.set_y(this.actualHeight - this._paddingBottom - this.currentIcon.get_height());
+			} else {
+				this.currentIcon.set_y(this._paddingTop + Math.round((this.actualHeight - this._paddingTop - this._paddingBottom - this.currentIcon.get_height()) / 2));
+			}
+		} else if(this._iconPosition == "leftBaseline" || this._iconPosition == "rightBaseline") {
+			this.currentIcon.set_y(this.labelTextRenderer.get_y() + this.labelTextRenderer.get_baseline() - this.currentIcon.get_height());
+		} else if(this._horizontalAlign == "left") {
+			this.currentIcon.set_x(this._paddingLeft);
+		} else if(this._horizontalAlign == "right") {
+			this.currentIcon.set_x(this.actualWidth - this._paddingRight - this.currentIcon.get_width());
+		} else {
+			this.currentIcon.set_x(this._paddingLeft + Math.round((this.actualWidth - this._paddingLeft - this._paddingRight - this.currentIcon.get_width()) / 2));
+		}
+	}
+	,childProperties_onChange: function(proxy,name) {
+		this.invalidate("styles");
+	}
+	,currentIcon_resizeHandler: function() {
+		if(this._ignoreIconResizes) {
+			return;
+		}
+		this.invalidate("size");
+	}
+	,fontStyles_changeHandler: function(event) {
+		this.invalidate("styles");
+	}
+	,__class__: feathers_controls_Button
+	,__properties__: $extend(feathers_controls_BasicButton.prototype.__properties__,{get_numLines:"get_numLines",get_baseline:"get_baseline",set_scaleWhenHovering:"set_scaleWhenHovering",get_scaleWhenHovering:"get_scaleWhenHovering",set_scaleWhenDown:"set_scaleWhenDown",get_scaleWhenDown:"get_scaleWhenDown",set_isLongPressEnabled:"set_isLongPressEnabled",get_isLongPressEnabled:"get_isLongPressEnabled",set_longPressDuration:"set_longPressDuration",get_longPressDuration:"get_longPressDuration",set_disabledIcon:"set_disabledIcon",get_disabledIcon:"get_disabledIcon",set_hoverIcon:"set_hoverIcon",get_hoverIcon:"get_hoverIcon",set_downIcon:"set_downIcon",get_downIcon:"get_downIcon",set_upIcon:"set_upIcon",get_upIcon:"get_upIcon",set_defaultIcon:"set_defaultIcon",get_defaultIcon:"get_defaultIcon",set_defaultLabelProperties:"set_defaultLabelProperties",get_defaultLabelProperties:"get_defaultLabelProperties",set_customLabelStyleName:"set_customLabelStyleName",get_customLabelStyleName:"get_customLabelStyleName",set_labelFactory:"set_labelFactory",get_labelFactory:"get_labelFactory",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_disabledFontStyles:"set_disabledFontStyles",get_disabledFontStyles:"get_disabledFontStyles",set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",set_iconOffsetY:"set_iconOffsetY",get_iconOffsetY:"get_iconOffsetY",set_iconOffsetX:"set_iconOffsetX",get_iconOffsetX:"get_iconOffsetX",set_labelOffsetY:"set_labelOffsetY",get_labelOffsetY:"get_labelOffsetY",set_labelOffsetX:"set_labelOffsetX",get_labelOffsetX:"get_labelOffsetX",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_verticalAlign:"set_verticalAlign",get_verticalAlign:"get_verticalAlign",set_horizontalAlign:"set_horizontalAlign",get_horizontalAlign:"get_horizontalAlign",set_minGap:"set_minGap",get_minGap:"get_minGap",set_gap:"set_gap",get_gap:"get_gap",set_iconPosition:"set_iconPosition",get_iconPosition:"get_iconPosition",set_hasLabelTextRenderer:"set_hasLabelTextRenderer",get_hasLabelTextRenderer:"get_hasLabelTextRenderer",set_label:"set_label",get_label:"get_label",get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus"})
+});
 var Game = function() {
 	starling_display_Sprite.call(this);
 };
@@ -10493,7 +12002,7 @@ ManifestResources.init = function(config) {
 		ManifestResources.rootPath = "./";
 	}
 	var bundle;
-	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei1769y4:typey4:TEXTy2:idR1y7:preloadtgoR0y25:assets%2Fgame_ui_old.jsonR2i872R3R4R5R7R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R9R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R10R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R11R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R12R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R13R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R14R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R15R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R16R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R17R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R20R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R19R5R22R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
+	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei3559y4:typey4:TEXTy2:idR1y7:preloadtgoR0y24:assets%2Fgame_ui_01.jsonR2i1394R3R4R5R7R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R9R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R10R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R11R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R12R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R13R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R14R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R15R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R16R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R17R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R20R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R19R5R22R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
 	var manifest = lime_utils_AssetManifest.parse(data,ManifestResources.rootPath);
 	var library = lime_utils_AssetLibrary.fromManifest(manifest);
 	lime_utils_Assets.registerLibrary("default",library);
@@ -11076,6 +12585,374 @@ Xml.prototype = {
 var feathers_controls_AutoSizeMode = function() { };
 $hxClasses["feathers.controls.AutoSizeMode"] = feathers_controls_AutoSizeMode;
 feathers_controls_AutoSizeMode.__name__ = "feathers.controls.AutoSizeMode";
+var feathers_controls_ButtonState = function() { };
+$hxClasses["feathers.controls.ButtonState"] = feathers_controls_ButtonState;
+feathers_controls_ButtonState.__name__ = "feathers.controls.ButtonState";
+var feathers_controls_supportClasses_IViewPort = function() { };
+$hxClasses["feathers.controls.supportClasses.IViewPort"] = feathers_controls_supportClasses_IViewPort;
+feathers_controls_supportClasses_IViewPort.__name__ = "feathers.controls.supportClasses.IViewPort";
+feathers_controls_supportClasses_IViewPort.__isInterface__ = true;
+feathers_controls_supportClasses_IViewPort.prototype = {
+	get_visibleWidth: null
+	,set_visibleWidth: null
+	,get_minVisibleWidth: null
+	,set_minVisibleWidth: null
+	,get_maxVisibleWidth: null
+	,set_maxVisibleWidth: null
+	,get_visibleHeight: null
+	,set_visibleHeight: null
+	,get_minVisibleHeight: null
+	,set_minVisibleHeight: null
+	,get_maxVisibleHeight: null
+	,set_maxVisibleHeight: null
+	,get_contentX: null
+	,get_contentY: null
+	,get_horizontalScrollPosition: null
+	,set_horizontalScrollPosition: null
+	,get_verticalScrollPosition: null
+	,set_verticalScrollPosition: null
+	,get_horizontalScrollStep: null
+	,get_verticalScrollStep: null
+	,get_requiresMeasurementOnScroll: null
+	,__class__: feathers_controls_supportClasses_IViewPort
+	,__properties__: {get_requiresMeasurementOnScroll:"get_requiresMeasurementOnScroll",get_verticalScrollStep:"get_verticalScrollStep",get_horizontalScrollStep:"get_horizontalScrollStep",set_verticalScrollPosition:"set_verticalScrollPosition",get_verticalScrollPosition:"get_verticalScrollPosition",set_horizontalScrollPosition:"set_horizontalScrollPosition",get_horizontalScrollPosition:"get_horizontalScrollPosition",get_contentY:"get_contentY",get_contentX:"get_contentX",set_maxVisibleHeight:"set_maxVisibleHeight",get_maxVisibleHeight:"get_maxVisibleHeight",set_minVisibleHeight:"set_minVisibleHeight",get_minVisibleHeight:"get_minVisibleHeight",set_visibleHeight:"set_visibleHeight",get_visibleHeight:"get_visibleHeight",set_maxVisibleWidth:"set_maxVisibleWidth",get_maxVisibleWidth:"get_maxVisibleWidth",set_minVisibleWidth:"set_minVisibleWidth",get_minVisibleWidth:"get_minVisibleWidth",set_visibleWidth:"set_visibleWidth",get_visibleWidth:"get_visibleWidth"}
+};
+var feathers_controls_supportClasses_LayoutViewPort = function() {
+	this._verticalScrollPosition = 0;
+	this._horizontalScrollPosition = 0;
+	this._contentY = 0;
+	this._contentX = 0;
+	this._actualVisibleHeight = 0;
+	this._maxVisibleHeight = Infinity;
+	this._actualMinVisibleHeight = 0;
+	this._actualVisibleWidth = 0;
+	this._maxVisibleWidth = Infinity;
+	this._actualMinVisibleWidth = 0;
+	feathers_controls_LayoutGroup.call(this);
+};
+$hxClasses["feathers.controls.supportClasses.LayoutViewPort"] = feathers_controls_supportClasses_LayoutViewPort;
+feathers_controls_supportClasses_LayoutViewPort.__name__ = "feathers.controls.supportClasses.LayoutViewPort";
+feathers_controls_supportClasses_LayoutViewPort.__interfaces__ = [feathers_controls_supportClasses_IViewPort];
+feathers_controls_supportClasses_LayoutViewPort.__super__ = feathers_controls_LayoutGroup;
+feathers_controls_supportClasses_LayoutViewPort.prototype = $extend(feathers_controls_LayoutGroup.prototype,{
+	_actualMinVisibleWidth: null
+	,_explicitMinVisibleWidth: null
+	,get_minVisibleWidth: function() {
+		if(this._explicitMinVisibleWidth != this._explicitMinVisibleWidth) {
+			return this._actualMinVisibleWidth;
+		}
+		return this._explicitMinVisibleWidth;
+	}
+	,set_minVisibleWidth: function(value) {
+		if(this._explicitMinVisibleWidth == value) {
+			return value;
+		}
+		var valueIsNaN = value != value;
+		if(valueIsNaN && this._explicitMinVisibleWidth != this._explicitMinVisibleWidth) {
+			return value;
+		}
+		var oldValue = this._explicitMinVisibleWidth;
+		this._explicitMinVisibleWidth = value;
+		if(valueIsNaN) {
+			this._actualMinVisibleWidth = 0;
+			this.invalidate("size");
+		} else {
+			this._actualMinVisibleWidth = value;
+			if(this._explicitMinVisibleWidth != this._explicitWidth && (this._actualVisibleWidth < value || this._actualVisibleWidth == oldValue)) {
+				this.invalidate("size");
+			}
+		}
+		return value;
+	}
+	,_maxVisibleWidth: null
+	,get_maxVisibleWidth: function() {
+		return this._maxVisibleWidth;
+	}
+	,set_maxVisibleWidth: function(value) {
+		if(this._maxVisibleWidth == value) {
+			return this._maxVisibleWidth;
+		}
+		if(value != value) {
+			throw new openfl_errors_ArgumentError("maxVisibleWidth cannot be NaN");
+		}
+		var oldValue = this._maxVisibleWidth;
+		this._maxVisibleWidth = value;
+		if(this._explicitVisibleWidth != this._explicitVisibleWidth && (this._actualVisibleWidth > value || this._actualVisibleWidth == oldValue)) {
+			this.invalidate("size");
+		}
+		return this._maxVisibleWidth;
+	}
+	,_actualVisibleWidth: null
+	,_explicitVisibleWidth: null
+	,get_visibleWidth: function() {
+		if(this._explicitVisibleWidth != this._explicitVisibleWidth) {
+			return this._actualVisibleWidth;
+		}
+		return this._explicitVisibleWidth;
+	}
+	,set_visibleWidth: function(value) {
+		if(this._explicitVisibleWidth == value || value != value && this._explicitVisibleWidth != this._explicitVisibleWidth) {
+			return value;
+		}
+		this._explicitVisibleWidth = value;
+		if(this._actualVisibleWidth != value) {
+			this.invalidate("size");
+		}
+		return this._explicitVisibleWidth;
+	}
+	,_actualMinVisibleHeight: null
+	,_explicitMinVisibleHeight: null
+	,get_minVisibleHeight: function() {
+		if(this._explicitMinVisibleHeight != this._explicitMinVisibleHeight) {
+			return this._actualMinVisibleHeight;
+		}
+		return this._explicitMinVisibleHeight;
+	}
+	,set_minVisibleHeight: function(value) {
+		if(this._explicitMinVisibleHeight == value) {
+			return value;
+		}
+		var valueIsNaN = value != value;
+		if(valueIsNaN && this._explicitMinVisibleHeight != this._explicitMinVisibleHeight) {
+			return value;
+		}
+		var oldValue = this._explicitMinVisibleHeight;
+		this._explicitMinVisibleHeight = value;
+		if(valueIsNaN) {
+			this._actualMinVisibleHeight = 0;
+			this.invalidate("size");
+		} else {
+			this._actualMinVisibleHeight = value;
+			if(this._explicitVisibleHeight != this._explicitVisibleHeight && (this._actualVisibleWidth < value || this._actualVisibleHeight == oldValue)) {
+				this.invalidate("size");
+			}
+		}
+		return this._actualMinVisibleHeight;
+	}
+	,_maxVisibleHeight: null
+	,get_maxVisibleHeight: function() {
+		return this._maxVisibleHeight;
+	}
+	,set_maxVisibleHeight: function(value) {
+		if(this._maxVisibleHeight == value) {
+			return value;
+		}
+		if(value != value) {
+			throw new openfl_errors_ArgumentError("maxVisibleHeight cannot be NaN");
+		}
+		var oldValue = this._maxVisibleHeight;
+		this._maxVisibleHeight = value;
+		if(this._explicitVisibleHeight != this._explicitVisibleHeight && (this._actualVisibleHeight > value || this._actualVisibleHeight == oldValue)) {
+			this.invalidate("size");
+		}
+		return this._maxVisibleHeight;
+	}
+	,_actualVisibleHeight: null
+	,_explicitVisibleHeight: null
+	,get_visibleHeight: function() {
+		if(this._explicitVisibleHeight != this._explicitVisibleHeight) {
+			return this._actualVisibleHeight;
+		}
+		return this._explicitVisibleHeight;
+	}
+	,set_visibleHeight: function(value) {
+		if(this._explicitVisibleHeight == value || value != value && this._explicitVisibleHeight != this._explicitVisibleHeight) {
+			return value;
+		}
+		this._explicitVisibleHeight = value;
+		if(this._actualVisibleHeight != value) {
+			this.invalidate("size");
+		}
+		return value;
+	}
+	,_contentX: null
+	,get_contentX: function() {
+		return this._contentX;
+	}
+	,_contentY: null
+	,get_contentY: function() {
+		return this._contentY;
+	}
+	,get_horizontalScrollStep: function() {
+		if(this.actualWidth < this.actualHeight) {
+			return this.actualWidth / 10;
+		}
+		return this.actualHeight / 10;
+	}
+	,get_verticalScrollStep: function() {
+		if(this.actualWidth < this.actualHeight) {
+			return this.actualWidth / 10;
+		}
+		return this.actualHeight / 10;
+	}
+	,_horizontalScrollPosition: null
+	,get_horizontalScrollPosition: function() {
+		return this._horizontalScrollPosition;
+	}
+	,set_horizontalScrollPosition: function(value) {
+		if(this._horizontalScrollPosition == value) {
+			return value;
+		}
+		this._horizontalScrollPosition = value;
+		this.invalidate("scroll");
+		return this._horizontalScrollPosition;
+	}
+	,_verticalScrollPosition: null
+	,get_verticalScrollPosition: function() {
+		return this._verticalScrollPosition;
+	}
+	,set_verticalScrollPosition: function(value) {
+		if(this._verticalScrollPosition == value) {
+			return value;
+		}
+		this._verticalScrollPosition = value;
+		this.invalidate("scroll");
+		return this._verticalScrollPosition;
+	}
+	,get_requiresMeasurementOnScroll: function() {
+		if(this._layout != null && this._layout.get_requiresLayoutOnScroll()) {
+			if(this._explicitVisibleWidth == this._explicitVisibleWidth) {
+				return this._explicitVisibleHeight != this._explicitVisibleHeight;
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
+	,dispose: function() {
+		this.set_layout(null);
+		feathers_controls_LayoutGroup.prototype.dispose.call(this);
+	}
+	,refreshViewPortBounds: function() {
+		var needsWidth = this._explicitVisibleWidth != this._explicitVisibleWidth;
+		var needsHeight = this._explicitVisibleHeight != this._explicitVisibleHeight;
+		var needsMinWidth = this._explicitMinVisibleWidth != this._explicitMinVisibleWidth;
+		var needsMinHeight = this._explicitMinVisibleHeight != this._explicitMinVisibleHeight;
+		this.viewPortBounds.x = 0;
+		this.viewPortBounds.y = 0;
+		this.viewPortBounds.scrollX = this._horizontalScrollPosition;
+		this.viewPortBounds.scrollY = this._verticalScrollPosition;
+		if(this.get_autoSizeMode() == "stage" && needsWidth) {
+			this.viewPortBounds.explicitWidth = this.get_stage().get_stageWidth();
+		} else {
+			this.viewPortBounds.explicitWidth = this._explicitVisibleWidth;
+		}
+		if(this._autoSizeMode == "stage" && needsHeight) {
+			this.viewPortBounds.explicitHeight = this.get_stage().get_stageHeight();
+		} else {
+			this.viewPortBounds.explicitHeight = this._explicitVisibleHeight;
+		}
+		if(needsMinWidth) {
+			this.viewPortBounds.minWidth = 0;
+		} else {
+			this.viewPortBounds.minWidth = this._explicitMinVisibleWidth;
+		}
+		if(needsMinHeight) {
+			this.viewPortBounds.minHeight = 0;
+		} else {
+			this.viewPortBounds.minHeight = this._explicitMinVisibleHeight;
+		}
+		this.viewPortBounds.maxWidth = this._maxVisibleWidth;
+		this.viewPortBounds.maxHeight = this._maxVisibleHeight;
+	}
+	,handleLayoutResult: function() {
+		var contentWidth = this._layoutResult.contentWidth;
+		var contentHeight = this._layoutResult.contentHeight;
+		this.saveMeasurements(contentWidth,contentHeight,contentWidth,contentHeight);
+		this._contentX = this._layoutResult.contentX;
+		this._contentY = this._layoutResult.contentY;
+		var viewPortWidth = this._layoutResult.viewPortWidth;
+		var viewPortHeight = this._layoutResult.viewPortHeight;
+		this._actualVisibleWidth = viewPortWidth;
+		this._actualVisibleHeight = viewPortHeight;
+		this._actualMinVisibleWidth = viewPortWidth;
+		this._actualMinVisibleHeight = viewPortHeight;
+	}
+	,handleManualLayout: function() {
+		var minX = 0;
+		var minY = 0;
+		var explicitViewPortWidth = this.viewPortBounds.explicitWidth;
+		var maxX = explicitViewPortWidth;
+		this.doNothing();
+		if(maxX != maxX) {
+			maxX = 0;
+		}
+		var explicitViewPortHeight = this.viewPortBounds.explicitHeight;
+		var maxY = explicitViewPortHeight;
+		this.doNothing();
+		if(maxY != maxY) {
+			maxY = 0;
+		}
+		this._ignoreChildChanges = true;
+		var itemCount = this.items.length;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = this.items[i];
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+				continue;
+			}
+			if(js_Boot.__implements(item,feathers_core_IValidating)) {
+				(js_Boot.__cast(item , feathers_core_IValidating)).validate();
+			}
+			var itemX = item.get_x() - item.get_pivotX() * item.get_scaleX();
+			var itemY = item.get_y() - item.get_pivotY() * item.get_scaleY();
+			var itemMaxX = itemX + item.get_width();
+			var itemMaxY = itemY + item.get_height();
+			if(itemX == itemX && itemX < minX) {
+				minX = itemX;
+			}
+			if(itemY == itemY && itemY < minY) {
+				minY = itemY;
+			}
+			if(itemMaxX == itemMaxX && itemMaxX > maxX) {
+				maxX = itemMaxX;
+			}
+			if(itemMaxY == itemMaxY && itemMaxY > maxY) {
+				maxY = itemMaxY;
+			}
+		}
+		var minWidth = this.viewPortBounds.minWidth;
+		var maxWidth = this.viewPortBounds.maxWidth;
+		var minHeight = this.viewPortBounds.minHeight;
+		var maxHeight = this.viewPortBounds.maxHeight;
+		var calculatedWidth = maxX - minX;
+		if(calculatedWidth < minWidth) {
+			calculatedWidth = minWidth;
+		} else if(calculatedWidth > maxWidth) {
+			calculatedWidth = maxWidth;
+		}
+		var calculatedHeight = maxY - minY;
+		if(calculatedHeight < minHeight) {
+			calculatedHeight = minHeight;
+		} else if(calculatedHeight > maxHeight) {
+			calculatedHeight = maxHeight;
+		}
+		this._ignoreChildChanges = false;
+		if(explicitViewPortWidth != explicitViewPortWidth) {
+			this._actualVisibleWidth = calculatedWidth;
+		} else {
+			this._actualVisibleWidth = explicitViewPortWidth;
+		}
+		if(explicitViewPortHeight != explicitViewPortHeight) {
+			this._actualVisibleHeight = calculatedHeight;
+		} else {
+			this._actualVisibleHeight = explicitViewPortHeight;
+		}
+		this._layoutResult.contentX = minX;
+		this._layoutResult.contentY = minY;
+		this._layoutResult.contentWidth = calculatedWidth;
+		this._layoutResult.contentHeight = calculatedHeight;
+		this._layoutResult.viewPortWidth = calculatedWidth;
+		this._layoutResult.viewPortHeight = calculatedHeight;
+	}
+	,doNothing: function() {
+	}
+	,__class__: feathers_controls_supportClasses_LayoutViewPort
+	,__properties__: $extend(feathers_controls_LayoutGroup.prototype.__properties__,{get_requiresMeasurementOnScroll:"get_requiresMeasurementOnScroll",set_verticalScrollPosition:"set_verticalScrollPosition",get_verticalScrollPosition:"get_verticalScrollPosition",set_horizontalScrollPosition:"set_horizontalScrollPosition",get_horizontalScrollPosition:"get_horizontalScrollPosition",get_verticalScrollStep:"get_verticalScrollStep",get_horizontalScrollStep:"get_horizontalScrollStep",get_contentY:"get_contentY",get_contentX:"get_contentX",set_visibleHeight:"set_visibleHeight",get_visibleHeight:"get_visibleHeight",set_maxVisibleHeight:"set_maxVisibleHeight",get_maxVisibleHeight:"get_maxVisibleHeight",set_minVisibleHeight:"set_minVisibleHeight",get_minVisibleHeight:"get_minVisibleHeight",set_visibleWidth:"set_visibleWidth",get_visibleWidth:"get_visibleWidth",set_maxVisibleWidth:"set_maxVisibleWidth",get_maxVisibleWidth:"get_maxVisibleWidth",set_minVisibleWidth:"set_minVisibleWidth",get_minVisibleWidth:"get_minVisibleWidth"})
+});
 var feathers_core_IStateObserver = function() { };
 $hxClasses["feathers.core.IStateObserver"] = feathers_core_IStateObserver;
 feathers_core_IStateObserver.__name__ = "feathers.core.IStateObserver";
@@ -11170,16 +13047,6 @@ feathers_controls_text_BaseTextRenderer.prototype = $extend(feathers_core_Feathe
 	,__class__: feathers_controls_text_BaseTextRenderer
 	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_stateContext:"set_stateContext",get_stateContext:"get_stateContext",set_text:"set_text",get_text:"get_text"})
 });
-var feathers_core_ITextBaselineControl = function() { };
-$hxClasses["feathers.core.ITextBaselineControl"] = feathers_core_ITextBaselineControl;
-feathers_core_ITextBaselineControl.__name__ = "feathers.core.ITextBaselineControl";
-feathers_core_ITextBaselineControl.__isInterface__ = true;
-feathers_core_ITextBaselineControl.__interfaces__ = [feathers_core_IFeathersControl];
-feathers_core_ITextBaselineControl.prototype = {
-	get_baseline: null
-	,__class__: feathers_core_ITextBaselineControl
-	,__properties__: {get_baseline:"get_baseline"}
-};
 var feathers_core_ITextRenderer = function() { };
 $hxClasses["feathers.core.ITextRenderer"] = feathers_core_ITextRenderer;
 feathers_core_ITextRenderer.__name__ = "feathers.core.ITextRenderer";
@@ -11434,7 +13301,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 		if(this._textFormatForState == null) {
 			return null;
 		}
-		return this._textFormatForState.h[state];
+		return js_Boot.__cast(this._textFormatForState.h[state] , feathers_text_BitmapFontTextFormat);
 	}
 	,setTextFormatForState: function(state,textFormat) {
 		if(textFormat != null) {
@@ -12195,37 +14062,6 @@ feathers_core_BaseTextEditor.prototype = $extend(feathers_core_FeathersControl.p
 	,__class__: feathers_core_BaseTextEditor
 	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",set_stateContext:"set_stateContext",get_stateContext:"get_stateContext",set_text:"set_text",get_text:"get_text"})
 });
-var feathers_core_IFocusDisplayObject = function() { };
-$hxClasses["feathers.core.IFocusDisplayObject"] = feathers_core_IFocusDisplayObject;
-feathers_core_IFocusDisplayObject.__name__ = "feathers.core.IFocusDisplayObject";
-feathers_core_IFocusDisplayObject.__isInterface__ = true;
-feathers_core_IFocusDisplayObject.__interfaces__ = [feathers_core_IFeathersDisplayObject];
-feathers_core_IFocusDisplayObject.prototype = {
-	get_focusManager: null
-	,set_focusManager: null
-	,get_isFocusEnabled: null
-	,set_isFocusEnabled: null
-	,get_nextTabFocus: null
-	,set_nextTabFocus: null
-	,get_previousTabFocus: null
-	,set_previousTabFocus: null
-	,get_nextUpFocus: null
-	,set_nextUpFocus: null
-	,get_nextRightFocus: null
-	,set_nextRightFocus: null
-	,get_nextDownFocus: null
-	,set_nextDownFocus: null
-	,get_nextLeftFocus: null
-	,set_nextLeftFocus: null
-	,get_focusOwner: null
-	,set_focusOwner: null
-	,get_isShowingFocus: null
-	,get_maintainTouchFocus: null
-	,showFocus: null
-	,hideFocus: null
-	,__class__: feathers_core_IFocusDisplayObject
-	,__properties__: {get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus",set_focusOwner:"set_focusOwner",get_focusOwner:"get_focusOwner",set_nextLeftFocus:"set_nextLeftFocus",get_nextLeftFocus:"get_nextLeftFocus",set_nextDownFocus:"set_nextDownFocus",get_nextDownFocus:"get_nextDownFocus",set_nextRightFocus:"set_nextRightFocus",get_nextRightFocus:"get_nextRightFocus",set_nextUpFocus:"set_nextUpFocus",get_nextUpFocus:"get_nextUpFocus",set_previousTabFocus:"set_previousTabFocus",get_previousTabFocus:"get_previousTabFocus",set_nextTabFocus:"set_nextTabFocus",get_nextTabFocus:"get_nextTabFocus",set_isFocusEnabled:"set_isFocusEnabled",get_isFocusEnabled:"get_isFocusEnabled",set_focusManager:"set_focusManager",get_focusManager:"get_focusManager"}
-};
 var feathers_core_INativeFocusOwner = function() { };
 $hxClasses["feathers.core.INativeFocusOwner"] = feathers_core_INativeFocusOwner;
 feathers_core_INativeFocusOwner.__name__ = "feathers.core.INativeFocusOwner";
@@ -13326,6 +15162,751 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 	,__class__: feathers_controls_text_StageTextTextEditor
 	,__properties__: $extend(feathers_core_BaseTextEditor.prototype.__properties__,{set_clearButtonMode:"set_clearButtonMode",get_clearButtonMode:"get_clearButtonMode",set_updateSnapshotOnScaleChange:"set_updateSnapshotOnScaleChange",get_updateSnapshotOnScaleChange:"get_updateSnapshotOnScaleChange",set_maintainTouchFocus:"set_maintainTouchFocus",get_maintainTouchFocus:"get_maintainTouchFocus",set_textAlign:"set_textAlign",get_textAlign:"get_textAlign",set_softKeyboardType:"set_softKeyboardType",get_softKeyboardType:"get_softKeyboardType",set_returnKeyLabel:"set_returnKeyLabel",get_returnKeyLabel:"get_returnKeyLabel",set_restrict:"set_restrict",get_restrict:"get_restrict",set_multiline:"set_multiline",get_multiline:"get_multiline",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_locale:"set_locale",get_locale:"get_locale",set_fontSize:"set_fontSize",get_fontSize:"get_fontSize",set_fontFamily:"set_fontFamily",get_fontFamily:"get_fontFamily",get_setTouchFocusOnEndedPhase:"get_setTouchFocusOnEndedPhase",set_isSelectable:"set_isSelectable",get_isSelectable:"get_isSelectable",set_isEditable:"set_isEditable",get_isEditable:"get_isEditable",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_disabledColor:"set_disabledColor",get_disabledColor:"get_disabledColor",set_color:"set_color",get_color:"get_color",set_autoCorrect:"set_autoCorrect",get_autoCorrect:"get_autoCorrect",set_autoCapitalize:"set_autoCapitalize",get_autoCapitalize:"get_autoCapitalize",get_baseline:"get_baseline",get_selectionEndIndex:"get_selectionEndIndex",get_selectionBeginIndex:"get_selectionBeginIndex",get_nativeFocus:"get_nativeFocus",get_isShowingFocus:"get_isShowingFocus"})
 });
+var feathers_core_IFocusManager = function() { };
+$hxClasses["feathers.core.IFocusManager"] = feathers_core_IFocusManager;
+feathers_core_IFocusManager.__name__ = "feathers.core.IFocusManager";
+feathers_core_IFocusManager.__isInterface__ = true;
+feathers_core_IFocusManager.prototype = {
+	get_isEnabled: null
+	,set_isEnabled: null
+	,get_focus: null
+	,set_focus: null
+	,get_root: null
+	,__class__: feathers_core_IFocusManager
+	,__properties__: {get_root:"get_root",set_focus:"set_focus",get_focus:"get_focus",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled"}
+};
+var feathers_core_DefaultFocusManager = function(root) {
+	this._isEnabled = false;
+	starling_events_EventDispatcher.call(this);
+	if(root.get_stage() == null) {
+		throw new openfl_errors_ArgumentError("Focus manager root must be added to the stage.");
+	}
+	this._root = root;
+	this._starling = root.get_stage().get_starling();
+};
+$hxClasses["feathers.core.DefaultFocusManager"] = feathers_core_DefaultFocusManager;
+feathers_core_DefaultFocusManager.__name__ = "feathers.core.DefaultFocusManager";
+feathers_core_DefaultFocusManager.__interfaces__ = [feathers_core_IFocusManager];
+feathers_core_DefaultFocusManager.__super__ = starling_events_EventDispatcher;
+feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_starling: null
+	,_nativeFocusTarget: null
+	,_root: null
+	,get_root: function() {
+		return this._root;
+	}
+	,_isEnabled: null
+	,get_isEnabled: function() {
+		return this._isEnabled;
+	}
+	,set_isEnabled: function(value) {
+		if(this._isEnabled == value) {
+			return this._isEnabled;
+		}
+		this._isEnabled = value;
+		if(this._isEnabled) {
+			var this1 = feathers_core_DefaultFocusManager.NATIVE_STAGE_TO_FOCUS_TARGET;
+			var key = this._starling.get_nativeStage();
+			this._nativeFocusTarget = this1.h[key.__id__];
+			if(this._nativeFocusTarget == null) {
+				this._nativeFocusTarget = new feathers_core_NativeFocusTarget();
+				this._starling.get_nativeStage().addChild(this._nativeFocusTarget);
+			} else {
+				this._nativeFocusTarget.referenceCount++;
+			}
+			this.setFocusManager(this._root);
+			this._root.addEventListener("added",$bind(this,this.topLevelContainer_addedHandler));
+			this._root.addEventListener("removed",$bind(this,this.topLevelContainer_removedHandler));
+			this._root.addEventListener("touch",$bind(this,this.topLevelContainer_touchHandler));
+			this._starling.get_nativeStage().addEventListener("keyFocusChange",$bind(this,this.stage_keyFocusChangeHandler),false,0,true);
+			this._starling.get_nativeStage().addEventListener("mouseFocusChange",$bind(this,this.stage_mouseFocusChangeHandler),false,0,true);
+			this._starling.get_nativeStage().addEventListener("keyDown",$bind(this,this.stage_keyDownHandler),false,0,true);
+			if(this._savedFocus != null && this._savedFocus.get_stage() == null) {
+				this._savedFocus = null;
+			}
+			this.set_focus(this._savedFocus);
+			this._savedFocus = null;
+		} else {
+			this._nativeFocusTarget.referenceCount--;
+			if(this._nativeFocusTarget.referenceCount <= 0) {
+				this._nativeFocusTarget.parent.removeChild(this._nativeFocusTarget);
+				feathers_core_DefaultFocusManager.NATIVE_STAGE_TO_FOCUS_TARGET.remove(this._starling.get_nativeStage());
+			}
+			this._nativeFocusTarget = null;
+			this._root.removeEventListener("added",$bind(this,this.topLevelContainer_addedHandler));
+			this._root.removeEventListener("removed",$bind(this,this.topLevelContainer_removedHandler));
+			this._root.removeEventListener("touch",$bind(this,this.topLevelContainer_touchHandler));
+			this._starling.get_nativeStage().removeEventListener("keyFocusChange",$bind(this,this.stage_keyFocusChangeHandler));
+			this._starling.get_nativeStage().removeEventListener("mouseFocusChange",$bind(this,this.stage_mouseFocusChangeHandler));
+			this._starling.get_nativeStage().removeEventListener("keyDown",$bind(this,this.stage_keyDownHandler));
+			var focusToSave = this.get_focus();
+			this.set_focus(null);
+			this._savedFocus = focusToSave;
+		}
+		return this._isEnabled;
+	}
+	,_savedFocus: null
+	,_focus: null
+	,get_focus: function() {
+		return this._focus;
+	}
+	,set_focus: function(value) {
+		if(this._focus == value) {
+			return this._focus;
+		}
+		var shouldHaveFocus = false;
+		var oldFocus = this._focus;
+		if(this._isEnabled && value != null && value.get_isFocusEnabled() && value.get_focusManager() == this) {
+			this._focus = value;
+			shouldHaveFocus = true;
+		} else {
+			this._focus = null;
+		}
+		var nativeStage = this._starling.get_nativeStage();
+		var nativeFocus;
+		if(js_Boot.__implements(oldFocus,feathers_core_INativeFocusOwner)) {
+			nativeFocus = (js_Boot.__cast(oldFocus , feathers_core_INativeFocusOwner)).get_nativeFocus();
+			if(nativeFocus == null && nativeStage != null) {
+				nativeFocus = nativeStage.get_focus();
+			}
+			if(js_Boot.__implements(nativeFocus,openfl_events_IEventDispatcher)) {
+				(js_Boot.__cast(nativeFocus , openfl_events_IEventDispatcher)).removeEventListener("focusOut",$bind(this,this.nativeFocus_focusOutHandler));
+			}
+		}
+		if(oldFocus != null) {
+			oldFocus.dispatchEventWith("focusOut");
+		}
+		if(shouldHaveFocus && this._focus != value) {
+			return this._focus;
+		}
+		if(this._isEnabled) {
+			if(this._focus != null) {
+				nativeFocus = null;
+				if(js_Boot.__implements(this._focus,feathers_core_INativeFocusOwner)) {
+					nativeFocus = this._focus;
+					if(((nativeFocus) instanceof openfl_display_InteractiveObject)) {
+						nativeStage.set_focus(nativeFocus);
+					} else if(nativeFocus != null) {
+						if(js_Boot.__implements(this._focus,feathers_core_IAdvancedNativeFocusOwner)) {
+							var advancedFocus = js_Boot.__cast(this._focus , feathers_core_IAdvancedNativeFocusOwner);
+							if(!advancedFocus.get_hasFocus()) {
+								advancedFocus.setFocus();
+							}
+						} else {
+							throw new openfl_errors_IllegalOperationError("If nativeFocus does not return an InteractiveObject, class must implement IAdvancedNativeFocusOwner interface");
+						}
+					}
+				}
+				if(nativeFocus == null) {
+					nativeFocus = this._nativeFocusTarget;
+					nativeStage.set_focus(this._nativeFocusTarget);
+				}
+				if(js_Boot.__implements(nativeFocus,openfl_events_IEventDispatcher)) {
+					(js_Boot.__cast(nativeFocus , openfl_events_IEventDispatcher)).addEventListener("focusOut",$bind(this,this.nativeFocus_focusOutHandler),false,0,true);
+				}
+				this._focus.dispatchEventWith("focusIn");
+			} else {
+				nativeStage.set_focus(null);
+			}
+		} else {
+			this._savedFocus = value;
+		}
+		this.dispatchEventWith("change");
+		return this._focus;
+	}
+	,setFocusManager: function(target) {
+		if(js_Boot.__implements(target,feathers_core_IFocusDisplayObject)) {
+			var targetWithFocus = target;
+			targetWithFocus.set_focusManager(this);
+		}
+		if(((target) instanceof starling_display_DisplayObjectContainer) && !js_Boot.__implements(target,feathers_core_IFocusDisplayObject) || js_Boot.__implements(target,feathers_core_IFocusContainer) && (js_Boot.__cast(target , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
+			var container = target;
+			var childCount = container.get_numChildren();
+			var _g = 0;
+			var _g1 = childCount;
+			while(_g < _g1) {
+				var i = _g++;
+				var child = container.getChildAt(i);
+				this.setFocusManager(child);
+			}
+			if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
+				var containerWithExtras = container;
+				var extras = containerWithExtras.get_focusExtrasBefore();
+				if(extras != null) {
+					childCount = extras.length;
+					var _g = 0;
+					var _g1 = childCount;
+					while(_g < _g1) {
+						var i = _g++;
+						var child = extras[i];
+						this.setFocusManager(child);
+					}
+				}
+				extras = containerWithExtras.get_focusExtrasAfter();
+				if(extras != null) {
+					childCount = extras.length;
+					var _g = 0;
+					var _g1 = childCount;
+					while(_g < _g1) {
+						var i = _g++;
+						var child = extras[i];
+						this.setFocusManager(child);
+					}
+				}
+			}
+		}
+	}
+	,clearFocusManager: function(target) {
+		if(js_Boot.__implements(target,feathers_core_IFocusDisplayObject)) {
+			var targetWithFocus = target;
+			if(targetWithFocus.get_focusManager() == this) {
+				if(this._focus == targetWithFocus) {
+					this.set_focus(targetWithFocus.get_focusOwner());
+				}
+				targetWithFocus.set_focusManager(null);
+			}
+		}
+		if(((target) instanceof starling_display_DisplayObjectContainer)) {
+			var container = target;
+			var childCount = container.get_numChildren();
+			var child;
+			var _g = 0;
+			var _g1 = childCount;
+			while(_g < _g1) {
+				var i = _g++;
+				child = container.getChildAt(i);
+				this.clearFocusManager(child);
+			}
+			if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
+				var containerWithExtras = container;
+				var extras = containerWithExtras.get_focusExtrasBefore();
+				if(extras != null) {
+					childCount = extras.length;
+					var _g = 0;
+					var _g1 = childCount;
+					while(_g < _g1) {
+						var i = _g++;
+						child = extras[i];
+						this.clearFocusManager(child);
+					}
+				}
+				extras = containerWithExtras.get_focusExtrasAfter();
+				if(extras != null) {
+					childCount = extras.length;
+					var _g = 0;
+					var _g1 = childCount;
+					while(_g < _g1) {
+						var i = _g++;
+						child = extras[i];
+						this.clearFocusManager(child);
+					}
+				}
+			}
+		}
+	}
+	,findPreviousContainerFocus: function(container,beforeChild,fallbackToGlobal) {
+		if(((container) instanceof feathers_controls_supportClasses_LayoutViewPort)) {
+			container = container.get_parent();
+		}
+		var hasProcessedBeforeChild = beforeChild == null;
+		var startIndex;
+		var child;
+		var foundChild;
+		var extras;
+		var focusContainer = null;
+		var skip;
+		var focusWithExtras = null;
+		if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
+			focusWithExtras = container;
+			var extras1 = focusWithExtras.get_focusExtrasAfter();
+			if(extras1 != null) {
+				skip = false;
+				if(beforeChild != null) {
+					startIndex = extras1.indexOf(beforeChild) - 1;
+					hasProcessedBeforeChild = startIndex >= -1;
+					skip = !hasProcessedBeforeChild;
+				} else {
+					startIndex = extras1.length - 1;
+				}
+				if(!skip) {
+					var i = startIndex;
+					while(i >= 0) {
+						child = extras1[i];
+						foundChild = this.findPreviousChildFocus(child);
+						if(this.isValidFocus(foundChild)) {
+							return foundChild;
+						}
+						--i;
+					}
+				}
+			}
+		}
+		if(beforeChild != null && !hasProcessedBeforeChild) {
+			startIndex = container.getChildIndex(beforeChild) - 1;
+			hasProcessedBeforeChild = startIndex >= -1;
+		} else {
+			startIndex = container.get_numChildren() - 1;
+		}
+		var i = startIndex;
+		while(i >= 0) {
+			child = container.getChildAt(i);
+			foundChild = this.findPreviousChildFocus(child);
+			if(this.isValidFocus(foundChild)) {
+				return foundChild;
+			}
+			--i;
+		}
+		if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
+			extras = focusWithExtras.get_focusExtrasBefore();
+			if(extras != null) {
+				skip = false;
+				if(beforeChild != null && !hasProcessedBeforeChild) {
+					startIndex = extras.indexOf(beforeChild) - 1;
+					hasProcessedBeforeChild = startIndex >= -1;
+					skip = !hasProcessedBeforeChild;
+				} else {
+					startIndex = extras.length - 1;
+				}
+				if(!skip) {
+					i = startIndex;
+					while(i >= 0) {
+						child = extras[i];
+						foundChild = this.findPreviousChildFocus(child);
+						if(this.isValidFocus(foundChild)) {
+							return foundChild;
+						}
+						--i;
+					}
+				}
+			}
+		}
+		if(fallbackToGlobal && container != this._root) {
+			if(js_Boot.__implements(container,feathers_core_IFocusDisplayObject)) {
+				var focusContainer = container;
+				if(this.isValidFocus(focusContainer)) {
+					return focusContainer;
+				}
+			}
+			return this.findPreviousContainerFocus(container.get_parent(),container,true);
+		}
+		return null;
+	}
+	,findNextContainerFocus: function(container,afterChild,fallbackToGlobal) {
+		if(((container) instanceof feathers_controls_supportClasses_LayoutViewPort)) {
+			container = container.get_parent();
+		}
+		var hasProcessedAfterChild = afterChild == null;
+		var startIndex;
+		var childCount;
+		var child;
+		var foundChild;
+		var extras;
+		var focusContainer = null;
+		var skip;
+		var focusWithExtras = null;
+		if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
+			focusWithExtras = container;
+			var extras1 = focusWithExtras.get_focusExtrasBefore();
+			if(extras1 != null) {
+				skip = false;
+				if(afterChild != null) {
+					startIndex = extras1.indexOf(afterChild) + 1;
+					hasProcessedAfterChild = startIndex > 0;
+					skip = !hasProcessedAfterChild;
+				} else {
+					startIndex = 0;
+				}
+				if(!skip) {
+					childCount = extras1.length;
+					var _g = startIndex;
+					var _g1 = childCount;
+					while(_g < _g1) {
+						var i = _g++;
+						child = extras1[i];
+						foundChild = this.findNextChildFocus(child);
+						if(this.isValidFocus(foundChild)) {
+							return foundChild;
+						}
+					}
+				}
+			}
+		}
+		if(afterChild != null && !hasProcessedAfterChild) {
+			startIndex = container.getChildIndex(afterChild) + 1;
+			hasProcessedAfterChild = startIndex > 0;
+		} else {
+			startIndex = 0;
+		}
+		childCount = container.get_numChildren();
+		var _g = startIndex;
+		var _g1 = childCount;
+		while(_g < _g1) {
+			var i = _g++;
+			child = container.getChildAt(i);
+			foundChild = this.findNextChildFocus(child);
+			if(this.isValidFocus(foundChild)) {
+				return foundChild;
+			}
+		}
+		if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
+			extras = focusWithExtras.get_focusExtrasAfter();
+			if(extras != null) {
+				skip = false;
+				if(afterChild != null && !hasProcessedAfterChild) {
+					startIndex = extras.indexOf(afterChild) + 1;
+					hasProcessedAfterChild = startIndex > 0;
+					skip = !hasProcessedAfterChild;
+				} else {
+					startIndex = 0;
+				}
+				if(!skip) {
+					childCount = extras.length;
+					var _g = startIndex;
+					var _g1 = childCount;
+					while(_g < _g1) {
+						var i = _g++;
+						child = extras[i];
+						foundChild = this.findNextChildFocus(child);
+						if(this.isValidFocus(foundChild)) {
+							return foundChild;
+						}
+					}
+				}
+			}
+		}
+		if(fallbackToGlobal && container != this._root) {
+			return this.findNextContainerFocus(container.get_parent(),container,true);
+		}
+		return null;
+	}
+	,findPreviousChildFocus: function(child) {
+		if(((child) instanceof starling_display_DisplayObjectContainer) && !js_Boot.__implements(child,feathers_core_IFocusDisplayObject) || js_Boot.__implements(child,feathers_core_IFocusContainer) && (js_Boot.__cast(child , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
+			var childContainer = child;
+			var foundChild = this.findPreviousContainerFocus(childContainer,null,false);
+			if(foundChild != null) {
+				return foundChild;
+			}
+		}
+		var childWithFocus = child;
+		if(this.isValidFocus(childWithFocus)) {
+			return childWithFocus;
+		}
+		return null;
+	}
+	,findNextChildFocus: function(child) {
+		if(js_Boot.__implements(child,feathers_core_IFocusDisplayObject)) {
+			var childWithFocus = child;
+			if(this.isValidFocus(childWithFocus)) {
+				return childWithFocus;
+			}
+		}
+		if(((child) instanceof starling_display_DisplayObjectContainer) && !js_Boot.__implements(child,feathers_core_IFocusDisplayObject) || js_Boot.__implements(child,feathers_core_IFocusContainer) && (js_Boot.__cast(child , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
+			var childContainer = child;
+			var foundChild = this.findNextContainerFocus(childContainer,null,false);
+			if(foundChild != null) {
+				return foundChild;
+			}
+		}
+		return null;
+	}
+	,findFocusAtRelativePosition: function(container,position) {
+		var focusableObjects = [];
+		this.findAllFocusableObjects(container,focusableObjects);
+		if(this._focus == null) {
+			if(focusableObjects.length > 0) {
+				return focusableObjects[0];
+			}
+			return null;
+		}
+		var focusedRect = this._focus.getBounds(this._focus.get_stage(),starling_utils_Pool.getRectangle());
+		var result = null;
+		var count = focusableObjects.length;
+		var _g = 0;
+		var _g1 = count;
+		while(_g < _g1) {
+			var i = _g++;
+			var focusableObject = focusableObjects[i];
+			if(focusableObject == this._focus) {
+				continue;
+			}
+			if(feathers_utils_focus_FeathersFocusUtils.isBetterFocusForRelativePosition(focusableObject,result,focusedRect,position)) {
+				result = focusableObject;
+			}
+		}
+		starling_utils_Pool.putRectangle(focusedRect);
+		if(result == null) {
+			return this._focus;
+		}
+		return result;
+	}
+	,findAllFocusableObjects: function(child,result) {
+		if(js_Boot.__implements(child,feathers_core_IFocusDisplayObject)) {
+			var focusableObject = child;
+			if(this.isValidFocus(focusableObject)) {
+				result[result.length] = focusableObject;
+			}
+		}
+		var count;
+		var childOfChild;
+		var extras;
+		var focusExtras = null;
+		if(js_Boot.__implements(child,feathers_core_IFocusExtras)) {
+			focusExtras = js_Boot.__cast(child , feathers_core_IFocusExtras);
+			extras = focusExtras.get_focusExtrasBefore();
+			count = extras.length;
+			var _g = 0;
+			var _g1 = count;
+			while(_g < _g1) {
+				var i = _g++;
+				childOfChild = extras[i];
+				this.findAllFocusableObjects(childOfChild,result);
+			}
+		}
+		var otherContainer;
+		if(js_Boot.__implements(child,feathers_core_IFocusDisplayObject)) {
+			if(js_Boot.__implements(child,feathers_core_IFocusContainer) && (js_Boot.__cast(child , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
+				otherContainer = child;
+				count = otherContainer.get_numChildren();
+				var _g = 0;
+				var _g1 = count;
+				while(_g < _g1) {
+					var i = _g++;
+					childOfChild = otherContainer.getChildAt(i);
+					this.findAllFocusableObjects(childOfChild,result);
+				}
+			}
+		} else if(((child) instanceof starling_display_DisplayObjectContainer)) {
+			otherContainer = child;
+			count = otherContainer.get_numChildren();
+			var _g = 0;
+			var _g1 = count;
+			while(_g < _g1) {
+				var i = _g++;
+				childOfChild = otherContainer.getChildAt(i);
+				this.findAllFocusableObjects(childOfChild,result);
+			}
+		}
+		if(js_Boot.__implements(child,feathers_core_IFocusExtras)) {
+			extras = focusExtras.get_focusExtrasAfter();
+			count = extras.length;
+			var _g = 0;
+			var _g1 = count;
+			while(_g < _g1) {
+				var i = _g++;
+				childOfChild = extras[i];
+				this.findAllFocusableObjects(childOfChild,result);
+			}
+		}
+	}
+	,isValidFocus: function(child) {
+		if(child == null || child.get_focusManager() != this) {
+			return false;
+		}
+		if(!child.get_isFocusEnabled()) {
+			if(child.get_focusOwner() == null || !this.isValidFocus(child.get_focusOwner())) {
+				return false;
+			}
+		}
+		var uiChild = child;
+		if(uiChild != null && !uiChild.get_isEnabled()) {
+			return false;
+		}
+		return true;
+	}
+	,stage_mouseFocusChangeHandler: function(event) {
+		if(event.relatedObject != null) {
+			this.set_focus(null);
+			return;
+		}
+		event.preventDefault();
+	}
+	,stage_keyDownHandler: function(event) {
+		if(event.get_keyCode() != 38 && event.get_keyCode() != 40 && event.get_keyCode() != 37 && event.get_keyCode() != 39) {
+			return;
+		}
+		if(event.isDefaultPrevented()) {
+			return;
+		}
+		var newFocus = null;
+		var currentFocus = this._focus;
+		if(currentFocus != null && currentFocus.get_focusOwner() != null) {
+			newFocus = currentFocus.get_focusOwner();
+		} else {
+			var position = "right";
+			switch(event.get_keyCode()) {
+			case 37:
+				position = "left";
+				if(currentFocus != null && currentFocus.get_nextLeftFocus() != null) {
+					newFocus = currentFocus.get_nextLeftFocus();
+				}
+				break;
+			case 38:
+				position = "top";
+				if(currentFocus != null && currentFocus.get_nextUpFocus() != null) {
+					newFocus = currentFocus.get_nextUpFocus();
+				}
+				break;
+			case 39:
+				position = "right";
+				if(currentFocus != null && currentFocus.get_nextRightFocus() != null) {
+					newFocus = currentFocus.get_nextRightFocus();
+				}
+				break;
+			case 40:
+				position = "bottom";
+				if(currentFocus != null && currentFocus.get_nextDownFocus() != null) {
+					newFocus = currentFocus.get_nextDownFocus();
+				}
+				break;
+			}
+			if(newFocus == null) {
+				newFocus = this.findFocusAtRelativePosition(this._root,position);
+			}
+		}
+		if(newFocus != this._focus) {
+			event.preventDefault();
+			this.set_focus(newFocus);
+		}
+		if(this._focus != null) {
+			this._focus.showFocus();
+		}
+	}
+	,stage_keyFocusChangeHandler: function(event) {
+		if(event.keyCode != 9 && event.keyCode != 0) {
+			return;
+		}
+		var newFocus = null;
+		var currentFocus = this._focus;
+		if(currentFocus != null && currentFocus.get_focusOwner() != null) {
+			newFocus = currentFocus.get_focusOwner();
+		} else if(event.shiftKey) {
+			if(currentFocus != null) {
+				if(currentFocus.get_previousTabFocus() != null) {
+					newFocus = currentFocus.get_previousTabFocus();
+				} else {
+					newFocus = this.findPreviousContainerFocus(currentFocus.get_parent(),js_Boot.__cast(currentFocus , starling_display_DisplayObject),true);
+				}
+			}
+			if(newFocus == null) {
+				newFocus = this.findPreviousContainerFocus(this._root,null,false);
+			}
+		} else {
+			if(currentFocus != null) {
+				if(currentFocus.get_nextTabFocus() != null) {
+					newFocus = currentFocus.get_nextTabFocus();
+				} else if(js_Boot.__implements(currentFocus,feathers_core_IFocusContainer) && (js_Boot.__cast(currentFocus , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
+					newFocus = this.findNextContainerFocus(js_Boot.__cast(currentFocus , starling_display_DisplayObjectContainer),null,true);
+				} else {
+					newFocus = this.findNextContainerFocus(currentFocus.get_parent(),js_Boot.__cast(currentFocus , starling_display_DisplayObject),true);
+				}
+			}
+			if(newFocus == null) {
+				newFocus = this.findNextContainerFocus(this._root,null,false);
+			}
+		}
+		if(newFocus != null) {
+			event.preventDefault();
+		}
+		this.set_focus(newFocus);
+		if(this._focus != null) {
+			this._focus.showFocus();
+		}
+	}
+	,topLevelContainer_addedHandler: function(event) {
+		this.setFocusManager(js_Boot.__cast(event.target , starling_display_DisplayObject));
+	}
+	,topLevelContainer_removedHandler: function(event) {
+		this.clearFocusManager(js_Boot.__cast(event.target , starling_display_DisplayObject));
+	}
+	,topLevelContainer_touchHandler: function(event) {
+		var label = lime_system_System.get_platformLabel();
+		if((label != null ? label : "").indexOf("tvOS") != -1) {
+			return;
+		}
+		var touch = event.getTouch(this._root,"began");
+		if(touch == null) {
+			return;
+		}
+		if(this._focus != null && this._focus.get_maintainTouchFocus()) {
+			return;
+		}
+		var focusTarget = null;
+		var target = touch.get_target();
+		var tempFocusTarget;
+		while(true) {
+			if(js_Boot.__implements(target,feathers_core_IFocusDisplayObject)) {
+				tempFocusTarget = js_Boot.__cast(target , feathers_core_IFocusDisplayObject);
+				if(this.isValidFocus(tempFocusTarget)) {
+					if(focusTarget == null || !js_Boot.__implements(tempFocusTarget,feathers_core_IFocusContainer) || !(js_Boot.__cast(tempFocusTarget , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
+						focusTarget = tempFocusTarget;
+					}
+				}
+			}
+			target = target.get_parent();
+			if(!(target != null)) {
+				break;
+			}
+		}
+		if(this._focus != null && focusTarget != null) {
+			var focusOwner = this._focus.get_focusOwner();
+			if(focusOwner == focusTarget) {
+				return;
+			}
+			var result = js_Boot.__cast(focusTarget , starling_display_DisplayObject);
+			while(result != null) {
+				var focusResult = result;
+				if(focusResult != null) {
+					focusOwner = focusResult.get_focusOwner();
+					if(focusOwner != null) {
+						if(focusOwner == this._focus) {
+							focusTarget = focusOwner;
+						}
+						break;
+					} else if(focusResult.get_isFocusEnabled()) {
+						break;
+					}
+				}
+				result = result.get_parent();
+			}
+		}
+		this.set_focus(focusTarget);
+	}
+	,nativeFocus_focusOutHandler: function(event) {
+		var nativeFocus = event.currentTarget;
+		var nativeStage = this._starling.get_nativeStage();
+		if(nativeStage.get_focus() != null && nativeStage.get_focus() != nativeFocus) {
+			if(js_Boot.__implements(nativeFocus,openfl_events_IEventDispatcher)) {
+				(js_Boot.__cast(nativeFocus , openfl_events_IEventDispatcher)).removeEventListener("focusOut",$bind(this,this.nativeFocus_focusOutHandler));
+			}
+		} else if(this._focus != null) {
+			if(js_Boot.__implements(this._focus,feathers_core_INativeFocusOwner) && (js_Boot.__cast(this._focus , feathers_core_INativeFocusOwner)).get_nativeFocus() != nativeFocus) {
+				return;
+			}
+			if(((nativeFocus) instanceof openfl_display_InteractiveObject)) {
+				nativeStage.set_focus(js_Boot.__cast(nativeFocus , openfl_display_InteractiveObject));
+			} else {
+				(js_Boot.__cast(this._focus , feathers_core_IAdvancedNativeFocusOwner)).setFocus();
+			}
+		}
+	}
+	,__class__: feathers_core_DefaultFocusManager
+	,__properties__: {set_focus:"set_focus",get_focus:"get_focus",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",get_root:"get_root"}
+});
+var feathers_core_NativeFocusTarget = function() {
+	this.referenceCount = 1;
+	openfl_display_Sprite.call(this);
+	this.set_tabEnabled(true);
+	this.mouseEnabled = false;
+	this.mouseChildren = false;
+	this.set_alpha(0);
+};
+$hxClasses["feathers.core.NativeFocusTarget"] = feathers_core_NativeFocusTarget;
+feathers_core_NativeFocusTarget.__name__ = "feathers.core.NativeFocusTarget";
+feathers_core_NativeFocusTarget.__super__ = openfl_display_Sprite;
+feathers_core_NativeFocusTarget.prototype = $extend(openfl_display_Sprite.prototype,{
+	referenceCount: null
+	,__class__: feathers_core_NativeFocusTarget
+});
 var feathers_core_FunctionMap = function() {
 	this._keys = [];
 	this._values = [];
@@ -13413,28 +15994,37 @@ feathers_core_FunctionMap.prototype = {
 	}
 	,__class__: feathers_core_FunctionMap
 };
-var feathers_core_IFocusManager = function() { };
-$hxClasses["feathers.core.IFocusManager"] = feathers_core_IFocusManager;
-feathers_core_IFocusManager.__name__ = "feathers.core.IFocusManager";
-feathers_core_IFocusManager.__isInterface__ = true;
-feathers_core_IFocusManager.prototype = {
-	get_isEnabled: null
-	,set_isEnabled: null
-	,get_focus: null
-	,set_focus: null
-	,get_root: null
-	,__class__: feathers_core_IFocusManager
-	,__properties__: {get_root:"get_root",set_focus:"set_focus",get_focus:"get_focus",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled"}
+var feathers_core_IAdvancedNativeFocusOwner = function() { };
+$hxClasses["feathers.core.IAdvancedNativeFocusOwner"] = feathers_core_IAdvancedNativeFocusOwner;
+feathers_core_IAdvancedNativeFocusOwner.__name__ = "feathers.core.IAdvancedNativeFocusOwner";
+feathers_core_IAdvancedNativeFocusOwner.__isInterface__ = true;
+feathers_core_IAdvancedNativeFocusOwner.__interfaces__ = [feathers_core_INativeFocusOwner];
+feathers_core_IAdvancedNativeFocusOwner.prototype = {
+	get_hasFocus: null
+	,setFocus: null
+	,__class__: feathers_core_IAdvancedNativeFocusOwner
+	,__properties__: {get_hasFocus:"get_hasFocus"}
 };
-var feathers_core_IStateContext = function() { };
-$hxClasses["feathers.core.IStateContext"] = feathers_core_IStateContext;
-feathers_core_IStateContext.__name__ = "feathers.core.IStateContext";
-feathers_core_IStateContext.__isInterface__ = true;
-feathers_core_IStateContext.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
-feathers_core_IStateContext.prototype = {
-	get_currentState: null
-	,__class__: feathers_core_IStateContext
-	,__properties__: {get_currentState:"get_currentState"}
+var feathers_core_IFocusContainer = function() { };
+$hxClasses["feathers.core.IFocusContainer"] = feathers_core_IFocusContainer;
+feathers_core_IFocusContainer.__name__ = "feathers.core.IFocusContainer";
+feathers_core_IFocusContainer.__isInterface__ = true;
+feathers_core_IFocusContainer.__interfaces__ = [feathers_core_IFocusDisplayObject];
+feathers_core_IFocusContainer.prototype = {
+	get_isChildFocusEnabled: null
+	,set_isChildFocusEnabled: null
+	,__class__: feathers_core_IFocusContainer
+	,__properties__: {set_isChildFocusEnabled:"set_isChildFocusEnabled",get_isChildFocusEnabled:"get_isChildFocusEnabled"}
+};
+var feathers_core_IFocusExtras = function() { };
+$hxClasses["feathers.core.IFocusExtras"] = feathers_core_IFocusExtras;
+feathers_core_IFocusExtras.__name__ = "feathers.core.IFocusExtras";
+feathers_core_IFocusExtras.__isInterface__ = true;
+feathers_core_IFocusExtras.prototype = {
+	get_focusExtrasBefore: null
+	,get_focusExtrasAfter: null
+	,__class__: feathers_core_IFocusExtras
+	,__properties__: {get_focusExtrasAfter:"get_focusExtrasAfter",get_focusExtrasBefore:"get_focusExtrasBefore"}
 };
 var feathers_core_IToggle = function() { };
 $hxClasses["feathers.core.IToggle"] = feathers_core_IToggle;
@@ -13446,6 +16036,132 @@ feathers_core_IToggle.prototype = {
 	,set_isSelected: null
 	,__class__: feathers_core_IToggle
 	,__properties__: {set_isSelected:"set_isSelected",get_isSelected:"get_isSelected"}
+};
+var feathers_core_PropertyProxy = function(onChangeCallback) {
+	this._storage = new haxe_ds_StringMap();
+	this._names = [];
+	this._onChangeCallbacks = [];
+	if(onChangeCallback != null) {
+		this._onChangeCallbacks[this._onChangeCallbacks.length] = onChangeCallback;
+	}
+};
+$hxClasses["feathers.core.PropertyProxy"] = feathers_core_PropertyProxy;
+feathers_core_PropertyProxy.__name__ = "feathers.core.PropertyProxy";
+feathers_core_PropertyProxy.fromObject = function(source,onChangeCallback) {
+	var fields;
+	if(js_Boot.__instanceof(source,Dynamic)) {
+		fields = Reflect.fields(source);
+	} else {
+		fields = Type.getInstanceFields(js_Boot.getClass(source));
+	}
+	var newValue = new feathers_core_PropertyProxy(onChangeCallback);
+	return newValue;
+};
+feathers_core_PropertyProxy.prototype = {
+	_subProxyName: null
+	,_onChangeCallbacks: null
+	,_names: null
+	,_storage: null
+	,hasProperty: function(name) {
+		return Object.prototype.hasOwnProperty.call(this._storage.h,name);
+	}
+	,iterator: function() {
+		return new haxe_iterators_ArrayIterator(this._names);
+	}
+	,getProperty: function(name) {
+		if(!Object.prototype.hasOwnProperty.call(this._storage.h,name)) {
+			var subProxy = new feathers_core_PropertyProxy($bind(this,this.subProxy_onChange));
+			subProxy._subProxyName = name;
+			this._storage.h[name] = subProxy;
+			this._names[this._names.length] = name;
+			this.fireOnChangeCallback(name);
+		}
+		return this._storage.h[name];
+	}
+	,setProperty: function(name,value) {
+		var v = value;
+		this._storage.h[name] = v;
+		if(this._names.indexOf(name) == -1) {
+			this._names[this._names.length] = name;
+		}
+		this.fireOnChangeCallback(name);
+	}
+	,deleteProperty: function(name) {
+		var index = this._names.indexOf(name);
+		if(index != -1) {
+			this._names.splice(index,1);
+		}
+		var _this = this._storage;
+		var result;
+		if(Object.prototype.hasOwnProperty.call(_this.h,name)) {
+			delete(_this.h[name]);
+			result = true;
+		} else {
+			result = false;
+		}
+		if(result) {
+			this.fireOnChangeCallback(name);
+		}
+		return result;
+	}
+	,nextNameIndex: function(index) {
+		if(index < this._names.length) {
+			return index + 1;
+		}
+		return 0;
+	}
+	,nextName: function(index) {
+		return this._names[index - 1];
+	}
+	,nextValue: function(index) {
+		var name = this._names[index - 1];
+		return this._storage.h[name];
+	}
+	,addOnChangeCallback: function(callback) {
+		this._onChangeCallbacks[this._onChangeCallbacks.length] = callback;
+	}
+	,removeOnChangeCallback: function(callback) {
+		var index = this._onChangeCallbacks.indexOf(callback);
+		if(index == -1) {
+			return;
+		}
+		if(index == 0) {
+			this._onChangeCallbacks.shift();
+			return;
+		}
+		if(index == this._onChangeCallbacks.length - 1) {
+			this._onChangeCallbacks.pop();
+			return;
+		}
+		this._onChangeCallbacks.splice(index,1);
+	}
+	,toString: function() {
+		var result = "[object PropertyProxy";
+		var _g = 0;
+		var _g1 = this._names;
+		while(_g < _g1.length) {
+			var name = _g1[_g];
+			++_g;
+			result += " " + name;
+		}
+		return result + "]";
+	}
+	,fireOnChangeCallback: function(forName) {
+		var callbackCount = this._onChangeCallbacks.length;
+		var _g = 0;
+		var _g1 = callbackCount;
+		while(_g < _g1) {
+			var i = _g++;
+			this._onChangeCallbacks[i](this,forName);
+		}
+	}
+	,subProxy_onChange: function(proxy,name) {
+		this.fireOnChangeCallback(proxy._subProxyName);
+	}
+	,dispose: function() {
+		this._storage.h = Object.create(null);
+	}
+	,__class__: feathers_core_PropertyProxy
 };
 var feathers_core_TokenList = function() {
 	this.names = [];
@@ -13842,6 +16558,9 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	,__class__: feathers_layout_AnchorLayoutData
 	,__properties__: {set_verticalCenter:"set_verticalCenter",get_verticalCenter:"get_verticalCenter",set_verticalCenterAnchorDisplayObject:"set_verticalCenterAnchorDisplayObject",get_verticalCenterAnchorDisplayObject:"get_verticalCenterAnchorDisplayObject",set_horizontalCenter:"set_horizontalCenter",get_horizontalCenter:"get_horizontalCenter",set_horizontalCenterAnchorDisplayObject:"set_horizontalCenterAnchorDisplayObject",get_horizontalCenterAnchorDisplayObject:"get_horizontalCenterAnchorDisplayObject",set_left:"set_left",get_left:"get_left",set_leftAnchorDisplayObject:"set_leftAnchorDisplayObject",get_leftAnchorDisplayObject:"get_leftAnchorDisplayObject",set_bottom:"set_bottom",get_bottom:"get_bottom",set_bottomAnchorDisplayObject:"set_bottomAnchorDisplayObject",get_bottomAnchorDisplayObject:"get_bottomAnchorDisplayObject",set_right:"set_right",get_right:"get_right",set_rightAnchorDisplayObject:"set_rightAnchorDisplayObject",get_rightAnchorDisplayObject:"get_rightAnchorDisplayObject",set_top:"set_top",get_top:"get_top",set_topAnchorDisplayObject:"set_topAnchorDisplayObject",get_topAnchorDisplayObject:"get_topAnchorDisplayObject",set_percentHeight:"set_percentHeight",get_percentHeight:"get_percentHeight",set_percentWidth:"set_percentWidth",get_percentWidth:"get_percentWidth"}
 });
+var feathers_layout_HorizontalAlign = function() { };
+$hxClasses["feathers.layout.HorizontalAlign"] = feathers_layout_HorizontalAlign;
+feathers_layout_HorizontalAlign.__name__ = "feathers.layout.HorizontalAlign";
 var feathers_layout_IVirtualLayout = function() { };
 $hxClasses["feathers.layout.IVirtualLayout"] = feathers_layout_IVirtualLayout;
 feathers_layout_IVirtualLayout.__name__ = "feathers.layout.IVirtualLayout";
@@ -13872,6 +16591,12 @@ feathers_layout_LayoutBoundsResult.prototype = {
 	,contentHeight: null
 	,__class__: feathers_layout_LayoutBoundsResult
 };
+var feathers_layout_RelativePosition = function() { };
+$hxClasses["feathers.layout.RelativePosition"] = feathers_layout_RelativePosition;
+feathers_layout_RelativePosition.__name__ = "feathers.layout.RelativePosition";
+var feathers_layout_VerticalAlign = function() { };
+$hxClasses["feathers.layout.VerticalAlign"] = feathers_layout_VerticalAlign;
+feathers_layout_VerticalAlign.__name__ = "feathers.layout.VerticalAlign";
 var feathers_layout_ViewPortBounds = function() {
 	this.maxHeight = Infinity;
 	this.maxWidth = Infinity;
@@ -13959,6 +16684,167 @@ feathers_skins_IStyleProvider.__isInterface__ = true;
 feathers_skins_IStyleProvider.prototype = {
 	applyStyles: null
 	,__class__: feathers_skins_IStyleProvider
+};
+var openfl_system_Capabilities = function() { };
+$hxClasses["openfl.system.Capabilities"] = openfl_system_Capabilities;
+openfl_system_Capabilities.__name__ = "openfl.system.Capabilities";
+openfl_system_Capabilities.__properties__ = {get_version:"get_version",get_screenResolutionY:"get_screenResolutionY",get_screenResolutionX:"get_screenResolutionX",get_screenDPI:"get_screenDPI",get_pixelAspectRatio:"get_pixelAspectRatio",get_os:"get_os",get_manufacturer:"get_manufacturer",get_language:"get_language",get_cpuArchitecture:"get_cpuArchitecture"};
+openfl_system_Capabilities.hasMultiChannelAudio = function(type) {
+	return false;
+};
+openfl_system_Capabilities.get_cpuArchitecture = function() {
+	return "x86";
+};
+openfl_system_Capabilities.get_language = function() {
+	var language = lime_system_Locale.get_language(lime_system_Locale.get_currentLocale());
+	if(language != null) {
+		language = language.toLowerCase();
+		switch(language) {
+		case "cs":case "da":case "de":case "en":case "es":case "fi":case "fr":case "hu":case "it":case "ja":case "ko":case "nb":case "nl":case "pl":case "pt":case "ru":case "sv":case "tr":
+			return language;
+		case "zh":
+			var region = lime_system_Locale.get_region(lime_system_Locale.get_currentLocale());
+			if(region != null) {
+				switch(region.toUpperCase()) {
+				case "HANT":case "TW":
+					return "zh-TW";
+				default:
+				}
+			}
+			return "zh-CN";
+		default:
+			return "xu";
+		}
+	}
+	return "en";
+};
+openfl_system_Capabilities.get_manufacturer = function() {
+	var name = lime_system_System.get_platformName();
+	return "OpenFL" + (name != null ? " " + name : "");
+};
+openfl_system_Capabilities.get_os = function() {
+	var label = lime_system_System.get_platformLabel();
+	if(label != null) {
+		return label;
+	} else {
+		return "";
+	}
+};
+openfl_system_Capabilities.get_pixelAspectRatio = function() {
+	return 1;
+};
+openfl_system_Capabilities.get_screenDPI = function() {
+	var $window = openfl_utils__$internal_Lib.application != null ? openfl_utils__$internal_Lib.application.__window : null;
+	var screenDPI = 72;
+	if($window != null) {
+		screenDPI *= $window.__scale;
+	}
+	return screenDPI;
+};
+openfl_system_Capabilities.get_screenResolutionX = function() {
+	var stage = openfl_utils__$internal_Lib.current.stage;
+	var resolutionX = 0;
+	if(stage == null) {
+		return 0;
+	}
+	if(stage.window != null) {
+		var display = stage.window.get_display();
+		if(display != null) {
+			resolutionX = Math.ceil(display.currentMode.width * stage.window.__scale);
+		}
+	}
+	if(resolutionX > 0) {
+		return resolutionX;
+	}
+	return stage.stageWidth;
+};
+openfl_system_Capabilities.get_screenResolutionY = function() {
+	var stage = openfl_utils__$internal_Lib.current.stage;
+	var resolutionY = 0;
+	if(stage == null) {
+		return 0;
+	}
+	if(stage.window != null) {
+		var display = stage.window.get_display();
+		if(display != null) {
+			resolutionY = Math.ceil(display.currentMode.height * stage.window.__scale);
+		}
+	}
+	if(resolutionY > 0) {
+		return resolutionY;
+	}
+	return stage.stageHeight;
+};
+openfl_system_Capabilities.get_version = function() {
+	var value = "WEB";
+	value += " " + StringTools.replace("9.2.0",".",",") + ",0";
+	return value;
+};
+var openfl_utils__$internal_Lib = function() { };
+$hxClasses["openfl.utils._internal.Lib"] = openfl_utils__$internal_Lib;
+openfl_utils__$internal_Lib.__name__ = "openfl.utils._internal.Lib";
+openfl_utils__$internal_Lib.application = null;
+openfl_utils__$internal_Lib.current = null;
+openfl_utils__$internal_Lib.notImplemented = function(posInfo) {
+	var api = posInfo.className + "." + posInfo.methodName;
+	if(!Object.prototype.hasOwnProperty.call(openfl_utils__$internal_Lib.__sentWarnings.h,api)) {
+		openfl_utils__$internal_Lib.__sentWarnings.h[api] = true;
+		lime_utils_Log.warn(posInfo.methodName + " is not implemented",posInfo);
+	}
+};
+var feathers_system_DeviceCapabilities = function() { };
+$hxClasses["feathers.system.DeviceCapabilities"] = feathers_system_DeviceCapabilities;
+feathers_system_DeviceCapabilities.__name__ = "feathers.system.DeviceCapabilities";
+feathers_system_DeviceCapabilities.isTablet = function(stage) {
+	var portraitWidth = feathers_system_DeviceCapabilities.screenInchesX(stage);
+	var landscapeWidth = feathers_system_DeviceCapabilities.screenInchesY(stage);
+	if(portraitWidth > landscapeWidth) {
+		var temp = landscapeWidth;
+		landscapeWidth = portraitWidth;
+		portraitWidth = temp;
+	}
+	if(portraitWidth >= feathers_system_DeviceCapabilities.tabletScreenPortraitWidthMinimumInches) {
+		return landscapeWidth >= feathers_system_DeviceCapabilities.tabletScreenLandscapeWidthMinimumInches;
+	} else {
+		return false;
+	}
+};
+feathers_system_DeviceCapabilities.isLargePhone = function(stage) {
+	var portraitWidth = feathers_system_DeviceCapabilities.screenInchesX(stage);
+	var landscapeWidth = feathers_system_DeviceCapabilities.screenInchesY(stage);
+	if(portraitWidth > landscapeWidth) {
+		var temp = landscapeWidth;
+		landscapeWidth = portraitWidth;
+		portraitWidth = temp;
+	}
+	if(portraitWidth >= feathers_system_DeviceCapabilities.largePhoneScreenPortraitWidthMinimumInches && landscapeWidth >= feathers_system_DeviceCapabilities.largePhoneScreenLandscapeWidthMinimumInches) {
+		return !feathers_system_DeviceCapabilities.isTablet(stage);
+	} else {
+		return false;
+	}
+};
+feathers_system_DeviceCapabilities.isPhone = function(stage) {
+	return !feathers_system_DeviceCapabilities.isTablet(stage);
+};
+feathers_system_DeviceCapabilities.screenInchesX = function(stage) {
+	if(stage == null) {
+		stage = starling_core_Starling.get_current().get_nativeStage();
+	}
+	var screenWidth = feathers_system_DeviceCapabilities.screenPixelWidth;
+	if(screenWidth != screenWidth) {
+		screenWidth = UInt.toFloat(stage.get_fullScreenWidth());
+	}
+	return screenWidth / feathers_system_DeviceCapabilities.dpi;
+};
+feathers_system_DeviceCapabilities.screenInchesY = function(stage) {
+	if(stage == null) {
+		stage = starling_core_Starling.get_current().get_nativeStage();
+	}
+	var screenHeight = feathers_system_DeviceCapabilities.screenPixelHeight;
+	if(screenHeight != screenHeight) {
+		screenHeight = UInt.toFloat(stage.get_fullScreenHeight());
+	}
+	return screenHeight / feathers_system_DeviceCapabilities.dpi;
 };
 var feathers_text_BitmapFontTextFormat = function(font,size,color,align,leading) {
 	if(leading == null) {
@@ -14439,6 +17325,160 @@ feathers_utils_display_FeathersUIUtils.nativeToGlobal = function(nativePosition,
 	}
 	return result;
 };
+var feathers_utils_focus_FeathersFocusUtils = function() { };
+$hxClasses["feathers.utils.focus.FeathersFocusUtils"] = feathers_utils_focus_FeathersFocusUtils;
+feathers_utils_focus_FeathersFocusUtils.__name__ = "feathers.utils.focus.FeathersFocusUtils";
+feathers_utils_focus_FeathersFocusUtils.isBetterFocusForRelativePosition = function(object1,object2,focusedRect,relativePosition) {
+	var rect = object1.getBounds(object1.get_stage(),starling_utils_Pool.getRectangle());
+	var minPrimaryDistance1 = feathers_utils_focus_FeathersFocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+	if(minPrimaryDistance1 == Infinity) {
+		return false;
+	}
+	var maxPrimaryDistance1 = feathers_utils_focus_FeathersFocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+	var secondaryDistance1 = feathers_utils_focus_FeathersFocusUtils.calculateSecondaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+	var onSameAxis1 = feathers_utils_focus_FeathersFocusUtils.itemsAreOnSameAxis(focusedRect,rect,relativePosition);
+	var minPrimaryDistance2;
+	var maxPrimaryDistance2;
+	var secondaryDistance2;
+	var onSameAxis2;
+	if(object2 == null) {
+		minPrimaryDistance2 = Infinity;
+		maxPrimaryDistance2 = Infinity;
+		secondaryDistance2 = Infinity;
+		onSameAxis2 = false;
+	} else {
+		object2.getBounds(object2.get_stage(),rect);
+		minPrimaryDistance2 = feathers_utils_focus_FeathersFocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+		maxPrimaryDistance2 = feathers_utils_focus_FeathersFocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+		secondaryDistance2 = feathers_utils_focus_FeathersFocusUtils.calculateSecondaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+		onSameAxis2 = feathers_utils_focus_FeathersFocusUtils.itemsAreOnSameAxis(focusedRect,rect,relativePosition);
+	}
+	starling_utils_Pool.putRectangle(rect);
+	if(onSameAxis1 != null && onSameAxis2 != null) {
+		if(minPrimaryDistance1 > 0) {
+			return minPrimaryDistance1 < minPrimaryDistance2;
+		} else {
+			return false;
+		}
+	}
+	var isVertical = relativePosition == "top" || relativePosition == "bottom";
+	if(onSameAxis1) {
+		if(isVertical) {
+			if(minPrimaryDistance1 > 0 && minPrimaryDistance1 < maxPrimaryDistance2) {
+				return true;
+			}
+		} else {
+			return true;
+		}
+	} else if(onSameAxis2) {
+		if(isVertical) {
+			if(minPrimaryDistance2 > 0 && minPrimaryDistance2 < maxPrimaryDistance1) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+	var weightedDistance1 = 13 * minPrimaryDistance1 * minPrimaryDistance1 + secondaryDistance1 * secondaryDistance1;
+	var weightedDistance2 = 13 * minPrimaryDistance2 * minPrimaryDistance2 + secondaryDistance2 * secondaryDistance2;
+	return weightedDistance1 < weightedDistance2;
+};
+feathers_utils_focus_FeathersFocusUtils.calculateSecondaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
+	if(position == "top" || position == "bottom") {
+		return Math.abs(globalRect1.x + globalRect1.width / 2 - (globalRect2.x + globalRect2.width / 2));
+	}
+	return Math.abs(globalRect1.y + globalRect1.height / 2 - (globalRect2.y + globalRect2.height / 2));
+};
+feathers_utils_focus_FeathersFocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
+	var result;
+	switch(position) {
+	case "bottom":
+		if(globalRect1.y < globalRect2.y || globalRect1.get_bottom() <= globalRect2.y) {
+			result = globalRect2.get_bottom() - globalRect1.y;
+			if(result > 0) {
+				return result;
+			}
+		}
+		break;
+	case "left":
+		if(globalRect1.get_right() > globalRect2.get_right() || globalRect1.x >= globalRect2.get_right()) {
+			result = globalRect1.get_right() - globalRect2.x;
+			if(result > 0) {
+				return result;
+			}
+		}
+		break;
+	case "right":
+		if(globalRect1.x < globalRect2.x || globalRect1.get_right() <= globalRect2.x) {
+			result = globalRect2.get_right() - globalRect1.x;
+			if(result > 0) {
+				return result;
+			}
+		}
+		break;
+	case "top":
+		if(globalRect1.get_bottom() > globalRect2.get_bottom() || globalRect1.y >= globalRect2.get_bottom()) {
+			result = globalRect1.get_bottom() - globalRect2.y;
+			if(result > 0) {
+				return result;
+			}
+		}
+		break;
+	}
+	return Infinity;
+};
+feathers_utils_focus_FeathersFocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
+	var result;
+	switch(position) {
+	case "bottom":
+		if(globalRect1.y < globalRect2.y || globalRect1.get_bottom() <= globalRect2.y) {
+			result = globalRect2.y - globalRect1.y;
+			if(result > 0) {
+				return result;
+			}
+		}
+		break;
+	case "left":
+		if(globalRect1.get_right() > globalRect2.get_right() || globalRect1.x >= globalRect2.get_right()) {
+			result = globalRect1.get_right() - globalRect2.get_right();
+			if(result > 0) {
+				return result;
+			}
+		}
+		break;
+	case "right":
+		if(globalRect1.x < globalRect2.x || globalRect1.get_right() <= globalRect2.x) {
+			result = globalRect2.x - globalRect1.x;
+			if(result > 0) {
+				return result;
+			}
+		}
+		break;
+	case "top":
+		if(globalRect1.get_bottom() > globalRect2.get_bottom() || globalRect1.y >= globalRect2.get_bottom()) {
+			result = globalRect1.get_bottom() - globalRect2.get_bottom();
+			if(result > 0) {
+				return result;
+			}
+		}
+		break;
+	}
+	return Infinity;
+};
+feathers_utils_focus_FeathersFocusUtils.itemsAreOnSameAxis = function(globalRect1,globalRect2,position) {
+	if(position == "top" || position == "bottom") {
+		if(globalRect1.x <= globalRect2.get_right()) {
+			return globalRect2.x <= globalRect1.get_right();
+		} else {
+			return false;
+		}
+	}
+	if(globalRect1.y <= globalRect2.get_bottom()) {
+		return globalRect2.y <= globalRect1.get_bottom();
+	} else {
+		return false;
+	}
+};
 var feathers_utils_geom_FeathersGeomUtils = function() { };
 $hxClasses["feathers.utils.geom.FeathersGeomUtils"] = feathers_utils_geom_FeathersGeomUtils;
 feathers_utils_geom_FeathersGeomUtils.__name__ = "feathers.utils.geom.FeathersGeomUtils";
@@ -14457,10 +17497,409 @@ feathers_utils_geom_FeathersGeomUtils.matrixToRotation = function(matrix) {
 	var d = matrix.d;
 	return -Math.atan(c / d);
 };
-var feathers_utils_skins_FeathersSkinsUtils = function() { };
-$hxClasses["feathers.utils.skins.FeathersSkinsUtils"] = feathers_utils_skins_FeathersSkinsUtils;
-feathers_utils_skins_FeathersSkinsUtils.__name__ = "feathers.utils.skins.FeathersSkinsUtils";
-feathers_utils_skins_FeathersSkinsUtils.resetFluidChildDimensionsForMeasurement = function(child,parentExplicitWidth,parentExplicitHeight,parentExplicitMinWidth,parentExplicitMinHeight,parentExplicitMaxWidth,parentExplicitMaxHeight,childExplicitWidth,childExplicitHeight,childExplicitMinWidth,childExplicitMinHeight,childExplicitMaxWidth,childExplicitMaxHeight) {
+var feathers_utils_keyboard_KeyToEvent = function(target,keyCode,eventType) {
+	if(keyCode == null) {
+		keyCode = 32;
+	}
+	this._isEnabled = true;
+	this._eventType = null;
+	this._keyLocation = 999999999;
+	this._cancelKeyCode = 27;
+	this._keyCode = 32;
+	this.set_target(target);
+	this.set_keyCode(keyCode);
+	this.set_eventType(eventType);
+};
+$hxClasses["feathers.utils.keyboard.KeyToEvent"] = feathers_utils_keyboard_KeyToEvent;
+feathers_utils_keyboard_KeyToEvent.__name__ = "feathers.utils.keyboard.KeyToEvent";
+feathers_utils_keyboard_KeyToEvent.prototype = {
+	_stage: null
+	,_target: null
+	,get_target: function() {
+		return this._target;
+	}
+	,set_target: function(value) {
+		if(this._target == value) {
+			return value;
+		}
+		if(this._stage != null) {
+			this._stage.removeEventListener("keyDown",$bind(this,this.stage_keyDownHandler));
+			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+			this._stage = null;
+		}
+		if(this._target != null) {
+			this._target.removeEventListener("focusIn",$bind(this,this.target_focusInHandler));
+			this._target.removeEventListener("focusOut",$bind(this,this.target_focusOutHandler));
+			this._target.removeEventListener("removedFromStage",$bind(this,this.target_removedFromStageHandler));
+		}
+		this._target = value;
+		if(this._target != null) {
+			this._target.addEventListener("focusIn",$bind(this,this.target_focusInHandler));
+			this._target.addEventListener("focusOut",$bind(this,this.target_focusOutHandler));
+			this._target.addEventListener("removedFromStage",$bind(this,this.target_removedFromStageHandler));
+		}
+		return this._target;
+	}
+	,_keyCode: null
+	,get_keyCode: function() {
+		return this._keyCode;
+	}
+	,set_keyCode: function(value) {
+		return this._keyCode = value;
+	}
+	,_cancelKeyCode: null
+	,get_cancelKeyCode: function() {
+		return this._cancelKeyCode;
+	}
+	,set_cancelKeyCode: function(value) {
+		return this._cancelKeyCode = value;
+	}
+	,_keyLocation: null
+	,get_keyLocation: function() {
+		return this._keyLocation;
+	}
+	,set_keyLocation: function(value) {
+		return this._keyLocation = value;
+	}
+	,_eventType: null
+	,get_eventType: function() {
+		return this._eventType;
+	}
+	,set_eventType: function(value) {
+		return this._eventType = value;
+	}
+	,_isEnabled: null
+	,get_isEnabled: function() {
+		return this._isEnabled;
+	}
+	,set_isEnabled: function(value) {
+		return this._isEnabled = value;
+	}
+	,target_focusInHandler: function(event) {
+		var focusManager = this._target.get_focusManager();
+		this._stage = this._target.get_stage();
+		this._stage.addEventListener("keyDown",$bind(this,this.stage_keyDownHandler));
+	}
+	,target_focusOutHandler: function(event) {
+		if(this._stage != null) {
+			this._stage.removeEventListener("keyDown",$bind(this,this.stage_keyDownHandler));
+			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+			this._stage = null;
+		}
+	}
+	,target_removedFromStageHandler: function(event) {
+		if(this._stage != null) {
+			this._stage.removeEventListener("keyDown",$bind(this,this.stage_keyDownHandler));
+			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+			this._stage = null;
+		}
+	}
+	,stage_keyDownHandler: function(event) {
+		if(!this._isEnabled) {
+			return;
+		}
+		if(event.currentTarget != this._stage) {
+			return;
+		}
+		if(event.get_keyCode() == this._cancelKeyCode) {
+			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+			return;
+		}
+		if(event.get_keyCode() != this._keyCode) {
+			return;
+		}
+		if(this._keyLocation != 999999999 && !(event.get_keyLocation() == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
+			return;
+		}
+		this._stage.addEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+	}
+	,stage_keyUpHandler: function(event) {
+		if(!this._isEnabled) {
+			return;
+		}
+		if(event.get_keyCode() != this._keyCode) {
+			return;
+		}
+		if(this._keyLocation != 999999999 && !(event.get_keyLocation() == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
+			return;
+		}
+		var stage = event.currentTarget;
+		stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+		if(this._stage != stage) {
+			return;
+		}
+		this._target.dispatchEventWith(this._eventType);
+	}
+	,__class__: feathers_utils_keyboard_KeyToEvent
+	,__properties__: {set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",set_eventType:"set_eventType",get_eventType:"get_eventType",set_keyLocation:"set_keyLocation",get_keyLocation:"get_keyLocation",set_cancelKeyCode:"set_cancelKeyCode",get_cancelKeyCode:"get_cancelKeyCode",set_keyCode:"set_keyCode",get_keyCode:"get_keyCode",set_target:"set_target",get_target:"get_target"}
+};
+var feathers_utils_keyboard_KeyToState = function(target,callback) {
+	this._downState = "down";
+	this._upState = "up";
+	this._currentState = "up";
+	this._isEnabled = true;
+	this._keyLocation = 999999999;
+	this._cancelKeyCode = 27;
+	this._keyCode = 32;
+	this._hasFocus = false;
+	this.set_target(target);
+	this.set_callback(callback);
+};
+$hxClasses["feathers.utils.keyboard.KeyToState"] = feathers_utils_keyboard_KeyToState;
+feathers_utils_keyboard_KeyToState.__name__ = "feathers.utils.keyboard.KeyToState";
+feathers_utils_keyboard_KeyToState.prototype = {
+	_stage: null
+	,_hasFocus: null
+	,_target: null
+	,get_target: function() {
+		return this._target;
+	}
+	,set_target: function(value) {
+		if(this._target == value) {
+			return value;
+		}
+		if(value != null && !js_Boot.__implements(value,feathers_core_IFocusDisplayObject)) {
+			throw new openfl_errors_ArgumentError("Target of KeyToState must implement IFocusDisplayObject");
+		}
+		if(this._stage != null) {
+			this._stage.removeEventListener("keyDown",$bind(this,this.stage_keyDownHandler));
+			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+			this._stage = null;
+		}
+		if(this._target != null) {
+			this._target.removeEventListener("focusIn",$bind(this,this.target_focusInHandler));
+			this._target.removeEventListener("focusOut",$bind(this,this.target_focusOutHandler));
+			this._target.removeEventListener("removedFromStage",$bind(this,this.target_removedFromStageHandler));
+		}
+		this._target = value;
+		if(this._target != null) {
+			this._currentState = this._upState;
+			this._target.addEventListener("focusIn",$bind(this,this.target_focusInHandler));
+			this._target.addEventListener("focusOut",$bind(this,this.target_focusOutHandler));
+			this._target.addEventListener("removedFromStage",$bind(this,this.target_removedFromStageHandler));
+		}
+		return this._target;
+	}
+	,_callback: null
+	,get_callback: function() {
+		return this._callback;
+	}
+	,set_callback: function(value) {
+		if(this._callback == value) {
+			return this._callback;
+		}
+		this._callback = value;
+		if(this._callback != null) {
+			this._callback(this._currentState);
+		}
+		return this._callback;
+	}
+	,_keyCode: null
+	,get_keyCode: function() {
+		return this._keyCode;
+	}
+	,set_keyCode: function(value) {
+		return this._keyCode = value;
+	}
+	,_cancelKeyCode: null
+	,get_cancelKeyCode: function() {
+		return this._cancelKeyCode;
+	}
+	,set_cancelKeyCode: function(value) {
+		return this._cancelKeyCode = value;
+	}
+	,_keyLocation: null
+	,get_keyLocation: function() {
+		return this._keyLocation;
+	}
+	,set_keyLocation: function(value) {
+		return this._keyLocation = value;
+	}
+	,_isEnabled: null
+	,get_isEnabled: function() {
+		return this._isEnabled;
+	}
+	,set_isEnabled: function(value) {
+		this._isEnabled = value;
+		return this._isEnabled;
+	}
+	,_currentState: null
+	,get_currentState: function() {
+		return this._currentState;
+	}
+	,_upState: null
+	,get_upState: function() {
+		return this._upState;
+	}
+	,set_upState: function(value) {
+		return this._upState = value;
+	}
+	,_downState: null
+	,get_downState: function() {
+		return this._downState;
+	}
+	,set_downState: function(value) {
+		return this._downState = value;
+	}
+	,changeState: function(value) {
+		var oldState = this._currentState;
+		if(js_Boot.__implements(this._target,feathers_core_IStateContext)) {
+			oldState = (js_Boot.__cast(this._target , feathers_core_IStateContext)).get_currentState();
+		}
+		this._currentState = value;
+		if(oldState == value) {
+			return;
+		}
+		if(this._callback != null) {
+			this._callback(value);
+		}
+	}
+	,focusOut: function() {
+		this._hasFocus = false;
+		if(this._stage != null) {
+			this._stage.removeEventListener("keyDown",$bind(this,this.stage_keyDownHandler));
+			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+			this._stage = null;
+		}
+		this.changeState(this._upState);
+	}
+	,target_focusInHandler: function(event) {
+		this._hasFocus = true;
+		this._stage = this._target.get_stage();
+		this._stage.addEventListener("keyDown",$bind(this,this.stage_keyDownHandler));
+	}
+	,target_focusOutHandler: function(event) {
+		this.focusOut();
+	}
+	,target_removedFromStageHandler: function(event) {
+		this.focusOut();
+	}
+	,stage_keyDownHandler: function(event) {
+		if(!this._isEnabled) {
+			return;
+		}
+		if(event.currentTarget != this._stage) {
+			return;
+		}
+		if(event.get_keyCode() == this._cancelKeyCode) {
+			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+			this.changeState(this._upState);
+			return;
+		}
+		if(event.get_keyCode() != this._keyCode) {
+			return;
+		}
+		if(this._keyLocation != 999999999 && !(event.get_keyLocation() == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
+			return;
+		}
+		this._stage.addEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+		this.changeState(this._downState);
+	}
+	,stage_keyUpHandler: function(event) {
+		if(!this._isEnabled) {
+			return;
+		}
+		if(event.get_keyCode() != this._keyCode) {
+			return;
+		}
+		if(this._keyLocation != 2147483647 && !(event.get_keyLocation() == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
+			return;
+		}
+		var stage = js_Boot.__cast(event.currentTarget , starling_display_Stage);
+		stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
+		if(this._stage != stage) {
+			return;
+		}
+		this.changeState(this._upState);
+	}
+	,__class__: feathers_utils_keyboard_KeyToState
+	,__properties__: {set_downState:"set_downState",get_downState:"get_downState",set_upState:"set_upState",get_upState:"get_upState",get_currentState:"get_currentState",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",set_keyLocation:"set_keyLocation",get_keyLocation:"get_keyLocation",set_cancelKeyCode:"set_cancelKeyCode",get_cancelKeyCode:"get_cancelKeyCode",set_keyCode:"set_keyCode",get_keyCode:"get_keyCode",set_callback:"set_callback",get_callback:"get_callback",set_target:"set_target",get_target:"get_target"}
+};
+var feathers_utils_keyboard_KeyToTrigger = function(target,keyCode) {
+	if(keyCode == null) {
+		keyCode = 32;
+	}
+	feathers_utils_keyboard_KeyToEvent.call(this,target,keyCode,"triggered");
+};
+$hxClasses["feathers.utils.keyboard.KeyToTrigger"] = feathers_utils_keyboard_KeyToTrigger;
+feathers_utils_keyboard_KeyToTrigger.__name__ = "feathers.utils.keyboard.KeyToTrigger";
+feathers_utils_keyboard_KeyToTrigger.__super__ = feathers_utils_keyboard_KeyToEvent;
+feathers_utils_keyboard_KeyToTrigger.prototype = $extend(feathers_utils_keyboard_KeyToEvent.prototype,{
+	__class__: feathers_utils_keyboard_KeyToTrigger
+});
+var feathers_utils_math_MathUtils = function() { };
+$hxClasses["feathers.utils.math.MathUtils"] = feathers_utils_math_MathUtils;
+feathers_utils_math_MathUtils.__name__ = "feathers.utils.math.MathUtils";
+feathers_utils_math_MathUtils.clamp = function(value,minimum,maximum) {
+	if(minimum > maximum) {
+		throw new openfl_errors_ArgumentError("minimum should be smaller than maximum.");
+	}
+	if(value < minimum) {
+		value = minimum;
+	} else if(value > maximum) {
+		value = maximum;
+	}
+	return value;
+};
+feathers_utils_math_MathUtils.roundDownToNearest = function(number,nearest) {
+	if(nearest == null) {
+		nearest = 1;
+	}
+	if(nearest == 0) {
+		return number;
+	}
+	var precision = 10;
+	if(precision == null) {
+		precision = 0;
+	}
+	var decimalPlaces = Math.pow(10,precision);
+	return Math.floor(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+};
+feathers_utils_math_MathUtils.roundToNearest = function(number,nearest) {
+	if(nearest == null) {
+		nearest = 1;
+	}
+	if(nearest == 0) {
+		return number;
+	}
+	var precision = 10;
+	if(precision == null) {
+		precision = 0;
+	}
+	var decimalPlaces = Math.pow(10,precision);
+	var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+	var precision = 10;
+	if(precision == null) {
+		precision = 0;
+	}
+	var decimalPlaces = Math.pow(10,precision);
+	return Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+};
+feathers_utils_math_MathUtils.roundToPrecision = function(number,precision) {
+	if(precision == null) {
+		precision = 0;
+	}
+	var decimalPlaces = Math.pow(10,precision);
+	return Math.round(decimalPlaces * number) / decimalPlaces;
+};
+feathers_utils_math_MathUtils.roundUpToNearest = function(number,nearest) {
+	if(nearest == null) {
+		nearest = 1;
+	}
+	if(nearest == 0) {
+		return number;
+	}
+	var precision = 10;
+	if(precision == null) {
+		precision = 0;
+	}
+	var decimalPlaces = Math.pow(10,precision);
+	return Math.ceil(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+};
+var feathers_utils_skins_SkinsUtils = function() { };
+$hxClasses["feathers.utils.skins.SkinsUtils"] = feathers_utils_skins_SkinsUtils;
+feathers_utils_skins_SkinsUtils.__name__ = "feathers.utils.skins.SkinsUtils";
+feathers_utils_skins_SkinsUtils.resetFluidChildDimensionsForMeasurement = function(child,parentExplicitWidth,parentExplicitHeight,parentExplicitMinWidth,parentExplicitMinHeight,parentExplicitMaxWidth,parentExplicitMaxHeight,childExplicitWidth,childExplicitHeight,childExplicitMinWidth,childExplicitMinHeight,childExplicitMaxWidth,childExplicitMaxHeight) {
 	if(child == null) {
 		return;
 	}
@@ -14476,7 +17915,7 @@ feathers_utils_skins_FeathersSkinsUtils.resetFluidChildDimensionsForMeasurement 
 	} else {
 		child.set_height(parentExplicitHeight);
 	}
-	var measureChild = child;
+	var measureChild = js_Boot.__cast(child , feathers_core_IMeasureDisplayObject);
 	var compilerWorkaround;
 	if(measureChild != null) {
 		var childMinWidth = parentExplicitMinWidth;
@@ -14504,6 +17943,581 @@ feathers_utils_skins_FeathersSkinsUtils.resetFluidChildDimensionsForMeasurement 
 		}
 		measureChild.set_maxHeight(childMaxHeight);
 	}
+};
+var feathers_utils_touch_LongPress = function(target) {
+	this._isEnabled = true;
+	this._touchLastGlobalPosition = new openfl_geom_Point();
+	this._touchPointID = -1;
+	this._longPressDuration = 0.5;
+	this.set_target(target);
+};
+$hxClasses["feathers.utils.touch.LongPress"] = feathers_utils_touch_LongPress;
+feathers_utils_touch_LongPress.__name__ = "feathers.utils.touch.LongPress";
+feathers_utils_touch_LongPress.prototype = {
+	_target: null
+	,get_target: function() {
+		return this._target;
+	}
+	,set_target: function(value) {
+		if(this._target == value) {
+			return this._target;
+		}
+		if(this._target != null) {
+			this._target.removeEventListener("touch",$bind(this,this.target_touchHandler));
+			this._target.removeEventListener("enterFrame",$bind(this,this.target_enterFrameHandler));
+		}
+		this._target = value;
+		if(this._target != null) {
+			this._touchPointID = -1;
+			this._target.addEventListener("touch",$bind(this,this.target_touchHandler));
+		}
+		return this._target;
+	}
+	,_longPressDuration: null
+	,get_longPressDuration: function() {
+		return this._longPressDuration;
+	}
+	,set_longPressDuration: function(value) {
+		return this._longPressDuration = value;
+	}
+	,_touchPointID: null
+	,_touchLastGlobalPosition: null
+	,_touchBeginTime: null
+	,_isEnabled: null
+	,get_isEnabled: function() {
+		return this._isEnabled;
+	}
+	,set_isEnabled: function(value) {
+		if(this._isEnabled == value) {
+			return this._isEnabled;
+		}
+		if(!value) {
+			this._touchPointID = -1;
+		}
+		return this._isEnabled = value;
+	}
+	,_tapToTrigger: null
+	,get_tapToTrigger: function() {
+		return this._tapToTrigger;
+	}
+	,set_tapToTrigger: function(value) {
+		return this._tapToTrigger;
+	}
+	,_tapToSelect: null
+	,get_tapToSelect: function() {
+		return this._tapToSelect;
+	}
+	,set_tapToSelect: function(value) {
+		return this._tapToSelect = value;
+	}
+	,_customHitTest: null
+	,get_customHitTest: function() {
+		return this._customHitTest;
+	}
+	,set_customHitTest: function(value) {
+		return this._customHitTest = value;
+	}
+	,target_touchHandler: function(event) {
+		if(!this._isEnabled) {
+			this._touchPointID = -1;
+			return;
+		}
+		var touch;
+		if(this._touchPointID >= 0) {
+			touch = event.getTouch(this._target,null,this._touchPointID);
+			if(touch == null) {
+				return;
+			}
+			if(touch.get_phase() == "moved") {
+				this._touchLastGlobalPosition.x = touch.get_globalX();
+				this._touchLastGlobalPosition.y = touch.get_globalY();
+			} else if(touch.get_phase() == "ended") {
+				this._target.removeEventListener("enterFrame",$bind(this,this.target_enterFrameHandler));
+				if(this._tapToTrigger != null) {
+					this._tapToTrigger.set_isEnabled(true);
+				}
+				if(this._tapToSelect != null) {
+					this._tapToSelect.set_isEnabled(true);
+				}
+				this._touchPointID = -1;
+			}
+			return;
+		} else {
+			touch = event.getTouch(js_Boot.__cast(this._target , starling_display_DisplayObject),"began");
+			if(touch == null) {
+				return;
+			}
+			if(this._customHitTest != null) {
+				var point = starling_utils_Pool.getPoint();
+				touch.getLocation(js_Boot.__cast(this._target , starling_display_DisplayObject),point);
+				var isInBounds = this._customHitTest(point);
+				starling_utils_Pool.putPoint(point);
+				if(!isInBounds) {
+					return;
+				}
+			}
+			this._touchPointID = touch.get_id();
+			this._touchLastGlobalPosition.x = touch.get_globalX();
+			this._touchLastGlobalPosition.y = touch.get_globalY();
+			this._touchBeginTime = openfl_Lib.getTimer();
+			this._target.addEventListener("enterFrame",$bind(this,this.target_enterFrameHandler));
+		}
+	}
+	,target_enterFrameHandler: function(event) {
+		var accumulatedTime = new Date().getTime() / 1000 - this._touchBeginTime;
+		var isInBounds;
+		if(accumulatedTime >= this._longPressDuration) {
+			this._target.removeEventListener("enterFrame",$bind(this,this.target_enterFrameHandler));
+			var stage = this._target.get_stage();
+			if(((this._target) instanceof starling_display_DisplayObjectContainer)) {
+				isInBounds = (js_Boot.__cast(this._target , starling_display_DisplayObjectContainer)).contains(stage.hitTest(this._touchLastGlobalPosition));
+			} else {
+				isInBounds = this._target == stage.hitTest(this._touchLastGlobalPosition);
+			}
+			if(isInBounds) {
+				if(this._tapToTrigger != null) {
+					this._tapToTrigger.set_isEnabled(false);
+				}
+				if(this._tapToSelect != null) {
+					this._tapToSelect.set_isEnabled(false);
+				}
+				this._target.dispatchEventWith("longPress");
+			}
+		}
+	}
+	,__class__: feathers_utils_touch_LongPress
+	,__properties__: {set_customHitTest:"set_customHitTest",get_customHitTest:"get_customHitTest",set_tapToSelect:"set_tapToSelect",get_tapToSelect:"get_tapToSelect",set_tapToTrigger:"set_tapToTrigger",get_tapToTrigger:"get_tapToTrigger",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",set_longPressDuration:"set_longPressDuration",get_longPressDuration:"get_longPressDuration",set_target:"set_target",get_target:"get_target"}
+};
+var feathers_utils_touch_TapToEvent = function(target,eventType) {
+	this._tapCount = -1;
+	this._isEnabled = true;
+	this._touchPointID = -1;
+	this._eventType = null;
+	this.set_target(target);
+	this.set_eventType(eventType);
+};
+$hxClasses["feathers.utils.touch.TapToEvent"] = feathers_utils_touch_TapToEvent;
+feathers_utils_touch_TapToEvent.__name__ = "feathers.utils.touch.TapToEvent";
+feathers_utils_touch_TapToEvent.prototype = {
+	_target: null
+	,get_target: function() {
+		return this._target;
+	}
+	,set_target: function(value) {
+		if(this._target == value) {
+			return value;
+		}
+		if(this._target != null) {
+			this._target.removeEventListener("touch",$bind(this,this.target_touchHandler));
+		}
+		this._target = value;
+		if(this._target != null) {
+			this._touchPointID = -1;
+			this._target.addEventListener("touch",$bind(this,this.target_touchHandler));
+		}
+		return this._target;
+	}
+	,_eventType: null
+	,get_eventType: function() {
+		return this._eventType;
+	}
+	,set_eventType: function(value) {
+		return this._eventType = value;
+	}
+	,_touchPointID: null
+	,_isEnabled: null
+	,get_isEnabled: function() {
+		return this._isEnabled;
+	}
+	,set_isEnabled: function(value) {
+		if(this._isEnabled == value) {
+			return value;
+		}
+		if(!value) {
+			this._touchPointID = -1;
+		}
+		return this._isEnabled = value;
+	}
+	,_tapCount: null
+	,get_tapCount: function() {
+		return this._tapCount;
+	}
+	,set_tapCount: function(value) {
+		return this._tapCount = value;
+	}
+	,_customHitTest: null
+	,get_customHitTest: function() {
+		return this._customHitTest;
+	}
+	,set_customHitTest: function(value) {
+		return this._customHitTest = value;
+	}
+	,target_touchHandler: function(event) {
+		if(!this._isEnabled) {
+			this._touchPointID = -1;
+			return;
+		}
+		var touch;
+		var isInBounds;
+		var point;
+		if(this._touchPointID >= 0) {
+			touch = event.getTouch(this._target,null,this._touchPointID);
+			if(touch == null) {
+				return;
+			}
+			if(touch.get_phase() == "ended") {
+				var stage = this._target.get_stage();
+				if(stage != null) {
+					point = starling_utils_Pool.getPoint();
+					touch.getLocation(stage,point);
+					if(((this._target) instanceof starling_display_DisplayObjectContainer)) {
+						isInBounds = (js_Boot.__cast(this._target , starling_display_DisplayObjectContainer)).contains(stage.hitTest(point));
+					} else {
+						isInBounds = this._target == stage.hitTest(point);
+					}
+					starling_utils_Pool.putPoint(point);
+					if(isInBounds && (this._tapCount == -1 || this._tapCount == touch.get_tapCount())) {
+						this._target.dispatchEventWith(this._eventType);
+					}
+				}
+				this._touchPointID = -1;
+			}
+			return;
+		} else {
+			touch = event.getTouch(this._target,"began");
+			if(touch == null) {
+				return;
+			}
+			if(this._customHitTest != null) {
+				point = starling_utils_Pool.getPoint();
+				touch.getLocation(this._target,point);
+				isInBounds = this._customHitTest(point);
+				starling_utils_Pool.putPoint(point);
+				if(!isInBounds) {
+					return;
+				}
+			}
+			this._touchPointID = touch.get_id();
+		}
+	}
+	,__class__: feathers_utils_touch_TapToEvent
+	,__properties__: {set_customHitTest:"set_customHitTest",get_customHitTest:"get_customHitTest",set_tapCount:"set_tapCount",get_tapCount:"get_tapCount",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",set_eventType:"set_eventType",get_eventType:"get_eventType",set_target:"set_target",get_target:"get_target"}
+};
+var feathers_utils_touch_TapToSelect = function(target) {
+	this._isEnabled = true;
+	this._touchPointID = -1;
+	this.set_target(target);
+};
+$hxClasses["feathers.utils.touch.TapToSelect"] = feathers_utils_touch_TapToSelect;
+feathers_utils_touch_TapToSelect.__name__ = "feathers.utils.touch.TapToSelect";
+feathers_utils_touch_TapToSelect.prototype = {
+	_target: null
+	,get_target: function() {
+		return this._target;
+	}
+	,set_target: function(value) {
+		if(this._target == value) {
+			return value;
+		}
+		if(this._target != null) {
+			this._target.removeEventListener("touch",$bind(this,this.target_touchHandler));
+		}
+		this._target = value;
+		if(this._target != null) {
+			this._touchPointID = -1;
+			this._target.addEventListener("touch",$bind(this,this.target_touchHandler));
+		}
+		return this._target;
+	}
+	,_touchPointID: null
+	,_isEnabled: null
+	,get_isEnabled: function() {
+		return this._isEnabled;
+	}
+	,set_isEnabled: function(value) {
+		if(this._isEnabled == value) {
+			return value;
+		}
+		if(!value) {
+			this._touchPointID = -1;
+		}
+		return this._isEnabled = value;
+	}
+	,_tapToDeselect: null
+	,get_tapToDeselect: function() {
+		return this._tapToDeselect;
+	}
+	,set_tapToDeselect: function(value) {
+		return this._tapToDeselect = value;
+	}
+	,_customHitTest: null
+	,get_customHitTest: function() {
+		return this._customHitTest;
+	}
+	,set_customHitTest: function(value) {
+		return this._customHitTest = value;
+	}
+	,target_touchHandler: function(event) {
+		if(!this._isEnabled) {
+			this._touchPointID = -1;
+			return;
+		}
+		var isInBounds;
+		var touch;
+		var point;
+		if(this._touchPointID >= 0) {
+			touch = event.getTouch(this._target,null,this._touchPointID);
+			if(touch == null) {
+				return;
+			}
+			if(touch.get_phase() == "ended") {
+				var stage = this._target.get_stage();
+				if(stage != null) {
+					point = starling_utils_Pool.getPoint();
+					touch.getLocation(stage,point);
+					if(((this._target) instanceof starling_display_DisplayObjectContainer)) {
+						isInBounds = (js_Boot.__cast(this._target , starling_display_DisplayObjectContainer)).contains(stage.hitTest(point));
+					} else {
+						isInBounds = this._target == js_Boot.__cast(stage.hitTest(point) , feathers_core_IToggle);
+					}
+					starling_utils_Pool.putPoint(point);
+					if(isInBounds) {
+						if(this._tapToDeselect) {
+							this._target.set_isSelected(!this._target.get_isSelected());
+						} else {
+							this._target.set_isSelected(true);
+						}
+					}
+				}
+				this._touchPointID = -1;
+			}
+			return;
+		} else {
+			touch = event.getTouch(this._target,"began");
+			if(touch == null) {
+				return;
+			}
+			if(this._customHitTest != null) {
+				point = starling_utils_Pool.getPoint();
+				touch.getLocation(js_Boot.__cast(this._target , starling_display_DisplayObject),point);
+				isInBounds = this._customHitTest(point);
+				starling_utils_Pool.putPoint(point);
+				if(!isInBounds) {
+					return;
+				}
+			}
+			this._touchPointID = touch.get_id();
+		}
+	}
+	,__class__: feathers_utils_touch_TapToSelect
+	,__properties__: {set_customHitTest:"set_customHitTest",get_customHitTest:"get_customHitTest",set_tapToDeselect:"set_tapToDeselect",get_tapToDeselect:"get_tapToDeselect",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",set_target:"set_target",get_target:"get_target"}
+};
+var feathers_utils_touch_TapToTrigger = function(target) {
+	feathers_utils_touch_TapToEvent.call(this,target,"triggered");
+};
+$hxClasses["feathers.utils.touch.TapToTrigger"] = feathers_utils_touch_TapToTrigger;
+feathers_utils_touch_TapToTrigger.__name__ = "feathers.utils.touch.TapToTrigger";
+feathers_utils_touch_TapToTrigger.__super__ = feathers_utils_touch_TapToEvent;
+feathers_utils_touch_TapToTrigger.prototype = $extend(feathers_utils_touch_TapToEvent.prototype,{
+	__class__: feathers_utils_touch_TapToTrigger
+});
+var feathers_utils_touch_TouchToState = function(target,callback) {
+	this._keepDownStateOnRollOut = false;
+	this._hoverBeforeBegan = false;
+	this._isEnabled = true;
+	this._touchPointID = -1;
+	this._hoverState = "hover";
+	this._downState = "down";
+	this._upState = "up";
+	this._currentState = "up";
+	this.set_target(target);
+	this.set_callback(callback);
+};
+$hxClasses["feathers.utils.touch.TouchToState"] = feathers_utils_touch_TouchToState;
+feathers_utils_touch_TouchToState.__name__ = "feathers.utils.touch.TouchToState";
+feathers_utils_touch_TouchToState.prototype = {
+	_target: null
+	,get_target: function() {
+		return this._target;
+	}
+	,set_target: function(value) {
+		if(this._target == value) {
+			return this._target;
+		}
+		if(this._target != null) {
+			this._target.removeEventListener("touch",$bind(this,this.target_touchHandler));
+			this._target.removeEventListener("removedFromStage",$bind(this,this.target_removedFromStageHandler));
+		}
+		this._target = value;
+		if(this._target != null) {
+			this._touchPointID = -1;
+			this._currentState = this._upState;
+			this._target.addEventListener("touch",$bind(this,this.target_touchHandler));
+			this._target.addEventListener("removedFromStage",$bind(this,this.target_removedFromStageHandler));
+		}
+		return this._target;
+	}
+	,_callback: null
+	,get_callback: function() {
+		return this._callback;
+	}
+	,set_callback: function(value) {
+		if(this._callback == value) {
+			return this._callback;
+		}
+		this._callback = value;
+		if(this._callback != null) {
+			this._callback(this._currentState);
+		}
+		return this._callback;
+	}
+	,_currentState: null
+	,get_currentState: function() {
+		return this._currentState;
+	}
+	,_upState: null
+	,get_upState: function() {
+		return this._upState;
+	}
+	,set_upState: function(value) {
+		return this._upState = value;
+	}
+	,_downState: null
+	,get_downState: function() {
+		return this._downState;
+	}
+	,set_downState: function(value) {
+		return this._downState = value;
+	}
+	,_hoverState: null
+	,get_hoverState: function() {
+		return this._hoverState;
+	}
+	,set_hoverState: function(value) {
+		return this._hoverState = value;
+	}
+	,_touchPointID: null
+	,_isEnabled: null
+	,get_isEnabled: function() {
+		return this._isEnabled;
+	}
+	,set_isEnabled: function(value) {
+		if(this._isEnabled == value) {
+			return value;
+		}
+		if(!value) {
+			this._touchPointID = -1;
+		}
+		return this._isEnabled = value;
+	}
+	,_customHitTest: null
+	,get_customHitTest: function() {
+		return this._customHitTest;
+	}
+	,set_customHitTest: function(value) {
+		return this._customHitTest = value;
+	}
+	,_hoverBeforeBegan: null
+	,_keepDownStateOnRollOut: null
+	,get_keepDownStateOnRollOut: function() {
+		return this._keepDownStateOnRollOut;
+	}
+	,set_keepDownStateOnRollOut: function(value) {
+		return this._keepDownStateOnRollOut = value;
+	}
+	,handleCustomHitTest: function(touch) {
+		if(this._customHitTest == null) {
+			return true;
+		}
+		var point = starling_utils_Pool.getPoint();
+		touch.getLocation(this._target,point);
+		var isInBounds = this._customHitTest(point);
+		starling_utils_Pool.putPoint(point);
+		return isInBounds;
+	}
+	,changeState: function(value) {
+		var oldState = this._currentState;
+		if(js_Boot.__implements(this._target,feathers_core_IStateContext)) {
+			oldState = (js_Boot.__cast(this._target , feathers_core_IStateContext)).get_currentState();
+		}
+		this._currentState = value;
+		if(oldState == value) {
+			return;
+		}
+		if(this._callback != null) {
+			this._callback(value);
+		}
+	}
+	,resetTouchState: function() {
+		this._hoverBeforeBegan = false;
+		this._touchPointID = -1;
+		this.changeState(this._upState);
+	}
+	,target_removedFromStageHandler: function(event) {
+		this.resetTouchState();
+	}
+	,target_touchHandler: function(event) {
+		if(!this._isEnabled) {
+			this._touchPointID = -1;
+			return;
+		}
+		var touch;
+		if(this._touchPointID >= 0) {
+			touch = event.getTouch(this._target,null,this._touchPointID);
+			if(touch != null) {
+				return;
+			}
+			var stage = this._target.get_stage();
+			var isInBounds;
+			if(stage != null) {
+				var point = starling_utils_Pool.getPoint();
+				touch.getLocation(stage,point);
+				if(((this._target) instanceof starling_display_DisplayObjectContainer)) {
+					isInBounds = (js_Boot.__cast(this._target , starling_display_DisplayObjectContainer)).contains(stage.hitTest(point));
+				} else {
+					isInBounds = this._target == stage.hitTest(point);
+				}
+				isInBounds = isInBounds && this.handleCustomHitTest(touch);
+				starling_utils_Pool.putPoint(point);
+				if(touch.get_phase() == "moved") {
+					if(this._keepDownStateOnRollOut) {
+						return;
+					}
+					if(isInBounds) {
+						this.changeState(this._downState);
+						return;
+					} else {
+						this.changeState(this._upState);
+						return;
+					}
+				} else if(touch.get_phase() == "ended") {
+					if(isInBounds && this._hoverBeforeBegan) {
+						this._touchPointID = -1;
+						this.changeState(this._hoverState);
+					} else {
+						this.resetTouchState();
+					}
+					return;
+				}
+			}
+		} else {
+			touch = event.getTouch(this._target,"began");
+			if(touch != null && this.handleCustomHitTest(touch)) {
+				this.changeState(this._downState);
+				this._touchPointID = touch.get_id();
+				return;
+			}
+			touch = event.getTouch(this._target,"hover");
+			if(touch != null && this.handleCustomHitTest(touch)) {
+				this._hoverBeforeBegan = true;
+				this.changeState(this._hoverState);
+				return;
+			}
+			this.changeState(this._upState);
+		}
+	}
+	,__class__: feathers_utils_touch_TouchToState
+	,__properties__: {set_keepDownStateOnRollOut:"set_keepDownStateOnRollOut",get_keepDownStateOnRollOut:"get_keepDownStateOnRollOut",set_customHitTest:"set_customHitTest",get_customHitTest:"get_customHitTest",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",set_hoverState:"set_hoverState",get_hoverState:"get_hoverState",set_downState:"set_downState",get_downState:"get_downState",set_upState:"set_upState",get_upState:"get_upState",get_currentState:"get_currentState",set_callback:"set_callback",get_callback:"get_callback",set_target:"set_target",get_target:"get_target"}
 };
 var feathers_utils_type_SafeCast = function() { };
 $hxClasses["feathers.utils.type.SafeCast"] = feathers_utils_type_SafeCast;
@@ -38008,7 +42022,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 160642;
+	this.version = 220097;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -80106,101 +84120,6 @@ openfl_system_ApplicationDomain.prototype = {
 	}
 	,__class__: openfl_system_ApplicationDomain
 };
-var openfl_system_Capabilities = function() { };
-$hxClasses["openfl.system.Capabilities"] = openfl_system_Capabilities;
-openfl_system_Capabilities.__name__ = "openfl.system.Capabilities";
-openfl_system_Capabilities.__properties__ = {get_version:"get_version",get_screenResolutionY:"get_screenResolutionY",get_screenResolutionX:"get_screenResolutionX",get_screenDPI:"get_screenDPI",get_pixelAspectRatio:"get_pixelAspectRatio",get_os:"get_os",get_manufacturer:"get_manufacturer",get_language:"get_language",get_cpuArchitecture:"get_cpuArchitecture"};
-openfl_system_Capabilities.hasMultiChannelAudio = function(type) {
-	return false;
-};
-openfl_system_Capabilities.get_cpuArchitecture = function() {
-	return "x86";
-};
-openfl_system_Capabilities.get_language = function() {
-	var language = lime_system_Locale.get_language(lime_system_Locale.get_currentLocale());
-	if(language != null) {
-		language = language.toLowerCase();
-		switch(language) {
-		case "cs":case "da":case "de":case "en":case "es":case "fi":case "fr":case "hu":case "it":case "ja":case "ko":case "nb":case "nl":case "pl":case "pt":case "ru":case "sv":case "tr":
-			return language;
-		case "zh":
-			var region = lime_system_Locale.get_region(lime_system_Locale.get_currentLocale());
-			if(region != null) {
-				switch(region.toUpperCase()) {
-				case "HANT":case "TW":
-					return "zh-TW";
-				default:
-				}
-			}
-			return "zh-CN";
-		default:
-			return "xu";
-		}
-	}
-	return "en";
-};
-openfl_system_Capabilities.get_manufacturer = function() {
-	var name = lime_system_System.get_platformName();
-	return "OpenFL" + (name != null ? " " + name : "");
-};
-openfl_system_Capabilities.get_os = function() {
-	var label = lime_system_System.get_platformLabel();
-	if(label != null) {
-		return label;
-	} else {
-		return "";
-	}
-};
-openfl_system_Capabilities.get_pixelAspectRatio = function() {
-	return 1;
-};
-openfl_system_Capabilities.get_screenDPI = function() {
-	var $window = openfl_utils__$internal_Lib.application != null ? openfl_utils__$internal_Lib.application.__window : null;
-	var screenDPI = 72;
-	if($window != null) {
-		screenDPI *= $window.__scale;
-	}
-	return screenDPI;
-};
-openfl_system_Capabilities.get_screenResolutionX = function() {
-	var stage = openfl_utils__$internal_Lib.current.stage;
-	var resolutionX = 0;
-	if(stage == null) {
-		return 0;
-	}
-	if(stage.window != null) {
-		var display = stage.window.get_display();
-		if(display != null) {
-			resolutionX = Math.ceil(display.currentMode.width * stage.window.__scale);
-		}
-	}
-	if(resolutionX > 0) {
-		return resolutionX;
-	}
-	return stage.stageWidth;
-};
-openfl_system_Capabilities.get_screenResolutionY = function() {
-	var stage = openfl_utils__$internal_Lib.current.stage;
-	var resolutionY = 0;
-	if(stage == null) {
-		return 0;
-	}
-	if(stage.window != null) {
-		var display = stage.window.get_display();
-		if(display != null) {
-			resolutionY = Math.ceil(display.currentMode.height * stage.window.__scale);
-		}
-	}
-	if(resolutionY > 0) {
-		return resolutionY;
-	}
-	return stage.stageHeight;
-};
-openfl_system_Capabilities.get_version = function() {
-	var value = "WEB";
-	value += " " + StringTools.replace("9.2.0",".",",") + ",0";
-	return value;
-};
 var openfl_system_LoaderContext = function(checkPolicyFile,applicationDomain,securityDomain) {
 	if(checkPolicyFile == null) {
 		checkPolicyFile = false;
@@ -88953,18 +92872,6 @@ haxe_lang_Iterable.__isInterface__ = true;
 haxe_lang_Iterable.prototype = {
 	iterator: null
 	,__class__: haxe_lang_Iterable
-};
-var openfl_utils__$internal_Lib = function() { };
-$hxClasses["openfl.utils._internal.Lib"] = openfl_utils__$internal_Lib;
-openfl_utils__$internal_Lib.__name__ = "openfl.utils._internal.Lib";
-openfl_utils__$internal_Lib.application = null;
-openfl_utils__$internal_Lib.current = null;
-openfl_utils__$internal_Lib.notImplemented = function(posInfo) {
-	var api = posInfo.className + "." + posInfo.methodName;
-	if(!Object.prototype.hasOwnProperty.call(openfl_utils__$internal_Lib.__sentWarnings.h,api)) {
-		openfl_utils__$internal_Lib.__sentWarnings.h[api] = true;
-		lime_utils_Log.warn(posInfo.methodName + " is not implemented",posInfo);
-	}
 };
 var openfl_utils__$internal_TouchData = function() {
 	this.rollOutStack = [];
@@ -103977,6 +107884,10 @@ openfl_ui_Multitouch.maxTouchPoints = 2;
 openfl_ui_Multitouch.supportedGestures = null;
 openfl_ui_Multitouch.supportsGestureEvents = false;
 openfl_ui_Multitouch.inputMode = 2;
+ASCompat.MAX_INT = 2147483647;
+ASCompat.MIN_INT = -2147483648;
+ASCompat.MAX_FLOAT = 1.79e+308;
+ASCompat.MIN_FLOAT = -1.79E+308;
 openfl_Vector.__meta__ = { statics : { toNullVector : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
 openfl_display_DisplayObject.__meta__ = { fields : { __cairo : { SuppressWarnings : ["checkstyle:Dynamic"]}, addEventListener : { SuppressWarnings : ["checkstyle:Dynamic"]}, removeEventListener : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
 openfl_display_DisplayObject.__broadcastEvents = new haxe_ds_StringMap();
@@ -104042,7 +107953,15 @@ feathers_core_FeathersControl.ABSTRACT_CLASS_ERROR = "FeathersControl is an abst
 feathers_controls_LayoutGroup.INVALIDATION_FLAG_CLIPPING = "clipping";
 feathers_controls_LayoutGroup.ALTERNATE_STYLE_NAME_TOOLBAR = "feathers-toolbar-layout-group";
 feathers_layout_AnchorLayout.CIRCULAR_REFERENCE_ERROR = "It is impossible to create this layout due to a circular reference in the AnchorLayoutData.";
-Game.linkers = [starling_display_Button,feathers_controls_LayoutGroup,feathers_layout_AnchorLayout];
+feathers_controls_BasicButton.HELPER_POINT = new openfl_geom_Point();
+feathers_controls_Button.HELPER_POINT = new openfl_geom_Point();
+feathers_controls_Button.DEFAULT_CHILD_STYLE_NAME_LABEL = "feathers-button-label";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_CALL_TO_ACTION_BUTTON = "feathers-call-to-action-button";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_QUIET_BUTTON = "feathers-quiet-button";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_DANGER_BUTTON = "feathers-danger-button";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_BACK_BUTTON = "feathers-back-button";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_FORWARD_BUTTON = "feathers-forward-button";
+Game.linkers = [starling_display_Button,feathers_controls_LayoutGroup,feathers_layout_AnchorLayout,feathers_controls_Button];
 Xml.Element = 0;
 Xml.PCData = 1;
 Xml.CData = 2;
@@ -104052,6 +107971,15 @@ Xml.ProcessingInstruction = 5;
 Xml.Document = 6;
 feathers_controls_AutoSizeMode.STAGE = "stage";
 feathers_controls_AutoSizeMode.CONTENT = "content";
+feathers_controls_ButtonState.UP = "up";
+feathers_controls_ButtonState.DOWN = "down";
+feathers_controls_ButtonState.HOVER = "hover";
+feathers_controls_ButtonState.DISABLED = "disabled";
+feathers_controls_ButtonState.UP_AND_SELECTED = "upAndSelected";
+feathers_controls_ButtonState.DOWN_AND_SELECTED = "downAndSelected";
+feathers_controls_ButtonState.HOVER_AND_SELECTED = "hoverAndSelected";
+feathers_controls_ButtonState.DISABLED_AND_SELECTED = "disabledAndSelected";
+feathers_controls_ButtonState.FOCUSED_AND_SELECTED = "focusedAndSelected";
 feathers_controls_text_BitmapFontTextRenderer.HELPER_RESULT = new feathers_controls_text_MeasureTextResult();
 feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_SPACE = 32;
 feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_TAB = 9;
@@ -104060,6 +107988,7 @@ feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_CARRIAGE_RETURN = 13;
 feathers_controls_text_BitmapFontTextRenderer.FUZZY_MAX_WIDTH_PADDING = 0.000001;
 feathers_controls_text_StageTextTextEditor.MIN_VIEW_PORT_POSITION = -8192;
 feathers_controls_text_StageTextTextEditor.MAX_VIEW_PORT_POSITION = 8191;
+feathers_core_DefaultFocusManager.NATIVE_STAGE_TO_FOCUS_TARGET = new haxe_ds_ObjectMap();
 feathers_core_ValidationQueue.STARLING_TO_VALIDATION_QUEUE = new haxe_ds_ObjectMap();
 feathers_events_FeathersEventType.INITIALIZE = "initialize";
 feathers_events_FeathersEventType.CREATION_COMPLETE = "creationComplete";
@@ -104092,6 +108021,60 @@ feathers_events_FeathersEventType.LOCATION_CHANGE = "locationChange";
 feathers_events_FeathersEventType.LOCATION_CHANGING = "locationChanging";
 feathers_events_FeathersEventType.STATE_CHANGE = "stateChange";
 feathers_events_FeathersEventType.PULLING = "pulling";
+feathers_layout_HorizontalAlign.LEFT = "left";
+feathers_layout_HorizontalAlign.CENTER = "center";
+feathers_layout_HorizontalAlign.RIGHT = "right";
+feathers_layout_HorizontalAlign.JUSTIFY = "justify";
+feathers_layout_RelativePosition.TOP = "top";
+feathers_layout_RelativePosition.RIGHT = "right";
+feathers_layout_RelativePosition.BOTTOM = "bottom";
+feathers_layout_RelativePosition.LEFT = "left";
+feathers_layout_RelativePosition.MANUAL = "manual";
+feathers_layout_RelativePosition.LEFT_BASELINE = "leftBaseline";
+feathers_layout_RelativePosition.RIGHT_BASELINE = "rightBaseline";
+feathers_layout_VerticalAlign.TOP = "top";
+feathers_layout_VerticalAlign.MIDDLE = "middle";
+feathers_layout_VerticalAlign.BOTTOM = "bottom";
+feathers_layout_VerticalAlign.JUSTIFY = "justify";
+openfl_system_Capabilities.avHardwareDisable = true;
+openfl_system_Capabilities.hasAccessibility = false;
+openfl_system_Capabilities.hasAudio = true;
+openfl_system_Capabilities.hasAudioEncoder = false;
+openfl_system_Capabilities.hasEmbeddedVideo = false;
+openfl_system_Capabilities.hasIME = false;
+openfl_system_Capabilities.hasMP3 = false;
+openfl_system_Capabilities.hasPrinting = true;
+openfl_system_Capabilities.hasScreenBroadcast = false;
+openfl_system_Capabilities.hasScreenPlayback = false;
+openfl_system_Capabilities.hasStreamingAudio = false;
+openfl_system_Capabilities.hasStreamingVideo = false;
+openfl_system_Capabilities.hasTLS = true;
+openfl_system_Capabilities.hasVideoEncoder = true;
+openfl_system_Capabilities.isDebugger = false;
+openfl_system_Capabilities.isEmbeddedInAcrobat = false;
+openfl_system_Capabilities.localFileReadDisable = true;
+openfl_system_Capabilities.maxLevelIDC = 0;
+openfl_system_Capabilities.playerType = "PlugIn";
+openfl_system_Capabilities.screenColor = "color";
+openfl_system_Capabilities.serverString = "";
+openfl_system_Capabilities.supports32BitProcesses = false;
+openfl_system_Capabilities.supports64BitProcesses = false;
+openfl_system_Capabilities.touchscreenType = 0;
+openfl_system_Capabilities.__standardDensities = [120,160,240,320,480,640,800,960];
+openfl_utils__$internal_Lib.__meta__ = { obj : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, statics : { notImplemented : { SuppressWarnings : ["checkstyle:NullableParameter"]}}};
+openfl_utils__$internal_Lib.__sentWarnings = new haxe_ds_StringMap();
+feathers_system_DeviceCapabilities.simulateDPad = false;
+feathers_system_DeviceCapabilities.tabletScreenPortraitWidthMinimumInches = 3.5;
+feathers_system_DeviceCapabilities.tabletScreenLandscapeWidthMinimumInches = 5;
+feathers_system_DeviceCapabilities.largePhoneScreenPortraitWidthMinimumInches = 2.5;
+feathers_system_DeviceCapabilities.largePhoneScreenLandscapeWidthMinimumInches = 4.5;
+feathers_system_DeviceCapabilities.screenPixelWidth = NaN;
+feathers_system_DeviceCapabilities.screenPixelHeight = NaN;
+feathers_system_DeviceCapabilities.dpi = openfl_system_Capabilities.get_screenDPI() | 0;
+feathers_utils_math_MathUtils.FLOAT_MAX = 999999999;
+feathers_utils_math_MathUtils.FLOAT_MIN = -999999999;
+feathers_utils_math_MathUtils.INT_MAX = 999999999;
+feathers_utils_math_MathUtils.INT_MIN = -999999999;
 format_amf3_Amf3Array.__meta__ = { fields : { extra : { optional : null}}};
 haxe_Serializer.USE_CACHE = false;
 haxe_Serializer.USE_ENUM_INDEX = false;
@@ -105866,31 +109849,6 @@ openfl_net_URLRequestDefaults.followRedirects = true;
 openfl_net_URLRequestDefaults.idleTimeout = 0;
 openfl_net_URLRequestDefaults.manageCookies = true;
 openfl_system_ApplicationDomain.currentDomain = new openfl_system_ApplicationDomain(null);
-openfl_system_Capabilities.avHardwareDisable = true;
-openfl_system_Capabilities.hasAccessibility = false;
-openfl_system_Capabilities.hasAudio = true;
-openfl_system_Capabilities.hasAudioEncoder = false;
-openfl_system_Capabilities.hasEmbeddedVideo = false;
-openfl_system_Capabilities.hasIME = false;
-openfl_system_Capabilities.hasMP3 = false;
-openfl_system_Capabilities.hasPrinting = true;
-openfl_system_Capabilities.hasScreenBroadcast = false;
-openfl_system_Capabilities.hasScreenPlayback = false;
-openfl_system_Capabilities.hasStreamingAudio = false;
-openfl_system_Capabilities.hasStreamingVideo = false;
-openfl_system_Capabilities.hasTLS = true;
-openfl_system_Capabilities.hasVideoEncoder = true;
-openfl_system_Capabilities.isDebugger = false;
-openfl_system_Capabilities.isEmbeddedInAcrobat = false;
-openfl_system_Capabilities.localFileReadDisable = true;
-openfl_system_Capabilities.maxLevelIDC = 0;
-openfl_system_Capabilities.playerType = "PlugIn";
-openfl_system_Capabilities.screenColor = "color";
-openfl_system_Capabilities.serverString = "";
-openfl_system_Capabilities.supports32BitProcesses = false;
-openfl_system_Capabilities.supports64BitProcesses = false;
-openfl_system_Capabilities.touchscreenType = 0;
-openfl_system_Capabilities.__standardDensities = [120,160,240,320,480,640,800,960];
 openfl_system_SecurityDomain.__meta__ = { obj : { SuppressWarnings : ["checkstyle:UnnecessaryConstructor"]}};
 openfl_system_SecurityDomain.currentDomain = new openfl_system_SecurityDomain();
 openfl_system_System.useCodePage = false;
@@ -106370,8 +110328,6 @@ openfl_utils_Endian.LITTLE_ENDIAN = 1;
 openfl_utils_Object.__meta__ = { statics : { iterator : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, __get : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, __set : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, __getArray : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, __setArray : { SuppressWarnings : ["checkstyle:FieldDocComment"]}}};
 haxe_lang_Iterator.__meta__ = { obj : { SuppressWarnings : ["checkstyle:FieldDocComment"]}};
 haxe_lang_Iterable.__meta__ = { obj : { SuppressWarnings : ["checkstyle:FieldDocComment"]}};
-openfl_utils__$internal_Lib.__meta__ = { obj : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, statics : { notImplemented : { SuppressWarnings : ["checkstyle:NullableParameter"]}}};
-openfl_utils__$internal_Lib.__sentWarnings = new haxe_ds_StringMap();
 openfl_utils__$internal_TouchData.__meta__ = { obj : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, fields : { touch : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
 openfl_utils__$internal_TouchData.__pool = new lime_utils_ObjectPool(function() {
 	return new openfl_utils__$internal_TouchData();

@@ -22,7 +22,7 @@ class Game extends Sprite {
 	private var _sprite:Sprite;
 
 	public static var uiBuilder:IUIBuilder;
-	public static var linkers:Array<Dynamic> = [Button, LayoutGroup, AnchorLayout];
+	public static var linkers:Array<Dynamic> = [Button, LayoutGroup, AnchorLayout, feathers.controls.Button];
 
 	public function new() {
 		super();

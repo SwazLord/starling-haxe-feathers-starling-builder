@@ -11,7 +11,7 @@ package feathers.utils.skins;
 import feathers.core.IMeasureDisplayObject;
 import starling.display.DisplayObject;
 
-class FeathersSkinsUtils {
+class SkinsUtils {
 	/**
 	 * Updates the dimensions of a component's for measurement if the child
 	 * should fill the entire width and height of its parent.
@@ -37,7 +37,7 @@ class FeathersSkinsUtils {
 		} else {
 			child.height = parentExplicitHeight;
 		}
-		var measureChild:IMeasureDisplayObject = cast child;
+		var measureChild:IMeasureDisplayObject = cast(child, IMeasureDisplayObject);
 		var compilerWorkaround:Dynamic;
 		if (measureChild != null) {
 			var childMinWidth:Float = parentExplicitMinWidth;

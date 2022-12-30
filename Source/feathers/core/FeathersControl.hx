@@ -3023,7 +3023,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 *
 	 * @see #ignoreNextStyleRestriction()
 	 */
-	private function processStyleRestriction(key:Dynamic->Void):Bool {
+	private function processStyleRestriction(key:Dynamic):Bool {
 		var ignore:Bool = this._ignoreNextStyleRestriction;
 		this._ignoreNextStyleRestriction = false;
 		// in most cases, the style is not restricted, and we can set it

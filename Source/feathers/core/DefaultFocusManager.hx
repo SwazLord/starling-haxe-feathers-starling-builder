@@ -81,7 +81,11 @@ class DefaultFocusManager extends EventDispatcher implements IFocusManager {
 	/**
 	 * @private
 	 */
+	#if flash
 	private static var NATIVE_STAGE_TO_FOCUS_TARGET:WeakMap<Stage, NativeFocusTarget> = new WeakMap();
+	#else
+	private static var NATIVE_STAGE_TO_FOCUS_TARGET:Map<Stage, NativeFocusTarget> = new Map();
+	#end
 
 	/**
 	 * Constructor.
@@ -671,9 +675,9 @@ class DefaultFocusManager extends EventDispatcher implements IFocusManager {
 		var count:Int;
 		var childOfChild:DisplayObject;
 		var extras:Array<DisplayObject>;
-		var focusExtras:IFocusExtras;
+		var focusExtras:IFocusExtras = null;
 		if (Std.isOfType(child, IFocusExtras)) {
-			focusExtras = cast child;
+			focusExtras = cast(child, IFocusExtras);
 			extras = focusExtras.focusExtrasBefore;
 			count = extras.length;
 			for (i in 0...count) {
@@ -760,7 +764,7 @@ class DefaultFocusManager extends EventDispatcher implements IFocusManager {
 			// something else has already handled this keyboard event
 			return;
 		}
-		var newFocus:IFocusDisplayObject;
+		var newFocus:IFocusDisplayObject = null;
 		var currentFocus:IFocusDisplayObject = this._focus;
 		if (currentFocus != null && currentFocus.focusOwner != null) {
 			newFocus = currentFocus.focusOwner;
@@ -848,7 +852,7 @@ class DefaultFocusManager extends EventDispatcher implements IFocusManager {
 			return;
 		}
 
-		var newFocus:IFocusDisplayObject;
+		var newFocus:IFocusDisplayObject = null;
 		var currentFocus:IFocusDisplayObject = this._focus;
 		if (currentFocus != null && currentFocus.focusOwner != null) {
 			newFocus = currentFocus.focusOwner;
