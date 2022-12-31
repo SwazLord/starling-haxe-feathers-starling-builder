@@ -14,11 +14,9 @@ import starling.display.DisplayObject;
 import openfl.errors.ArgumentError;
 import feathers.motion.effectClasses.IResizeEffectContext;
 import feathers.motion.effectClasses.IMoveEffectContext;
-import openfl.utils.Dictionary;
 import openfl.geom.Rectangle;
 import starling.events.EventDispatcher;
 import openfl.errors.IllegalOperationError;
-import openfl.utils.Function;
 import feathers.motion.effectClasses.IEffectContext;
 import feathers.events.FeathersEventType;
 import starling.events.Event;
@@ -177,7 +175,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * @private
 	 */
-	private var _showEffect:Function = null;
+	private var _showEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is shown.
@@ -225,16 +223,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var showEffect(get, set):Function;
+	public var showEffect(get, set):ASFunction;
 
-	public function get_showEffect():Function {
+	public function get_showEffect():ASFunction {
 		return this._showEffect;
 	}
 
 	/**
 	 * @private
 	 */
-	public function set_showEffect(value:Function):Function {
+	public function set_showEffect(value:ASFunction):ASFunction {
 		this._showEffect = value;
 		return this._showEffect;
 	}
@@ -247,7 +245,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * @private
 	 */
-	private var _hideEffect:Function = null;
+	private var _hideEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is hidden.
@@ -294,16 +292,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var hideEffect(get, set):Function;
+	public var hideEffect(get, set):ASFunction;
 
-	public function get_hideEffect():Function {
+	public function get_hideEffect():ASFunction {
 		return this._hideEffect;
 	}
 
 	/**
 	 * @private
 	 */
-	public function set_hideEffect(value:Function):Function {
+	public function set_hideEffect(value:ASFunction):ASFunction {
 		this._hideEffect = value;
 		return this._hideEffect;
 	}
@@ -357,7 +355,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * @private
 	 */
-	private var _focusInEffect:Function = null;
+	private var _focusInEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component receives
@@ -390,16 +388,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var focusInEffect(get, set):Function;
+	public var focusInEffect(get, set):ASFunction;
 
-	public function get_focusInEffect():Function {
+	public function get_focusInEffect():ASFunction {
 		return this._focusInEffect;
 	}
 
 	/**
 	 * @private
 	 */
-	public function set_focusInEffect(value:Function):Function {
+	public function set_focusInEffect(value:ASFunction):ASFunction {
 		this._focusInEffect = value;
 		return this._focusInEffect;
 	}
@@ -412,7 +410,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * @private
 	 */
-	private var _focusOutEffect:Function = null;
+	private var _focusOutEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component loses focus.
@@ -448,16 +446,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var focusOutEffect(get, set):Function;
+	public var focusOutEffect(get, set):ASFunction;
 
-	public function get_focusOutEffect():Function {
+	public function get_focusOutEffect():ASFunction {
 		return this._focusOutEffect;
 	}
 
 	/**
 	 * @private
 	 */
-	public function set_focusOutEffect(value:Function):Function {
+	public function set_focusOutEffect(value:ASFunction):ASFunction {
 		this._focusOutEffect = value;
 		return this._focusOutEffect;
 	}
@@ -470,7 +468,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * @private
 	 */
-	private var _addedEffect:Function = null;
+	private var _addedEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is added to
@@ -517,16 +515,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var addedEffect(get, set):Function;
+	public var addedEffect(get, set):ASFunction;
 
-	public function get_addedEffect():Function {
+	public function get_addedEffect():ASFunction {
 		return this._addedEffect;
 	}
 
 	/**
 	 * @private
 	 */
-	public function set_addedEffect(value:Function):Function {
+	public function set_addedEffect(value:ASFunction):ASFunction {
 		this._addedEffect = value;
 		return this._addedEffect;
 	}
@@ -843,7 +841,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * @private
 	 */
-	private var _resizeEffect:Function = null;
+	private var _resizeEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is resized
@@ -870,16 +868,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see #height
 	 * @see #setSize()
 	 */
-	public var resizeEffect(get, set):Function;
+	public var resizeEffect(get, set):ASFunction;
 
-	public function get_resizeEffect():Function {
+	public function get_resizeEffect():ASFunction {
 		return this._resizeEffect;
 	}
 
 	/**
 	 * @private
 	 */
-	public function set_resizeEffect(value:Function):Function {
+	public function set_resizeEffect(value:ASFunction):ASFunction {
 		this._resizeEffect = value;
 		return this._resizeEffect;
 	}
@@ -892,7 +890,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * @private
 	 */
-	private var _moveEffect:Function = null;
+	private var _moveEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is moved to
@@ -921,16 +919,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see #y
 	 * @see #move()
 	 */
-	public var moveEffect(get, set):Function;
+	public var moveEffect(get, set):ASFunction;
 
-	public function get_moveEffect():Function {
+	public function get_moveEffect():ASFunction {
 		return this._moveEffect;
 	}
 
 	/**
 	 * @private
 	 */
-	public function set_moveEffect(value:Function):Function {
+	public function set_moveEffect(value:ASFunction):ASFunction {
 		this._moveEffect = value;
 		return this._moveEffect;
 	}
@@ -2716,7 +2714,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public function removeFromParentWithEffect(effect:Function, dispose:Bool = false):Void {
+	public function removeFromParentWithEffect(effect:ASFunction, dispose:Bool = false):Void {
 		if (this.isCreated && this._suspendEffectsCount == 0) {
 			this._disposeAfterRemovedEffect = dispose;
 			this._removedEffectContext = cast effect(this);
@@ -3315,7 +3313,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 }
 
-class FunctionMap<K:Function, V> implements IMap<K, V> {
+class FunctionMap<K:ASFunction, V> implements IMap<K, V> {
 	private var _keys:Array<K>;
 	private var _values:Array<V>;
 

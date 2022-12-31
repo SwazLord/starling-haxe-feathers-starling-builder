@@ -1,5 +1,6 @@
 package;
 
+// import feathers.themes.MetalWorksDesktopTheme;
 import feathers.layout.AnchorLayout;
 import feathers.controls.LayoutGroup;
 import starlingbuilder.engine.UIBuilder;
@@ -29,6 +30,7 @@ class Game extends Sprite {
 	}
 
 	public function start():Void {
+		// new MetalWorksDesktopTheme();
 		assetManager = new AssetManager();
 		_assetMediator = new AssetMediator(assetManager);
 		uiBuilder = new UIBuilder(_assetMediator);

@@ -918,7 +918,7 @@ ApplicationMain.main = function() {
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
-	app.meta.h["build"] = "7";
+	app.meta.h["build"] = "8";
 	app.meta.h["company"] = "Company Name";
 	app.meta.h["file"] = "StarlingProject";
 	app.meta.h["name"] = "StarlingProject";
@@ -11879,9 +11879,9 @@ Game.prototype = $extend(starling_display_Sprite.prototype,{
 		var loader = new starlingbuilder_engine_LayoutLoader(ParsedLayouts);
 		Game.assetManager.enqueue([openfl_utils_Assets.getPath("assets/textures/atlas.png"),openfl_utils_Assets.getPath("assets/textures/atlas.xml")]);
 		Game.assetManager.loadQueue(function(ratio) {
-			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 41, className : "Game", methodName : "start"});
+			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 43, className : "Game", methodName : "start"});
 			if(ratio == 1) {
-				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 43, className : "Game", methodName : "start"});
+				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 45, className : "Game", methodName : "start"});
 				_gthis._sprite = new starling_display_Sprite();
 				_gthis._sprite = Game.uiBuilder.create(ParsedLayouts.game_ui,false,_gthis);
 				_gthis.addChild(_gthis._sprite);
@@ -42022,7 +42022,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 220097;
+	this.version = 429300;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -95465,6 +95465,20 @@ var starling_display_Mesh = function(vertexData,indexData,style) {
 $hxClasses["starling.display.Mesh"] = starling_display_Mesh;
 starling_display_Mesh.__name__ = "starling.display.Mesh";
 starling_display_Mesh.__properties__ = {set_defaultStyleFactory:"set_defaultStyleFactory",get_defaultStyleFactory:"get_defaultStyleFactory",set_defaultStyle:"set_defaultStyle",get_defaultStyle:"get_defaultStyle"};
+starling_display_Mesh.createDefaultStyle = function(instance) {
+	var meshStyle = null;
+	if(starling_display_Mesh.sDefaultStyleFactory != null) {
+		if(instance == null) {
+			meshStyle = starling_display_Mesh.sDefaultStyleFactory();
+		} else {
+			meshStyle = starling_display_Mesh.sDefaultStyleFactory(instance);
+		}
+	}
+	if(meshStyle == null) {
+		meshStyle = Type.createInstance(starling_display_Mesh.sDefaultStyle,[]);
+	}
+	return meshStyle;
+};
 starling_display_Mesh.get_defaultStyle = function() {
 	return starling_display_Mesh.sDefaultStyle;
 };
@@ -95518,7 +95532,7 @@ starling_display_Mesh.prototype = $extend(starling_display_DisplayObject.prototy
 			mergeWithPredecessor = true;
 		}
 		if(meshStyle == null) {
-			meshStyle = this.createDefaultStyle(this);
+			meshStyle = starling_display_Mesh.createDefaultStyle(this);
 		} else if(meshStyle == this.__style) {
 			return;
 		} else if(meshStyle.get_target() != null) {
@@ -95533,20 +95547,6 @@ starling_display_Mesh.prototype = $extend(starling_display_DisplayObject.prototy
 		this.__style = meshStyle;
 		this.__style.setTarget(this,this.__vertexData,this.__indexData);
 		this.setRequiresRedraw();
-	}
-	,createDefaultStyle: function(instance) {
-		var meshStyle = null;
-		if(starling_display_Mesh.sDefaultStyleFactory != null) {
-			if(instance == null) {
-				meshStyle = starling_display_Mesh.sDefaultStyleFactory();
-			} else {
-				meshStyle = starling_display_Mesh.sDefaultStyleFactory(instance);
-			}
-		}
-		if(meshStyle == null) {
-			meshStyle = Type.createInstance(starling_display_Mesh.sDefaultStyle,[]);
-		}
-		return meshStyle;
 	}
 	,setVertexDataChanged: function() {
 		this.setRequiresRedraw();
