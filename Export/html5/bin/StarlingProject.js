@@ -918,7 +918,7 @@ ApplicationMain.main = function() {
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
-	app.meta.h["build"] = "8";
+	app.meta.h["build"] = "9";
 	app.meta.h["company"] = "Company Name";
 	app.meta.h["file"] = "StarlingProject";
 	app.meta.h["name"] = "StarlingProject";
@@ -1430,6 +1430,7 @@ lime_utils_ObjectPool.prototype = {
 		if(!this.__pool.exists(object)) {
 			this.__pool.set(object,false);
 			this.clean(object);
+			this.__pool.set(object,false);
 			if(this.__inactiveObject0 == null) {
 				this.__inactiveObject0 = object;
 			} else if(this.__inactiveObject1 == null) {
@@ -1472,6 +1473,7 @@ lime_utils_ObjectPool.prototype = {
 					this.__inactiveObject1 = this.__inactiveObjectList.pop();
 				}
 			}
+			this.__pool.set(object1,true);
 			this.inactiveObjects--;
 			this.activeObjects++;
 			object = object1;
@@ -1485,9 +1487,15 @@ lime_utils_ObjectPool.prototype = {
 		return object;
 	}
 	,release: function(object) {
+		if(!this.__pool.exists(object)) {
+			lime_utils_Log.error("Object is not a member of the pool",{ fileName : "lime/utils/ObjectPool.hx", lineNumber : 102, className : "lime.utils.ObjectPool", methodName : "release"});
+		} else if(!this.__pool.get(object)) {
+			lime_utils_Log.error("Object has already been released",{ fileName : "lime/utils/ObjectPool.hx", lineNumber : 106, className : "lime.utils.ObjectPool", methodName : "release"});
+		}
 		this.activeObjects--;
 		if(this.__size == null || this.activeObjects + this.inactiveObjects < this.__size) {
 			this.clean(object);
+			this.__pool.set(object,false);
 			if(this.__inactiveObject0 == null) {
 				this.__inactiveObject0 = object;
 			} else if(this.__inactiveObject1 == null) {
@@ -1517,6 +1525,7 @@ lime_utils_ObjectPool.prototype = {
 		}
 	}
 	,__addInactive: function(object) {
+		this.__pool.set(object,false);
 		if(this.__inactiveObject0 == null) {
 			this.__inactiveObject0 = object;
 		} else if(this.__inactiveObject1 == null) {
@@ -1543,6 +1552,7 @@ lime_utils_ObjectPool.prototype = {
 				this.__inactiveObject1 = this.__inactiveObjectList.pop();
 			}
 		}
+		this.__pool.set(object,true);
 		this.inactiveObjects--;
 		this.activeObjects++;
 		return object;
@@ -10354,6 +10364,8197 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 	,__class__: feathers_layout_AnchorLayout
 	,__properties__: {get_requiresLayoutOnScroll:"get_requiresLayoutOnScroll"}
 });
+var feathers_core_IFocusDisplayObject = function() { };
+$hxClasses["feathers.core.IFocusDisplayObject"] = feathers_core_IFocusDisplayObject;
+feathers_core_IFocusDisplayObject.__name__ = "feathers.core.IFocusDisplayObject";
+feathers_core_IFocusDisplayObject.__isInterface__ = true;
+feathers_core_IFocusDisplayObject.__interfaces__ = [feathers_core_IFeathersDisplayObject];
+feathers_core_IFocusDisplayObject.prototype = {
+	get_focusManager: null
+	,set_focusManager: null
+	,get_isFocusEnabled: null
+	,set_isFocusEnabled: null
+	,get_nextTabFocus: null
+	,set_nextTabFocus: null
+	,get_previousTabFocus: null
+	,set_previousTabFocus: null
+	,get_nextUpFocus: null
+	,set_nextUpFocus: null
+	,get_nextRightFocus: null
+	,set_nextRightFocus: null
+	,get_nextDownFocus: null
+	,set_nextDownFocus: null
+	,get_nextLeftFocus: null
+	,set_nextLeftFocus: null
+	,get_focusOwner: null
+	,set_focusOwner: null
+	,get_isShowingFocus: null
+	,get_maintainTouchFocus: null
+	,showFocus: null
+	,hideFocus: null
+	,__class__: feathers_core_IFocusDisplayObject
+	,__properties__: {get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus",set_focusOwner:"set_focusOwner",get_focusOwner:"get_focusOwner",set_nextLeftFocus:"set_nextLeftFocus",get_nextLeftFocus:"get_nextLeftFocus",set_nextDownFocus:"set_nextDownFocus",get_nextDownFocus:"get_nextDownFocus",set_nextRightFocus:"set_nextRightFocus",get_nextRightFocus:"get_nextRightFocus",set_nextUpFocus:"set_nextUpFocus",get_nextUpFocus:"get_nextUpFocus",set_previousTabFocus:"set_previousTabFocus",get_previousTabFocus:"get_previousTabFocus",set_nextTabFocus:"set_nextTabFocus",get_nextTabFocus:"get_nextTabFocus",set_isFocusEnabled:"set_isFocusEnabled",get_isFocusEnabled:"get_isFocusEnabled",set_focusManager:"set_focusManager",get_focusManager:"get_focusManager"}
+};
+var feathers_controls_Scroller = function() {
+	this._verticalAutoScrollTweenEndRatio = 1;
+	this._horizontalAutoScrollTweenEndRatio = 1;
+	this._leftPullViewDisplayMode = "drag";
+	this._leftPullViewRatio = 0;
+	this._leftPullView = null;
+	this._isLeftPullViewActive = false;
+	this._isLeftPullViewPending = false;
+	this._bottomPullViewRatio = 0;
+	this._bottomPullViewDisplayMode = "drag";
+	this._bottomPullView = null;
+	this._isBottomPullViewActive = false;
+	this._isBottomPullViewPending = false;
+	this._rightPullViewRatio = 0;
+	this._rightPullViewDisplayMode = "drag";
+	this._isRightPullViewActive = false;
+	this._isRightPullViewPending = false;
+	this._topPullViewRatio = 0;
+	this._topPullViewDisplayMode = "drag";
+	this._isTopPullViewActive = false;
+	this._isTopPullViewPending = false;
+	this._revealScrollBarsDuration = 1.0;
+	this.isScrollBarRevealPending = false;
+	this.hasPendingVerticalPageIndex = false;
+	this.hasPendingHorizontalPageIndex = false;
+	this.pendingVerticalScrollPosition = NaN;
+	this.pendingHorizontalScrollPosition = NaN;
+	this._isScrollingStopped = false;
+	this._isScrolling = false;
+	this._verticalScrollBarIsScrolling = false;
+	this._horizontalScrollBarIsScrolling = false;
+	this._snapScrollPositionsToPixels = true;
+	this._throwEase = feathers_controls_Scroller.defaultThrowEase;
+	this._verticalMouseWheelScrollDirection = "vertical";
+	this._mouseWheelScrollDuration = 0.35;
+	this._pageThrowDuration = 0.5;
+	this._useFixedThrowDuration = true;
+	this._fixedThrowDuration = 2.996998998998728;
+	this._decelerationRate = 0.998;
+	this._logDecelerationRate = -0.0020020026706730793;
+	this._elasticSnapDuration = 0.5;
+	this._hideScrollBarAnimationEase = "easeOut";
+	this._hideScrollBarAnimationDuration = 0.2;
+	this._paddingLeft = 0;
+	this._paddingBottom = 0;
+	this._paddingRight = 0;
+	this._paddingTop = 0;
+	this._minimumPageThrowVelocity = 5;
+	this._minimumDragDistance = 0.04;
+	this._autoHideBackground = false;
+	this._interactionMode = "touch";
+	this._scrollBarDisplayMode = "float";
+	this._throwElasticity = 0.05;
+	this._elasticity = 0.33;
+	this._hasElasticEdges = true;
+	this.explicitPageHeight = NaN;
+	this.actualPageHeight = 0;
+	this.explicitPageWidth = NaN;
+	this.actualPageWidth = 0;
+	this._clipContent = true;
+	this._verticalScrollPolicy = "auto";
+	this._maxVerticalPageIndex = 0;
+	this._minVerticalPageIndex = 0;
+	this._verticalPageIndex = 0;
+	this._maxVerticalScrollPosition = 0;
+	this._minVerticalScrollPosition = 0;
+	this._verticalScrollPosition = 0;
+	this._verticalMouseWheelScrollStep = NaN;
+	this.explicitVerticalScrollStep = NaN;
+	this.actualVerticalScrollStep = 1;
+	this._horizontalScrollPolicy = "auto";
+	this._maxHorizontalPageIndex = 0;
+	this._minHorizontalPageIndex = 0;
+	this._horizontalPageIndex = 0;
+	this._maxHorizontalScrollPosition = 0;
+	this._minHorizontalScrollPosition = 0;
+	this._horizontalScrollPosition = 0;
+	this.explicitHorizontalScrollStep = NaN;
+	this.actualHorizontalScrollStep = 1;
+	this._horizontalScrollBarPosition = "bottom";
+	this._verticalScrollBarPosition = "right";
+	this._horizontalScrollBarFactory = feathers_controls_Scroller.defaultScrollBarFactory;
+	this._snapOnComplete = false;
+	this._snapToPages = false;
+	this._measureViewPort = true;
+	this.ignoreViewPortResizing = false;
+	this._isDraggingVertically = false;
+	this._isDraggingHorizontally = false;
+	this._hasViewPortBoundsChanged = false;
+	this._lastViewPortHeight = 0;
+	this._lastViewPortWidth = 0;
+	this._pendingVelocityChange = false;
+	this._previousVelocityY = [];
+	this._previousVelocityX = [];
+	this._velocityY = 0;
+	this._velocityX = 0;
+	this._touchPointID = -1;
+	this._verticalScrollBarTouchPointID = -1;
+	this._horizontalScrollBarTouchPointID = -1;
+	this._hasVerticalScrollBar = false;
+	this._hasHorizontalScrollBar = false;
+	this.verticalScrollBarStyleName = "feathers-scroller-vertical-scroll-bar";
+	this.horizontalScrollBarStyleName = "feathers-scroller-horizontal-scroll-bar";
+	feathers_core_FeathersControl.call(this);
+	this.addEventListener("addedToStage",$bind(this,this.scroller_addedToStageHandler));
+	this.addEventListener("removedFromStage",$bind(this,this.scroller_removedFromStageHandler));
+};
+$hxClasses["feathers.controls.Scroller"] = feathers_controls_Scroller;
+feathers_controls_Scroller.__name__ = "feathers.controls.Scroller";
+feathers_controls_Scroller.__interfaces__ = [feathers_core_IFocusDisplayObject];
+feathers_controls_Scroller.defaultScrollBarFactory = function() {
+	return new feathers_controls_SimpleScrollBar();
+};
+feathers_controls_Scroller.defaultThrowEase = function(ratio) {
+	--ratio;
+	return 1 - ratio * ratio * ratio * ratio;
+};
+feathers_controls_Scroller.__super__ = feathers_core_FeathersControl;
+feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.prototype,{
+	horizontalScrollBarStyleName: null
+	,verticalScrollBarStyleName: null
+	,horizontalScrollBar: null
+	,verticalScrollBar: null
+	,get_isFocusEnabled: function() {
+		if(this._maxVerticalScrollPosition != this._minVerticalScrollPosition || this._maxHorizontalScrollPosition != this._minHorizontalScrollPosition) {
+			return feathers_core_FeathersControl.prototype.get_isFocusEnabled.call(this);
+		} else {
+			return false;
+		}
+	}
+	,_topViewPortOffset: null
+	,_rightViewPortOffset: null
+	,_bottomViewPortOffset: null
+	,_leftViewPortOffset: null
+	,_hasHorizontalScrollBar: null
+	,_hasVerticalScrollBar: null
+	,_horizontalScrollBarTouchPointID: null
+	,_verticalScrollBarTouchPointID: null
+	,_touchPointID: null
+	,_startTouchX: null
+	,_startTouchY: null
+	,_startHorizontalScrollPosition: null
+	,_startVerticalScrollPosition: null
+	,_currentTouchX: null
+	,_currentTouchY: null
+	,_previousTouchTime: null
+	,_previousTouchX: null
+	,_previousTouchY: null
+	,_velocityX: null
+	,_velocityY: null
+	,_previousVelocityX: null
+	,_previousVelocityY: null
+	,_pendingVelocityChange: null
+	,_lastViewPortWidth: null
+	,_lastViewPortHeight: null
+	,_hasViewPortBoundsChanged: null
+	,_horizontalAutoScrollTween: null
+	,_verticalAutoScrollTween: null
+	,_topPullTween: null
+	,_rightPullTween: null
+	,_bottomPullTween: null
+	,_leftPullTween: null
+	,_isDraggingHorizontally: null
+	,_isDraggingVertically: null
+	,ignoreViewPortResizing: null
+	,_viewPort: null
+	,get_viewPort: function() {
+		return this._viewPort;
+	}
+	,set_viewPort: function(value) {
+		if(this._viewPort == value) {
+			return value;
+		}
+		if(this._viewPort != null) {
+			this._viewPort.removeEventListener("resize",$bind(this,this.viewPort_resizeHandler));
+			this.removeRawChildInternal(this._viewPort);
+		}
+		this._viewPort = value;
+		if(this._viewPort != null) {
+			this._viewPort.addEventListener("resize",$bind(this,this.viewPort_resizeHandler));
+			this.addRawChildAtInternal(this._viewPort,0);
+			if(js_Boot.__implements(this._viewPort,feathers_core_IFeathersControl)) {
+				(js_Boot.__cast(this._viewPort , feathers_core_IFeathersControl)).initializeNow();
+			}
+			this._explicitViewPortWidth = this._viewPort.get_explicitWidth();
+			this._explicitViewPortHeight = this._viewPort.get_explicitHeight();
+			this._explicitViewPortMinWidth = this._viewPort.get_explicitMinWidth();
+			this._explicitViewPortMinHeight = this._viewPort.get_explicitMinHeight();
+		}
+		this.invalidate("size");
+		return this._viewPort;
+	}
+	,_explicitViewPortWidth: null
+	,_explicitViewPortHeight: null
+	,_explicitViewPortMinWidth: null
+	,_explicitViewPortMinHeight: null
+	,_measureViewPort: null
+	,get_measureViewPort: function() {
+		return this._measureViewPort;
+	}
+	,set_measureViewPort: function(value) {
+		if(this._measureViewPort == value) {
+			return value;
+		}
+		this._measureViewPort = value;
+		this.invalidate("size");
+		return this._measureViewPort;
+	}
+	,_snapToPages: null
+	,get_snapToPages: function() {
+		return this._snapToPages;
+	}
+	,set_snapToPages: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_snapToPages))) {
+			return value;
+		}
+		if(this._snapToPages == value) {
+			return value;
+		}
+		this._snapToPages = value;
+		this.invalidate("scroll");
+		return this._snapToPages;
+	}
+	,_snapOnComplete: null
+	,_horizontalScrollBarFactory: null
+	,get_horizontalScrollBarFactory: function() {
+		return this._horizontalScrollBarFactory;
+	}
+	,set_horizontalScrollBarFactory: function(value) {
+		if(this._horizontalScrollBarFactory == value) {
+			return value;
+		}
+		this._horizontalScrollBarFactory = value;
+		this.invalidate("scrollBarRenderer");
+		return this._horizontalScrollBarFactory;
+	}
+	,_customHorizontalScrollBarStyleName: null
+	,get_customHorizontalScrollBarStyleName: function() {
+		return this._customHorizontalScrollBarStyleName;
+	}
+	,set_customHorizontalScrollBarStyleName: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_customHorizontalScrollBarStyleName))) {
+			return value;
+		}
+		if(this._customHorizontalScrollBarStyleName == value) {
+			return value;
+		}
+		this._customHorizontalScrollBarStyleName = value;
+		this.invalidate("scrollBarRenderer");
+		return this._customHorizontalScrollBarStyleName;
+	}
+	,_horizontalScrollBarProperties: null
+	,get_horizontalScrollBarProperties: function() {
+		if(this._horizontalScrollBarProperties == null) {
+			this._horizontalScrollBarProperties = new feathers_core_PropertyProxy($bind(this,this.childProperties_onChange));
+		}
+		return this._horizontalScrollBarProperties;
+	}
+	,set_horizontalScrollBarProperties: function(value) {
+		if(this._horizontalScrollBarProperties == value) {
+			return value;
+		}
+		if(value == null) {
+			value = new feathers_core_PropertyProxy();
+		}
+		if(!((value) instanceof feathers_core_PropertyProxy)) {
+			var newValue = feathers_core_PropertyProxy.fromObject(value);
+			value = newValue;
+		}
+		if(this._horizontalScrollBarProperties != null) {
+			this._horizontalScrollBarProperties.removeOnChangeCallback($bind(this,this.childProperties_onChange));
+			this._horizontalScrollBarProperties.dispose();
+		}
+		this._horizontalScrollBarProperties = value;
+		if(this._horizontalScrollBarProperties != null) {
+			this._horizontalScrollBarProperties.addOnChangeCallback($bind(this,this.childProperties_onChange));
+		}
+		this.invalidate("styles");
+		return this._horizontalScrollBarProperties;
+	}
+	,_verticalScrollBarPosition: null
+	,get_verticalScrollBarPosition: function() {
+		return this._verticalScrollBarPosition;
+	}
+	,set_verticalScrollBarPosition: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_verticalScrollBarPosition))) {
+			return value;
+		}
+		if(this._verticalScrollBarPosition == value) {
+			return value;
+		}
+		this._verticalScrollBarPosition = value;
+		this.invalidate("styles");
+		return this._verticalScrollBarPosition;
+	}
+	,_horizontalScrollBarPosition: null
+	,get_horizontalScrollBarPosition: function() {
+		return this._horizontalScrollBarPosition;
+	}
+	,set_horizontalScrollBarPosition: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_horizontalScrollBarPosition))) {
+			return value;
+		}
+		if(this._horizontalScrollBarPosition == value) {
+			return value;
+		}
+		this._horizontalScrollBarPosition = value;
+		this.invalidate("styles");
+		return this._horizontalScrollBarPosition;
+	}
+	,_verticalScrollBarFactory: null
+	,get_verticalScrollBarFactory: function() {
+		return this._verticalScrollBarFactory;
+	}
+	,set_verticalScrollBarFactory: function(value) {
+		if(this._verticalScrollBarFactory == value) {
+			return value;
+		}
+		this._verticalScrollBarFactory = value;
+		this.invalidate("scrollBarRenderer");
+		return this._verticalScrollBarFactory;
+	}
+	,_customVerticalScrollBarStyleName: null
+	,get_customVerticalScrollBarStyleName: function() {
+		return this._customVerticalScrollBarStyleName;
+	}
+	,set_customVerticalScrollBarStyleName: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_customVerticalScrollBarStyleName))) {
+			return value;
+		}
+		if(this._customVerticalScrollBarStyleName == value) {
+			return value;
+		}
+		this._customVerticalScrollBarStyleName = value;
+		this.invalidate("scrollBarRenderer");
+		return this._customVerticalScrollBarStyleName;
+	}
+	,_verticalScrollBarProperties: null
+	,get_verticalScrollBarProperties: function() {
+		if(this._verticalScrollBarProperties == null) {
+			this._verticalScrollBarProperties = new feathers_core_PropertyProxy($bind(this,this.childProperties_onChange));
+		}
+		return this._verticalScrollBarProperties;
+	}
+	,set_verticalScrollBarProperties: function(value) {
+		if(this._horizontalScrollBarProperties == value) {
+			return value;
+		}
+		if(value == null) {
+			value = new feathers_core_PropertyProxy();
+		}
+		if(!((value) instanceof feathers_core_PropertyProxy)) {
+			var newValue = feathers_core_PropertyProxy.fromObject(value);
+			value = newValue;
+		}
+		if(this._verticalScrollBarProperties != null) {
+			this._verticalScrollBarProperties.removeOnChangeCallback($bind(this,this.childProperties_onChange));
+			this._verticalScrollBarProperties.dispose();
+		}
+		this._verticalScrollBarProperties = value;
+		if(this._verticalScrollBarProperties != null) {
+			this._verticalScrollBarProperties.addOnChangeCallback($bind(this,this.childProperties_onChange));
+		}
+		this.invalidate("styles");
+		return this._verticalScrollBarProperties;
+	}
+	,actualHorizontalScrollStep: null
+	,explicitHorizontalScrollStep: null
+	,get_horizontalScrollStep: function() {
+		return this.actualHorizontalScrollStep;
+	}
+	,set_horizontalScrollStep: function(value) {
+		if(this.explicitHorizontalScrollStep == value) {
+			return value;
+		}
+		this.explicitHorizontalScrollStep = value;
+		this.invalidate("scroll");
+		return this.explicitHorizontalScrollStep;
+	}
+	,_targetHorizontalScrollPosition: null
+	,_horizontalScrollPosition: null
+	,get_horizontalScrollPosition: function() {
+		return this._horizontalScrollPosition;
+	}
+	,set_horizontalScrollPosition: function(value) {
+		if(this._horizontalScrollPosition == value) {
+			return value;
+		}
+		if(value != value) {
+			throw new openfl_errors_ArgumentError("horizontalScrollPosition cannot be NaN.");
+		}
+		this._horizontalScrollPosition = value;
+		this.invalidate("scroll");
+		return this._horizontalScrollPosition;
+	}
+	,_minHorizontalScrollPosition: null
+	,get_minHorizontalScrollPosition: function() {
+		return this._minHorizontalScrollPosition;
+	}
+	,_maxHorizontalScrollPosition: null
+	,get_maxHorizontalScrollPosition: function() {
+		return this._maxHorizontalScrollPosition;
+	}
+	,_horizontalPageIndex: null
+	,get_horizontalPageIndex: function() {
+		if(this.hasPendingHorizontalPageIndex) {
+			return this.pendingHorizontalPageIndex;
+		}
+		return this._horizontalPageIndex;
+	}
+	,set_horizontalPageIndex: function(value) {
+		if(!this._snapToPages) {
+			throw new openfl_errors_IllegalOperationError("The horizontalPageIndex may not be set if snapToPages is false.");
+		}
+		this.hasPendingHorizontalPageIndex = false;
+		this.pendingHorizontalScrollPosition = NaN;
+		if(this._horizontalPageIndex == value) {
+			return value;
+		}
+		if(!this.isInvalid()) {
+			if(value < this._minHorizontalPageIndex) {
+				value = this._minHorizontalPageIndex;
+			} else if(value > this._maxHorizontalPageIndex) {
+				value = this._maxHorizontalPageIndex;
+			}
+			this._horizontalScrollPosition = this.actualPageWidth * value;
+		} else {
+			this.hasPendingHorizontalPageIndex = true;
+			this.pendingHorizontalPageIndex = value;
+			this.pendingScrollDuration = 0;
+		}
+		this.invalidate("scroll");
+		return value;
+	}
+	,_minHorizontalPageIndex: null
+	,get_minHorizontalPageIndex: function() {
+		return this._minHorizontalPageIndex;
+	}
+	,_maxHorizontalPageIndex: null
+	,get_maxHorizontalPageIndex: function() {
+		return this._maxHorizontalPageIndex;
+	}
+	,get_horizontalPageCount: function() {
+		if(this._maxHorizontalPageIndex == 999999999 || this._minHorizontalPageIndex == -999999999) {
+			return 999999999;
+		}
+		return this._maxHorizontalPageIndex - this._minHorizontalPageIndex + 1;
+	}
+	,_horizontalScrollPolicy: null
+	,get_horizontalScrollPolicy: function() {
+		return this._horizontalScrollPolicy;
+	}
+	,set_horizontalScrollPolicy: function(value) {
+		if(this._horizontalScrollPolicy == value) {
+			return value;
+		}
+		this._horizontalScrollPolicy = value;
+		this.invalidate("scroll");
+		this.invalidate("scrollBarRenderer");
+		return this._horizontalScrollPolicy;
+	}
+	,actualVerticalScrollStep: null
+	,explicitVerticalScrollStep: null
+	,get_verticalScrollStep: function() {
+		return this.actualVerticalScrollStep;
+	}
+	,set_verticalScrollStep: function(value) {
+		if(this.explicitVerticalScrollStep == value) {
+			return value;
+		}
+		this.explicitVerticalScrollStep = value;
+		this.invalidate("scroll");
+		return this.explicitVerticalScrollStep;
+	}
+	,_verticalMouseWheelScrollStep: null
+	,get_verticalMouseWheelScrollStep: function() {
+		return this._verticalMouseWheelScrollStep;
+	}
+	,set_verticalMouseWheelScrollStep: function(value) {
+		if(this._verticalMouseWheelScrollStep == value) {
+			return value;
+		}
+		this._verticalMouseWheelScrollStep = value;
+		this.invalidate("scroll");
+		return this._verticalMouseWheelScrollStep;
+	}
+	,_targetVerticalScrollPosition: null
+	,_verticalScrollPosition: null
+	,get_verticalScrollPosition: function() {
+		return this._verticalScrollPosition;
+	}
+	,set_verticalScrollPosition: function(value) {
+		if(this._verticalScrollPosition == value) {
+			return value;
+		}
+		if(value != value) {
+			throw new openfl_errors_ArgumentError("verticalScrollPosition cannot be NaN.");
+		}
+		this._verticalScrollPosition = value;
+		this.invalidate("scroll");
+		return this._verticalScrollPosition;
+	}
+	,_minVerticalScrollPosition: null
+	,get_minVerticalScrollPosition: function() {
+		return this._minVerticalScrollPosition;
+	}
+	,_maxVerticalScrollPosition: null
+	,get_maxVerticalScrollPosition: function() {
+		return this._maxVerticalScrollPosition;
+	}
+	,_verticalPageIndex: null
+	,get_verticalPageIndex: function() {
+		if(this.hasPendingVerticalPageIndex) {
+			return this.pendingVerticalPageIndex;
+		}
+		return this._verticalPageIndex;
+	}
+	,set_verticalPageIndex: function(value) {
+		if(!this._snapToPages) {
+			throw new openfl_errors_IllegalOperationError("The verticalPageIndex may not be set if snapToPages is false.");
+		}
+		this.hasPendingVerticalPageIndex = false;
+		this.pendingVerticalScrollPosition = NaN;
+		if(this._verticalPageIndex == value) {
+			return value;
+		}
+		if(!this.isInvalid()) {
+			if(value < this._minVerticalPageIndex) {
+				value = this._minVerticalPageIndex;
+			} else if(value > this._maxVerticalPageIndex) {
+				value = this._maxVerticalPageIndex;
+			}
+			this._verticalScrollPosition = this.actualPageHeight * value;
+		} else {
+			this.hasPendingVerticalPageIndex = true;
+			this.pendingVerticalPageIndex = value;
+			this.pendingScrollDuration = 0;
+		}
+		this.invalidate("scroll");
+		return value;
+	}
+	,_minVerticalPageIndex: null
+	,get_minVerticalPageIndex: function() {
+		return this._minVerticalPageIndex;
+	}
+	,_maxVerticalPageIndex: null
+	,get_maxVerticalPageIndex: function() {
+		return this._maxVerticalPageIndex;
+	}
+	,get_verticalPageCount: function() {
+		if(this._maxVerticalPageIndex == 999999999 || this._minVerticalPageIndex == -999999999) {
+			return 999999999;
+		}
+		return this._maxVerticalPageIndex - this._minVerticalPageIndex + 1;
+	}
+	,_verticalScrollPolicy: null
+	,get_verticalScrollPolicy: function() {
+		return this._verticalScrollPolicy;
+	}
+	,set_verticalScrollPolicy: function(value) {
+		if(this._verticalScrollPolicy == value) {
+			return value;
+		}
+		this._verticalScrollPolicy = value;
+		this.invalidate("scroll");
+		this.invalidate("scrollBarRenderer");
+		return this._verticalScrollPolicy;
+	}
+	,_clipContent: null
+	,get_clipContent: function() {
+		return this._clipContent;
+	}
+	,set_clipContent: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_clipContent))) {
+			return value;
+		}
+		if(this._clipContent == value) {
+			return value;
+		}
+		this._clipContent = value;
+		if(value == null && this._viewPort != null) {
+			this._viewPort.set_mask(null);
+		}
+		this.invalidate("clipping");
+		return this._clipContent;
+	}
+	,actualPageWidth: null
+	,explicitPageWidth: null
+	,get_pageWidth: function() {
+		return this.actualPageWidth;
+	}
+	,set_pageWidth: function(value) {
+		if(this.explicitPageWidth == value) {
+			return value;
+		}
+		var valueIsNaN = value != value;
+		if(valueIsNaN && this.explicitPageWidth != this.explicitPageWidth) {
+			return value;
+		}
+		this.explicitPageWidth = value;
+		if(valueIsNaN) {
+			this.actualPageWidth = 0;
+		} else {
+			this.actualPageWidth = this.explicitPageWidth;
+		}
+		return this.explicitPageWidth;
+	}
+	,actualPageHeight: null
+	,explicitPageHeight: null
+	,get_pageHeight: function() {
+		return this.actualPageHeight;
+	}
+	,set_pageHeight: function(value) {
+		if(this.explicitPageHeight == value) {
+			return value;
+		}
+		var valueIsNaN = value != value;
+		if(valueIsNaN && this.explicitPageHeight != this.explicitPageHeight) {
+			return value;
+		}
+		this.explicitPageHeight = value;
+		if(valueIsNaN) {
+			this.actualPageHeight = 0;
+		} else {
+			this.actualPageHeight = this.explicitPageHeight;
+		}
+		return this.explicitPageHeight;
+	}
+	,_hasElasticEdges: null
+	,get_hasElasticEdges: function() {
+		return this._hasElasticEdges;
+	}
+	,set_hasElasticEdges: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_hasElasticEdges))) {
+			return value;
+		}
+		return this._hasElasticEdges = value;
+	}
+	,_elasticity: null
+	,get_elasticity: function() {
+		return this._elasticity;
+	}
+	,set_elasticity: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_elasticity))) {
+			return value;
+		}
+		return this._elasticity = value;
+	}
+	,_throwElasticity: null
+	,get_throwElasticity: function() {
+		return this._throwElasticity;
+	}
+	,set_throwElasticity: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_throwElasticity))) {
+			return value;
+		}
+		return this._throwElasticity = value;
+	}
+	,_scrollBarDisplayMode: null
+	,get_scrollBarDisplayMode: function() {
+		return this._scrollBarDisplayMode;
+	}
+	,set_scrollBarDisplayMode: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_scrollBarDisplayMode))) {
+			return value;
+		}
+		if(this._scrollBarDisplayMode == value) {
+			return value;
+		}
+		this._scrollBarDisplayMode = value;
+		this.invalidate("scrollBarRenderer");
+		this.invalidate("styles");
+		return this._scrollBarDisplayMode;
+	}
+	,_interactionMode: null
+	,get_interactionMode: function() {
+		return this._interactionMode;
+	}
+	,set_interactionMode: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_interactionMode))) {
+			return value;
+		}
+		if(this._interactionMode == value) {
+			return value;
+		}
+		this._interactionMode = value;
+		this.invalidate("styles");
+		return this._interactionMode;
+	}
+	,_explicitBackgroundWidth: null
+	,_explicitBackgroundHeight: null
+	,_explicitBackgroundMinWidth: null
+	,_explicitBackgroundMinHeight: null
+	,_explicitBackgroundMaxWidth: null
+	,_explicitBackgroundMaxHeight: null
+	,currentBackgroundSkin: null
+	,_backgroundSkin: null
+	,get_backgroundSkin: function() {
+		return this._backgroundSkin;
+	}
+	,set_backgroundSkin: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_backgroundSkin))) {
+			if(value != null) {
+				value.dispose();
+			}
+			return value;
+		}
+		if(this._backgroundSkin == value) {
+			return value;
+		}
+		if(this._backgroundSkin != null && this.currentBackgroundSkin == this._backgroundSkin) {
+			this.removeCurrentBackgroundSkin(this._backgroundSkin);
+			this.currentBackgroundSkin = null;
+		}
+		this._backgroundSkin = value;
+		this.invalidate("styles");
+		return this._backgroundSkin;
+	}
+	,_backgroundDisabledSkin: null
+	,get_backgroundDisabledSkin: function() {
+		return this._backgroundDisabledSkin;
+	}
+	,set_backgroundDisabledSkin: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_backgroundDisabledSkin))) {
+			if(value != null) {
+				value.dispose();
+			}
+			return value;
+		}
+		if(this._backgroundDisabledSkin == value) {
+			return value;
+		}
+		if(this._backgroundDisabledSkin != null && this.currentBackgroundSkin == this._backgroundDisabledSkin) {
+			this.removeCurrentBackgroundSkin(this._backgroundDisabledSkin);
+			this.currentBackgroundSkin = null;
+		}
+		this._backgroundDisabledSkin = value;
+		this.invalidate("styles");
+		return this._backgroundDisabledSkin;
+	}
+	,_autoHideBackground: null
+	,get_autoHideBackground: function() {
+		return this._autoHideBackground;
+	}
+	,set_autoHideBackground: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_autoHideBackground))) {
+			return value;
+		}
+		if(this._autoHideBackground == value) {
+			return value;
+		}
+		this._autoHideBackground = value;
+		this.invalidate("styles");
+		return this._autoHideBackground;
+	}
+	,_minimumDragDistance: null
+	,get_minimumDragDistance: function() {
+		return this._minimumDragDistance;
+	}
+	,set_minimumDragDistance: function(value) {
+		return this._minimumDragDistance = value;
+	}
+	,_minimumPageThrowVelocity: null
+	,get_minimumPageThrowVelocity: function() {
+		return this._minimumPageThrowVelocity;
+	}
+	,set_minimumPageThrowVelocity: function(value) {
+		return this._minimumPageThrowVelocity = value;
+	}
+	,get_padding: function() {
+		return this._paddingTop;
+	}
+	,set_padding: function(value) {
+		this.set_paddingTop(value);
+		this.set_paddingRight(value);
+		this.set_paddingBottom(value);
+		return this.set_paddingLeft(value);
+	}
+	,_paddingTop: null
+	,get_paddingTop: function() {
+		return this._paddingTop;
+	}
+	,set_paddingTop: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingTop))) {
+			return value;
+		}
+		if(this._paddingTop == value) {
+			return value;
+		}
+		this._paddingTop = value;
+		this.invalidate("styles");
+		return this._paddingTop = value;
+	}
+	,_paddingRight: null
+	,get_paddingRight: function() {
+		return this._paddingRight;
+	}
+	,set_paddingRight: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingRight))) {
+			return value;
+		}
+		if(this._paddingRight == value) {
+			return value;
+		}
+		this._paddingRight = value;
+		this.invalidate("styles");
+		return this._paddingRight;
+	}
+	,_paddingBottom: null
+	,get_paddingBottom: function() {
+		return this._paddingBottom;
+	}
+	,set_paddingBottom: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingBottom))) {
+			return value;
+		}
+		if(this._paddingBottom == value) {
+			return value;
+		}
+		this._paddingBottom = value;
+		this.invalidate("styles");
+		return this._paddingBottom;
+	}
+	,_paddingLeft: null
+	,get_paddingLeft: function() {
+		return this._paddingLeft;
+	}
+	,set_paddingLeft: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingLeft))) {
+			return value;
+		}
+		if(this._paddingLeft == value) {
+			return value;
+		}
+		this._paddingLeft = value;
+		this.invalidate("styles");
+		return this._paddingLeft;
+	}
+	,_horizontalScrollBarHideTween: null
+	,_verticalScrollBarHideTween: null
+	,_hideScrollBarAnimationDuration: null
+	,get_hideScrollBarAnimationDuration: function() {
+		return this._hideScrollBarAnimationDuration;
+	}
+	,set_hideScrollBarAnimationDuration: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_hideScrollBarAnimationDuration))) {
+			return value;
+		}
+		return this._hideScrollBarAnimationDuration = value;
+	}
+	,_hideScrollBarAnimationEase: null
+	,get_hideScrollBarAnimationEase: function() {
+		return this._hideScrollBarAnimationEase;
+	}
+	,set_hideScrollBarAnimationEase: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_hideScrollBarAnimationEase))) {
+			return value;
+		}
+		return this._hideScrollBarAnimationEase = value;
+	}
+	,_elasticSnapDuration: null
+	,get_elasticSnapDuration: function() {
+		return this._elasticSnapDuration;
+	}
+	,set_elasticSnapDuration: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_elasticSnapDuration))) {
+			return value;
+		}
+		return this._elasticSnapDuration = value;
+	}
+	,_logDecelerationRate: null
+	,_decelerationRate: null
+	,get_decelerationRate: function() {
+		return this._decelerationRate;
+	}
+	,set_decelerationRate: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_decelerationRate))) {
+			return value;
+		}
+		if(this._decelerationRate == value) {
+			return value;
+		}
+		this._decelerationRate = value;
+		this._logDecelerationRate = Math.log(this._decelerationRate);
+		this._fixedThrowDuration = -0.1 / Math.log(Math.pow(this._decelerationRate,16.666666666666668));
+		return this._decelerationRate;
+	}
+	,_fixedThrowDuration: null
+	,_useFixedThrowDuration: null
+	,get_useFixedThrowDuration: function() {
+		return this._useFixedThrowDuration;
+	}
+	,set_useFixedThrowDuration: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_useFixedThrowDuration))) {
+			return value;
+		}
+		return this._useFixedThrowDuration = value;
+	}
+	,_pageThrowDuration: null
+	,get_pageThrowDuration: function() {
+		return this._pageThrowDuration;
+	}
+	,set_pageThrowDuration: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_pageThrowDuration))) {
+			return value;
+		}
+		return this._pageThrowDuration = value;
+	}
+	,_mouseWheelScrollDuration: null
+	,get_mouseWheelScrollDuration: function() {
+		return this._mouseWheelScrollDuration;
+	}
+	,set_mouseWheelScrollDuration: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_mouseWheelScrollDuration))) {
+			return value;
+		}
+		return this._mouseWheelScrollDuration = value;
+	}
+	,_verticalMouseWheelScrollDirection: null
+	,get_verticalMouseWheelScrollDirection: function() {
+		return this._verticalMouseWheelScrollDirection;
+	}
+	,set_verticalMouseWheelScrollDirection: function(value) {
+		return this._verticalMouseWheelScrollDirection = value;
+	}
+	,_throwEase: null
+	,get_throwEase: function() {
+		return this._throwEase;
+	}
+	,set_throwEase: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_throwEase))) {
+			return value;
+		}
+		if(value == null) {
+			value = feathers_controls_Scroller.defaultThrowEase;
+		}
+		return this._throwEase = value;
+	}
+	,_snapScrollPositionsToPixels: null
+	,get_snapScrollPositionsToPixels: function() {
+		return this._snapScrollPositionsToPixels;
+	}
+	,set_snapScrollPositionsToPixels: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_snapScrollPositionsToPixels))) {
+			return value;
+		}
+		if(this._snapScrollPositionsToPixels == value) {
+			return value;
+		}
+		this._snapScrollPositionsToPixels = value;
+		this.invalidate("scroll");
+		return this._snapScrollPositionsToPixels;
+	}
+	,_horizontalScrollBarIsScrolling: null
+	,_verticalScrollBarIsScrolling: null
+	,_isScrolling: null
+	,get_isScrolling: function() {
+		return this._isScrolling;
+	}
+	,_isScrollingStopped: null
+	,pendingHorizontalScrollPosition: null
+	,pendingVerticalScrollPosition: null
+	,hasPendingHorizontalPageIndex: null
+	,hasPendingVerticalPageIndex: null
+	,pendingHorizontalPageIndex: null
+	,pendingVerticalPageIndex: null
+	,pendingScrollDuration: null
+	,isScrollBarRevealPending: null
+	,_revealScrollBarsDuration: null
+	,get_revealScrollBarsDuration: function() {
+		return this._revealScrollBarsDuration;
+	}
+	,set_revealScrollBarsDuration: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_revealScrollBarsDuration))) {
+			return value;
+		}
+		return this._revealScrollBarsDuration = value;
+	}
+	,_isTopPullViewPending: null
+	,_isTopPullViewActive: null
+	,get_isTopPullViewActive: function() {
+		return this._isTopPullViewActive;
+	}
+	,set_isTopPullViewActive: function(value) {
+		if(this._isTopPullViewActive == value) {
+			return value;
+		}
+		if(this._topPullView == null) {
+			return value;
+		}
+		this._isTopPullViewActive = value;
+		this._isTopPullViewPending = true;
+		this.invalidate("pendingPullView");
+		return this._isTopPullViewActive;
+	}
+	,_topPullView: null
+	,get_topPullView: function() {
+		return this._topPullView;
+	}
+	,set_topPullView: function(value) {
+		if(this._topPullView != null) {
+			this._topPullView.get_mask().dispose();
+			this._topPullView.set_mask(null);
+			if(this._topPullView.get_parent() == this) {
+				this.removeRawChildInternal(this._topPullView,false);
+			}
+		}
+		this._topPullView = value;
+		if(this._topPullView != null) {
+			this._topPullView.set_mask(new starling_display_Quad(1,1,16711935));
+			this._topPullView.set_visible(false);
+			this.addRawChildInternal(this._topPullView);
+		} else {
+			this.set_isTopPullViewActive(false);
+		}
+		return this._topPullView;
+	}
+	,_topPullViewDisplayMode: null
+	,get_topPullViewDisplayMode: function() {
+		return this._topPullViewDisplayMode;
+	}
+	,set_topPullViewDisplayMode: function(value) {
+		if(this._topPullViewDisplayMode == value) {
+			return value;
+		}
+		this._topPullViewDisplayMode = value;
+		this.invalidate("styles");
+		return this._topPullViewDisplayMode;
+	}
+	,_topPullViewRatio: null
+	,get_topPullViewRatio: function() {
+		return this._topPullViewRatio;
+	}
+	,set_topPullViewRatio: function(value) {
+		if(this._topPullViewRatio == value) {
+			return value;
+		}
+		this._topPullViewRatio = value;
+		if(!this._isTopPullViewActive && this._topPullView != null) {
+			this._topPullView.dispatchEventWith("pulling",false,value);
+		}
+		return this._topPullViewRatio;
+	}
+	,_isRightPullViewPending: null
+	,_isRightPullViewActive: null
+	,get_isRightPullViewActive: function() {
+		return this._isRightPullViewActive;
+	}
+	,set_isRightPullViewActive: function(value) {
+		if(this._isRightPullViewActive == value) {
+			return value;
+		}
+		if(this._rightPullView == null) {
+			return value;
+		}
+		this._isRightPullViewActive = value;
+		this._isRightPullViewPending = true;
+		this.invalidate("pendingPullView");
+		return this._isRightPullViewActive;
+	}
+	,_rightPullView: null
+	,get_rightPullView: function() {
+		return this._rightPullView;
+	}
+	,set_rightPullView: function(value) {
+		if(this._rightPullView != null) {
+			this._rightPullView.get_mask().dispose();
+			this._rightPullView.set_mask(null);
+			if(this._rightPullView.get_parent() == this) {
+				this.removeRawChildInternal(this._rightPullView,false);
+			}
+		}
+		this._rightPullView = value;
+		if(this._rightPullView != null) {
+			this._rightPullView.set_mask(new starling_display_Quad(1,1,16711935));
+			this._rightPullView.set_visible(false);
+			this.addRawChildInternal(this._rightPullView);
+		} else {
+			this.set_isRightPullViewActive(false);
+		}
+		return this._rightPullView;
+	}
+	,_rightPullViewDisplayMode: null
+	,get_rightPullViewDisplayMode: function() {
+		return this._rightPullViewDisplayMode;
+	}
+	,set_rightPullViewDisplayMode: function(value) {
+		if(this._rightPullViewDisplayMode == value) {
+			return this._rightPullViewDisplayMode;
+		}
+		this._rightPullViewDisplayMode = value;
+		this.invalidate("styles");
+		return this._rightPullViewDisplayMode;
+	}
+	,_rightPullViewRatio: null
+	,get_rightPullViewRatio: function() {
+		return this._rightPullViewRatio;
+	}
+	,set_rightPullViewRatio: function(value) {
+		if(this._rightPullViewRatio == value) {
+			return value;
+		}
+		this._rightPullViewRatio = value;
+		if(!this._isRightPullViewActive && this._rightPullView != null) {
+			this._rightPullView.dispatchEventWith("pulling",false,value);
+		}
+		return this._rightPullViewRatio;
+	}
+	,_isBottomPullViewPending: null
+	,_isBottomPullViewActive: null
+	,get_isBottomPullViewActive: function() {
+		return this._isBottomPullViewActive;
+	}
+	,set_isBottomPullViewActive: function(value) {
+		if(this._isBottomPullViewActive == value) {
+			return value;
+		}
+		if(this._bottomPullView == null) {
+			return value;
+		}
+		this._isBottomPullViewActive = value;
+		this._isBottomPullViewPending = true;
+		this.invalidate("pendingPullView");
+		return this._isBottomPullViewActive;
+	}
+	,_bottomPullView: null
+	,get_bottomPullView: function() {
+		return this._bottomPullView;
+	}
+	,set_bottomPullView: function(value) {
+		if(this._bottomPullView != null) {
+			this._bottomPullView.get_mask().dispose();
+			this._bottomPullView.set_mask(null);
+			if(this._bottomPullView.get_parent() == this) {
+				this.removeRawChildInternal(this._bottomPullView,false);
+			}
+		}
+		this._bottomPullView = value;
+		if(this._bottomPullView != null) {
+			this._bottomPullView.set_mask(new starling_display_Quad(1,1,16711935));
+			this._bottomPullView.set_visible(false);
+			this.addRawChildInternal(this._bottomPullView);
+		} else {
+			this.set_isBottomPullViewActive(false);
+		}
+		return this._bottomPullView;
+	}
+	,_bottomPullViewDisplayMode: null
+	,get_bottomPullViewDisplayMode: function() {
+		return this._bottomPullViewDisplayMode;
+	}
+	,set_bottomPullViewDisplayMode: function(value) {
+		if(this._bottomPullViewDisplayMode == value) {
+			return value;
+		}
+		this._bottomPullViewDisplayMode = value;
+		this.invalidate("styles");
+		return this._bottomPullViewDisplayMode;
+	}
+	,_bottomPullViewRatio: null
+	,get_bottomPullViewRatio: function() {
+		return this._bottomPullViewRatio;
+	}
+	,set_bottomPullViewRatio: function(value) {
+		if(this._bottomPullViewRatio == value) {
+			return value;
+		}
+		this._bottomPullViewRatio = value;
+		if(!this._isBottomPullViewActive && this._bottomPullView != null) {
+			this._bottomPullView.dispatchEventWith("pulling",false,value);
+		}
+		return this._bottomPullViewRatio;
+	}
+	,_isLeftPullViewPending: null
+	,_isLeftPullViewActive: null
+	,get_isLeftPullViewActive: function() {
+		return this._isLeftPullViewActive;
+	}
+	,set_isLeftPullViewActive: function(value) {
+		if(this._isLeftPullViewActive == value) {
+			return value;
+		}
+		if(this._leftPullView == null) {
+			return value;
+		}
+		this._isLeftPullViewActive = value;
+		this._isLeftPullViewPending = true;
+		this.invalidate("pendingPullView");
+		return this._isLeftPullViewActive;
+	}
+	,_leftPullView: null
+	,get_leftPullView: function() {
+		return this._leftPullView;
+	}
+	,set_leftPullView: function(value) {
+		if(this._leftPullView != null) {
+			this._leftPullView.get_mask().dispose();
+			this._leftPullView.set_mask(null);
+			if(this._leftPullView.get_parent() == this) {
+				this.removeRawChildInternal(this._leftPullView,false);
+			}
+		}
+		this._leftPullView = value;
+		if(this._leftPullView != null) {
+			this._leftPullView.set_mask(new starling_display_Quad(1,1,16711935));
+			this._leftPullView.set_visible(false);
+			this.addRawChildInternal(this._leftPullView);
+		} else {
+			this.set_isLeftPullViewActive(false);
+		}
+		return this._leftPullView;
+	}
+	,_leftPullViewRatio: null
+	,get_leftPullViewRatio: function() {
+		return this._leftPullViewRatio;
+	}
+	,set_leftPullViewRatio: function(value) {
+		if(this._leftPullViewRatio == value) {
+			return value;
+		}
+		this._leftPullViewRatio = value;
+		if(!this._isLeftPullViewActive && this._leftPullView != null) {
+			this._leftPullView.dispatchEventWith("pulling",false,value);
+		}
+		return this._leftPullViewRatio;
+	}
+	,_leftPullViewDisplayMode: null
+	,get_leftPullViewDisplayMode: function() {
+		return this._leftPullViewDisplayMode;
+	}
+	,set_leftPullViewDisplayMode: function(value) {
+		if(this._leftPullViewDisplayMode == value) {
+			return value;
+		}
+		this._leftPullViewDisplayMode = value;
+		this.invalidate("styles");
+		return this._leftPullViewDisplayMode;
+	}
+	,_horizontalAutoScrollTweenEndRatio: null
+	,_verticalAutoScrollTweenEndRatio: null
+	,dispose: function() {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		starling.get_nativeStage().removeEventListener("mouseWheel",$bind(this,this.nativeStage_mouseWheelHandler));
+		starling.get_nativeStage().removeEventListener("orientationChange",$bind(this,this.nativeStage_orientationChangeHandler));
+		if(this._backgroundSkin != null && this._backgroundSkin.get_parent() != this) {
+			this._backgroundSkin.dispose();
+		}
+		if(this._backgroundDisabledSkin != null && this._backgroundDisabledSkin.get_parent() != this) {
+			this._backgroundDisabledSkin.dispose();
+		}
+		feathers_core_FeathersControl.prototype.dispose.call(this);
+	}
+	,stopScrolling: function() {
+		if(this._horizontalAutoScrollTween != null) {
+			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			this._horizontalAutoScrollTween = null;
+		}
+		if(this._verticalAutoScrollTween != null) {
+			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			this._verticalAutoScrollTween = null;
+		}
+		this._isScrollingStopped = true;
+		this._velocityX = 0;
+		this._velocityY = 0;
+		this._previousVelocityX.splice(0,this._previousVelocityX.length);
+		this._previousVelocityY.splice(0,this._previousVelocityY.length);
+		this.hideHorizontalScrollBar();
+		this.hideVerticalScrollBar();
+	}
+	,scrollToPosition: function(horizontalScrollPosition,verticalScrollPosition,animationDuration) {
+		if(animationDuration == null) {
+			animationDuration = NaN;
+		}
+		if(isNaN(animationDuration)) {
+			if(this._useFixedThrowDuration) {
+				animationDuration = this._fixedThrowDuration;
+			} else {
+				var point = starling_utils_Pool.getPoint(horizontalScrollPosition - this._horizontalScrollPosition,verticalScrollPosition - this._verticalScrollPosition);
+				animationDuration = this.calculateDynamicThrowDuration(point.get_length() * this._logDecelerationRate + 0.02);
+				starling_utils_Pool.putPoint(point);
+			}
+		}
+		this.hasPendingHorizontalPageIndex = false;
+		this.hasPendingVerticalPageIndex = false;
+		if(this.pendingHorizontalScrollPosition == horizontalScrollPosition && this.pendingVerticalScrollPosition == verticalScrollPosition && this.pendingScrollDuration == animationDuration) {
+			return;
+		}
+		this.pendingHorizontalScrollPosition = horizontalScrollPosition;
+		this.pendingVerticalScrollPosition = verticalScrollPosition;
+		this.pendingScrollDuration = animationDuration;
+		this.invalidate("pendingScroll");
+	}
+	,scrollToPageIndex: function(horizontalPageIndex,verticalPageIndex,animationDuration) {
+		if(animationDuration != animationDuration) {
+			animationDuration = this._pageThrowDuration;
+		}
+		this.pendingHorizontalScrollPosition = NaN;
+		this.pendingVerticalScrollPosition = NaN;
+		this.hasPendingHorizontalPageIndex = this._horizontalPageIndex != horizontalPageIndex;
+		this.hasPendingVerticalPageIndex = this._verticalPageIndex != verticalPageIndex;
+		if(!this.hasPendingHorizontalPageIndex && !this.hasPendingVerticalPageIndex) {
+			return;
+		}
+		this.pendingHorizontalPageIndex = horizontalPageIndex;
+		this.pendingVerticalPageIndex = verticalPageIndex;
+		this.pendingScrollDuration = animationDuration;
+		this.invalidate("pendingScroll");
+	}
+	,revealScrollBars: function() {
+		this.isScrollBarRevealPending = true;
+		this.invalidate("pendingRevealScrollBars");
+	}
+	,hitTest: function(localPoint) {
+		var localX = localPoint.x;
+		var localY = localPoint.y;
+		var result = feathers_core_FeathersControl.prototype.hitTest.call(this,localPoint);
+		if((this._isDraggingHorizontally || this._isDraggingVertically) && ((this.get_viewPort()) instanceof starling_display_DisplayObjectContainer) && (js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).contains(result)) {
+			result = this.get_viewPort();
+		}
+		if(result == null) {
+			if(!this.get_visible() || !this.get_touchable()) {
+				return null;
+			}
+			if(this._hitArea.contains(localX,localY)) {
+				return this;
+			} else {
+				return null;
+			}
+		}
+		return result;
+	}
+	,draw: function() {
+		var sizeInvalid = this.isInvalid("size");
+		var dataInvalid = this.isInvalid("data");
+		var layoutInvalid = this.isInvalid("layout");
+		var scrollInvalid = this.isInvalid("scroll");
+		var clippingInvalid = this.isInvalid("clipping");
+		var stylesInvalid = this.isInvalid("styles");
+		var stateInvalid = this.isInvalid("state");
+		var scrollBarInvalid = this.isInvalid("scrollBarRenderer");
+		var pendingScrollInvalid = this.isInvalid("pendingScroll");
+		var pendingRevealScrollBarsInvalid = this.isInvalid("pendingRevealScrollBars");
+		var pendingPullViewInvalid = this.isInvalid("pendingPullView");
+		if(scrollBarInvalid) {
+			this.createScrollBars();
+		}
+		if(sizeInvalid || stylesInvalid || stateInvalid) {
+			this.refreshBackgroundSkin();
+		}
+		if(scrollBarInvalid || stylesInvalid) {
+			this.refreshScrollBarStyles();
+			this.refreshInteractionModeEvents();
+		}
+		if(scrollBarInvalid || stateInvalid) {
+			this.refreshEnabled();
+		}
+		if(this.horizontalScrollBar != null) {
+			this.horizontalScrollBar.validate();
+		}
+		if(this.verticalScrollBar != null) {
+			this.verticalScrollBar.validate();
+		}
+		var oldMaxHorizontalScrollPosition = this._maxHorizontalScrollPosition;
+		var oldMaxVerticalScrollPosition = this._maxVerticalScrollPosition;
+		var needsMeasurement = scrollInvalid && this._viewPort.get_requiresMeasurementOnScroll() || dataInvalid || sizeInvalid || stylesInvalid || scrollBarInvalid || stateInvalid || layoutInvalid;
+		this.refreshViewPort(needsMeasurement);
+		if(oldMaxHorizontalScrollPosition != this._maxHorizontalScrollPosition) {
+			this.refreshHorizontalAutoScrollTweenEndRatio();
+			scrollInvalid = true;
+		}
+		if(oldMaxVerticalScrollPosition != this._maxVerticalScrollPosition) {
+			this.refreshVerticalAutoScrollTweenEndRatio();
+			scrollInvalid = true;
+		}
+		if(scrollInvalid) {
+			this.dispatchEventWith("scroll");
+		}
+		this.showOrHideChildren();
+		this.layoutChildren();
+		if(scrollInvalid || sizeInvalid || stylesInvalid || scrollBarInvalid) {
+			this.refreshScrollBarValues();
+		}
+		if(needsMeasurement || scrollInvalid || clippingInvalid) {
+			this.refreshMask();
+		}
+		this.refreshFocusIndicator();
+		if(pendingScrollInvalid) {
+			this.handlePendingScroll();
+		}
+		if(pendingRevealScrollBarsInvalid) {
+			this.handlePendingRevealScrollBars();
+		}
+		if(pendingPullViewInvalid) {
+			this.handlePendingPullView();
+		}
+	}
+	,refreshViewPort: function(measure) {
+		if(this._snapScrollPositionsToPixels) {
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			var pixelSize = 1 / starling.get_contentScaleFactor();
+			this._viewPort.set_horizontalScrollPosition(Math.round(this._horizontalScrollPosition / pixelSize) * pixelSize);
+			this._viewPort.set_verticalScrollPosition(Math.round(this._verticalScrollPosition / pixelSize) * pixelSize);
+		} else {
+			this._viewPort.set_horizontalScrollPosition(this._horizontalScrollPosition);
+			this._viewPort.set_verticalScrollPosition(this._verticalScrollPosition);
+		}
+		if(!measure) {
+			this._viewPort.validate();
+			this.refreshScrollValues();
+			return;
+		}
+		var loopCount = 0;
+		while(true) {
+			this._hasViewPortBoundsChanged = false;
+			if(this._measureViewPort) {
+				this.calculateViewPortOffsets(true,false);
+				this.refreshViewPortBoundsForMeasurement();
+			}
+			this.calculateViewPortOffsets(false,false);
+			this.autoSizeIfNeeded();
+			this.calculateViewPortOffsets(false,true);
+			this.refreshViewPortBoundsForLayout();
+			this.refreshScrollValues();
+			++loopCount;
+			if(loopCount >= 10) {
+				var c = js_Boot.getClass(this);
+				throw new openfl_errors_Error(c.__name__ + " stuck in an infinite loop during measurement and validation. This may be an issue with the layout or children, such as custom item renderers.");
+			}
+			if(!this._hasViewPortBoundsChanged) {
+				break;
+			}
+		}
+		this._lastViewPortWidth = this._viewPort.get_width();
+		this._lastViewPortHeight = this._viewPort.get_height();
+	}
+	,autoSizeIfNeeded: function() {
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
+		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
+		if(!needsWidth && !needsHeight && !needsMinWidth && !needsMinHeight) {
+			return false;
+		}
+		feathers_utils_skins_SkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentBackgroundSkin,this._explicitWidth,this._explicitHeight,this._explicitMinWidth,this._explicitMinHeight,this._explicitMaxWidth,this._explicitMaxHeight,this._explicitBackgroundWidth,this._explicitBackgroundHeight,this._explicitBackgroundMinWidth,this._explicitBackgroundMinHeight,this._explicitBackgroundMaxWidth,this._explicitBackgroundMaxHeight);
+		var measureBackground = this.currentBackgroundSkin;
+		if(js_Boot.__implements(this.currentBackgroundSkin,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.currentBackgroundSkin , feathers_core_IValidating)).validate();
+		}
+		var newWidth = this._explicitWidth;
+		var newHeight = this._explicitHeight;
+		var newMinWidth = this._explicitMinWidth;
+		var newMinHeight = this._explicitMinHeight;
+		if(needsWidth) {
+			if(this._measureViewPort) {
+				newWidth = this._viewPort.get_visibleWidth();
+			} else {
+				newWidth = 0;
+			}
+			newWidth += this._rightViewPortOffset + this._leftViewPortOffset;
+			if(this.currentBackgroundSkin != null && this.currentBackgroundSkin.get_width() > newWidth) {
+				newWidth = this.currentBackgroundSkin.get_width();
+			}
+		}
+		if(needsHeight) {
+			if(this._measureViewPort) {
+				newHeight = this._viewPort.get_visibleHeight();
+			} else {
+				newHeight = 0;
+			}
+			newHeight += this._bottomViewPortOffset + this._topViewPortOffset;
+			if(this.currentBackgroundSkin != null && this.currentBackgroundSkin.get_height() > newHeight) {
+				newHeight = this.currentBackgroundSkin.get_height();
+			}
+		}
+		if(needsMinWidth) {
+			if(this._measureViewPort) {
+				newMinWidth = this._viewPort.get_minVisibleWidth();
+			} else {
+				newMinWidth = 0;
+			}
+			newMinWidth += this._rightViewPortOffset + this._leftViewPortOffset;
+			if(this.currentBackgroundSkin != null) {
+				if(measureBackground != null) {
+					if(measureBackground.get_minWidth() > newMinWidth) {
+						newMinWidth = measureBackground.get_minWidth();
+					}
+				} else if(this._explicitBackgroundMinWidth > newMinWidth) {
+					newMinWidth = this._explicitBackgroundMinWidth;
+				}
+			}
+		}
+		if(needsMinHeight) {
+			if(this._measureViewPort) {
+				newMinHeight = this._viewPort.get_minVisibleHeight();
+			} else {
+				newMinHeight = 0;
+			}
+			newMinHeight += this._bottomViewPortOffset + this._topViewPortOffset;
+			if(this.currentBackgroundSkin != null) {
+				if(measureBackground != null) {
+					if(measureBackground.get_minHeight() > newMinHeight) {
+						newMinHeight = measureBackground.get_minHeight();
+					}
+				} else if(this._explicitBackgroundMinHeight > newMinHeight) {
+					newMinHeight = this._explicitBackgroundMinHeight;
+				}
+			}
+		}
+		return this.saveMeasurements(newWidth,newHeight,newMinWidth,newMinHeight);
+	}
+	,createScrollBars: function() {
+		if(this.horizontalScrollBar != null) {
+			this.horizontalScrollBar.removeEventListener("beginInteraction",$bind(this,this.horizontalScrollBar_beginInteractionHandler));
+			this.horizontalScrollBar.removeEventListener("endInteraction",$bind(this,this.horizontalScrollBar_endInteractionHandler));
+			this.horizontalScrollBar.removeEventListener("change",$bind(this,this.horizontalScrollBar_changeHandler));
+			this.removeRawChildInternal(this.horizontalScrollBar,true);
+			this.horizontalScrollBar = null;
+		}
+		if(this.verticalScrollBar != null) {
+			this.verticalScrollBar.removeEventListener("beginInteraction",$bind(this,this.verticalScrollBar_beginInteractionHandler));
+			this.verticalScrollBar.removeEventListener("endInteraction",$bind(this,this.verticalScrollBar_endInteractionHandler));
+			this.verticalScrollBar.removeEventListener("change",$bind(this,this.verticalScrollBar_changeHandler));
+			this.removeRawChildInternal(this.verticalScrollBar,true);
+			this.verticalScrollBar = null;
+		}
+		if(this._scrollBarDisplayMode != "none" && this._horizontalScrollPolicy != "off" && this._horizontalScrollBarFactory != null) {
+			this.horizontalScrollBar = this._horizontalScrollBarFactory();
+			if(js_Boot.__implements(this.horizontalScrollBar,feathers_controls_IDirectionalScrollBar)) {
+				(js_Boot.__cast(this.horizontalScrollBar , feathers_controls_IDirectionalScrollBar)).set_direction("horizontal");
+			}
+			var horizontalScrollBarStyleName = this._customHorizontalScrollBarStyleName != null ? this._customHorizontalScrollBarStyleName : this.horizontalScrollBarStyleName;
+			this.horizontalScrollBar.get_styleNameList().add(horizontalScrollBarStyleName);
+			this.horizontalScrollBar.addEventListener("change",$bind(this,this.horizontalScrollBar_changeHandler));
+			this.horizontalScrollBar.addEventListener("beginInteraction",$bind(this,this.horizontalScrollBar_beginInteractionHandler));
+			this.horizontalScrollBar.addEventListener("endInteraction",$bind(this,this.horizontalScrollBar_endInteractionHandler));
+			this.addRawChildInternal(this.horizontalScrollBar);
+		}
+		if(this._scrollBarDisplayMode != "none" && this._verticalScrollPolicy != "off" && this._verticalScrollBarFactory != null) {
+			this.verticalScrollBar = this._verticalScrollBarFactory();
+			if(js_Boot.__implements(this.verticalScrollBar,feathers_controls_IDirectionalScrollBar)) {
+				(js_Boot.__cast(this.verticalScrollBar , feathers_controls_IDirectionalScrollBar)).set_direction("vertical");
+			}
+			var verticalScrollBarStyleName = this._customVerticalScrollBarStyleName != null ? this._customVerticalScrollBarStyleName : this.verticalScrollBarStyleName;
+			this.verticalScrollBar.get_styleNameList().add(verticalScrollBarStyleName);
+			this.verticalScrollBar.addEventListener("change",$bind(this,this.verticalScrollBar_changeHandler));
+			this.verticalScrollBar.addEventListener("beginInteraction",$bind(this,this.verticalScrollBar_beginInteractionHandler));
+			this.verticalScrollBar.addEventListener("endInteraction",$bind(this,this.verticalScrollBar_endInteractionHandler));
+			this.addRawChildInternal(this.verticalScrollBar);
+		}
+	}
+	,refreshBackgroundSkin: function() {
+		var newCurrentBackgroundSkin = this.getCurrentBackgroundSkin();
+		if(this.currentBackgroundSkin != newCurrentBackgroundSkin) {
+			this.removeCurrentBackgroundSkin(this.currentBackgroundSkin);
+			this.currentBackgroundSkin = newCurrentBackgroundSkin;
+			if(this.currentBackgroundSkin != null) {
+				if(js_Boot.__implements(this.currentBackgroundSkin,feathers_core_IFeathersControl)) {
+					(js_Boot.__cast(this.currentBackgroundSkin , feathers_core_IFeathersControl)).initializeNow();
+				}
+				if(js_Boot.__implements(this.currentBackgroundSkin,feathers_core_IMeasureDisplayObject)) {
+					var measureSkin = this.currentBackgroundSkin;
+					this._explicitBackgroundWidth = measureSkin.get_explicitWidth();
+					this._explicitBackgroundHeight = measureSkin.get_explicitHeight();
+					this._explicitBackgroundMinWidth = measureSkin.get_explicitMinWidth();
+					this._explicitBackgroundMinHeight = measureSkin.get_explicitMinHeight();
+					this._explicitBackgroundMaxWidth = measureSkin.get_explicitMaxWidth();
+					this._explicitBackgroundMaxHeight = measureSkin.get_explicitMaxHeight();
+				} else {
+					this._explicitBackgroundWidth = this.currentBackgroundSkin.get_width();
+					this._explicitBackgroundHeight = this.currentBackgroundSkin.get_height();
+					this._explicitBackgroundMinWidth = this._explicitBackgroundWidth;
+					this._explicitBackgroundMinHeight = this._explicitBackgroundHeight;
+					this._explicitBackgroundMaxWidth = this._explicitBackgroundWidth;
+					this._explicitBackgroundMaxHeight = this._explicitBackgroundHeight;
+				}
+				this.addRawChildAtInternal(this.currentBackgroundSkin,0);
+			}
+		}
+	}
+	,getCurrentBackgroundSkin: function() {
+		var newCurrentBackgroundSkin = this._backgroundSkin;
+		if(!this._isEnabled && this._backgroundDisabledSkin != null) {
+			newCurrentBackgroundSkin = this._backgroundDisabledSkin;
+		}
+		return newCurrentBackgroundSkin;
+	}
+	,removeCurrentBackgroundSkin: function(skin) {
+		if(skin == null) {
+			return;
+		}
+		if(skin.get_parent() == this) {
+			skin.set_width(this._explicitBackgroundWidth);
+			skin.set_height(this._explicitBackgroundHeight);
+			if(js_Boot.__implements(skin,feathers_core_IMeasureDisplayObject)) {
+				var measureSkin = skin;
+				measureSkin.set_minWidth(this._explicitBackgroundMinWidth);
+				measureSkin.set_minHeight(this._explicitBackgroundMinHeight);
+				measureSkin.set_maxWidth(this._explicitBackgroundMaxWidth);
+				measureSkin.set_maxHeight(this._explicitBackgroundMaxHeight);
+			}
+			this.removeRawChildInternal(skin);
+		}
+	}
+	,refreshScrollBarStyles: function() {
+		var propertyValue;
+		if(this.horizontalScrollBar != null) {
+			var _g = this._horizontalScrollBarProperties.iterator();
+			while(_g.current < _g.array.length) {
+				var propertyName = _g.array[_g.current++];
+				propertyValue = this._horizontalScrollBarProperties.getProperty(propertyName);
+				Reflect.setProperty(this.horizontalScrollBar,propertyName,propertyValue);
+			}
+			if(this._horizontalScrollBarHideTween != null) {
+				starling_core_Starling.get_current().get_juggler().remove(this._horizontalScrollBarHideTween);
+				this._horizontalScrollBarHideTween = null;
+			}
+			this.horizontalScrollBar.set_alpha(this._scrollBarDisplayMode == "float" ? 0 : 1);
+		}
+		if(this.verticalScrollBar != null) {
+			var _g = this._verticalScrollBarProperties.iterator();
+			while(_g.current < _g.array.length) {
+				var propertyName = _g.array[_g.current++];
+				propertyValue = this._verticalScrollBarProperties.getProperty(propertyName);
+				Reflect.setProperty(this.verticalScrollBar,propertyName,propertyValue);
+			}
+			if(this._verticalScrollBarHideTween != null) {
+				starling_core_Starling.get_current().get_juggler().remove(this._verticalScrollBarHideTween);
+				this._verticalScrollBarHideTween = null;
+			}
+			this.verticalScrollBar.set_alpha(this._scrollBarDisplayMode == "float" ? 0 : 1);
+		}
+	}
+	,refreshEnabled: function() {
+		if(this._viewPort != null) {
+			this._viewPort.set_isEnabled(this._isEnabled);
+		}
+		if(this.horizontalScrollBar != null) {
+			this.horizontalScrollBar.set_isEnabled(this._isEnabled);
+		}
+		if(this.verticalScrollBar != null) {
+			this.verticalScrollBar.set_isEnabled(this._isEnabled);
+		}
+	}
+	,refreshFocusIndicator: function() {
+		if(this._focusIndicatorSkin != null) {
+			if(this._hasFocus && this._showFocus) {
+				if(this._focusIndicatorSkin.get_parent() != this) {
+					this.addRawChildInternal(this._focusIndicatorSkin);
+				} else {
+					this.setRawChildIndexInternal(this._focusIndicatorSkin,this.get_numRawChildrenInternal() - 1);
+				}
+			} else if(this._focusIndicatorSkin.get_parent() == this) {
+				this.removeRawChildInternal(this._focusIndicatorSkin,false);
+			}
+			this._focusIndicatorSkin.set_x(this._focusPaddingLeft);
+			this._focusIndicatorSkin.set_y(this._focusPaddingTop);
+			this._focusIndicatorSkin.set_width(this.actualWidth - this._focusPaddingLeft - this._focusPaddingRight);
+			this._focusIndicatorSkin.set_height(this.actualHeight - this._focusPaddingTop - this._focusPaddingBottom);
+		}
+	}
+	,refreshViewPortBoundsForMeasurement: function() {
+		var horizontalWidthOffset = this._leftViewPortOffset + this._rightViewPortOffset;
+		var verticalHeightOffset = this._topViewPortOffset + this._bottomViewPortOffset;
+		feathers_utils_skins_SkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentBackgroundSkin,this._explicitWidth,this._explicitHeight,this._explicitMinWidth,this._explicitMinHeight,this._explicitMaxWidth,this._explicitMaxHeight,this._explicitBackgroundWidth,this._explicitBackgroundHeight,this._explicitBackgroundMinWidth,this._explicitBackgroundMinHeight,this._explicitBackgroundMaxWidth,this._explicitBackgroundMaxHeight);
+		var measureBackground = this.currentBackgroundSkin;
+		if(js_Boot.__implements(this.currentBackgroundSkin,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.currentBackgroundSkin , feathers_core_IValidating)).validate();
+		}
+		var viewPortMinWidth = this._explicitMinWidth;
+		if(viewPortMinWidth != viewPortMinWidth || this._explicitViewPortMinWidth > viewPortMinWidth) {
+			viewPortMinWidth = this._explicitViewPortMinWidth;
+		}
+		if(viewPortMinWidth != viewPortMinWidth || this._explicitWidth > viewPortMinWidth) {
+			viewPortMinWidth = this._explicitWidth;
+		}
+		if(this.currentBackgroundSkin != null) {
+			var backgroundMinWidth = this.currentBackgroundSkin.get_width();
+			if(measureBackground != null) {
+				backgroundMinWidth = measureBackground.get_minWidth();
+			}
+			if(viewPortMinWidth != viewPortMinWidth || backgroundMinWidth > viewPortMinWidth) {
+				viewPortMinWidth = backgroundMinWidth;
+			}
+		}
+		viewPortMinWidth -= horizontalWidthOffset;
+		var viewPortMinHeight = this._explicitMinHeight;
+		if(viewPortMinHeight != viewPortMinHeight || this._explicitViewPortMinHeight > viewPortMinHeight) {
+			viewPortMinHeight = this._explicitViewPortMinHeight;
+		}
+		if(viewPortMinHeight != viewPortMinHeight || this._explicitHeight > viewPortMinHeight) {
+			viewPortMinHeight = this._explicitHeight;
+		}
+		if(this.currentBackgroundSkin != null) {
+			var backgroundMinHeight = this.currentBackgroundSkin.get_height();
+			if(measureBackground != null) {
+				backgroundMinHeight = measureBackground.get_minHeight();
+			}
+			if(viewPortMinHeight != viewPortMinHeight || backgroundMinHeight > viewPortMinHeight) {
+				viewPortMinHeight = backgroundMinHeight;
+			}
+		}
+		viewPortMinHeight -= verticalHeightOffset;
+		var oldIgnoreViewPortResizing = this.ignoreViewPortResizing;
+		this.ignoreViewPortResizing = true;
+		this._viewPort.set_visibleWidth(this._explicitWidth - horizontalWidthOffset);
+		this._viewPort.set_minVisibleWidth(this._explicitMinWidth - horizontalWidthOffset);
+		this._viewPort.set_maxVisibleWidth(this._explicitMaxWidth - horizontalWidthOffset);
+		this._viewPort.set_minWidth(viewPortMinWidth);
+		this._viewPort.set_visibleHeight(this._explicitHeight - verticalHeightOffset);
+		this._viewPort.set_minVisibleHeight(this._explicitMinHeight - verticalHeightOffset);
+		this._viewPort.set_maxVisibleHeight(this._explicitMaxHeight - verticalHeightOffset);
+		this._viewPort.set_minHeight(viewPortMinHeight);
+		this._viewPort.validate();
+		this.ignoreViewPortResizing = oldIgnoreViewPortResizing;
+	}
+	,refreshViewPortBoundsForLayout: function() {
+		var horizontalWidthOffset = this._leftViewPortOffset + this._rightViewPortOffset;
+		var verticalHeightOffset = this._topViewPortOffset + this._bottomViewPortOffset;
+		var oldIgnoreViewPortResizing = this.ignoreViewPortResizing;
+		this.ignoreViewPortResizing = true;
+		var visibleWidth = this.actualWidth - horizontalWidthOffset;
+		if(this._viewPort.get_visibleWidth() != visibleWidth) {
+			this._viewPort.set_visibleWidth(visibleWidth);
+		}
+		this._viewPort.set_minVisibleWidth(this.actualMinWidth - horizontalWidthOffset);
+		this._viewPort.set_maxVisibleWidth(this._explicitMaxWidth - horizontalWidthOffset);
+		this._viewPort.set_minWidth(visibleWidth);
+		var visibleHeight = this.actualHeight - verticalHeightOffset;
+		if(this._viewPort.get_visibleHeight() != visibleHeight) {
+			this._viewPort.set_visibleHeight(visibleHeight);
+		}
+		this._viewPort.set_minVisibleHeight(this.actualMinHeight - verticalHeightOffset);
+		this._viewPort.set_maxVisibleHeight(this._explicitMaxHeight - verticalHeightOffset);
+		this._viewPort.set_minHeight(visibleHeight);
+		this.ignoreViewPortResizing = oldIgnoreViewPortResizing;
+		this._viewPort.validate();
+	}
+	,refreshScrollValues: function() {
+		this.refreshScrollSteps();
+		var oldMaxHSP = this._maxHorizontalScrollPosition;
+		var oldMaxVSP = this._maxVerticalScrollPosition;
+		this.refreshMinAndMaxScrollPositions();
+		var maximumPositionsChanged = this._maxHorizontalScrollPosition != oldMaxHSP || this._maxVerticalScrollPosition != oldMaxVSP;
+		if(maximumPositionsChanged && this._touchPointID < 0) {
+			this.clampScrollPositions();
+		}
+		this.refreshPageCount();
+		this.refreshPageIndices();
+	}
+	,clampScrollPositions: function() {
+		if(this._horizontalAutoScrollTween == null) {
+			if(this._snapToPages) {
+				var number = this._horizontalScrollPosition;
+				var nearest = this.actualPageWidth;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				var tmp;
+				if(nearest == 0) {
+					tmp = number;
+				} else {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					tmp = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+				}
+				this._horizontalScrollPosition = tmp;
+			}
+			var targetHorizontalScrollPosition = this._horizontalScrollPosition;
+			if(targetHorizontalScrollPosition < this._minHorizontalScrollPosition) {
+				targetHorizontalScrollPosition = this._minHorizontalScrollPosition;
+			} else if(targetHorizontalScrollPosition > this._maxHorizontalScrollPosition) {
+				targetHorizontalScrollPosition = this._maxHorizontalScrollPosition;
+			}
+			this.set_horizontalScrollPosition(targetHorizontalScrollPosition);
+		}
+		if(this._verticalAutoScrollTween == null) {
+			if(this._snapToPages) {
+				var number = this._verticalScrollPosition;
+				var nearest = this.actualPageHeight;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				var tmp;
+				if(nearest == 0) {
+					tmp = number;
+				} else {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					tmp = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+				}
+				this._verticalScrollPosition = tmp;
+			}
+			var targetVerticalScrollPosition = this._verticalScrollPosition;
+			if(targetVerticalScrollPosition < this._minVerticalScrollPosition) {
+				targetVerticalScrollPosition = this._minVerticalScrollPosition;
+			} else if(targetVerticalScrollPosition > this._maxVerticalScrollPosition) {
+				targetVerticalScrollPosition = this._maxVerticalScrollPosition;
+			}
+			this.set_verticalScrollPosition(targetVerticalScrollPosition);
+		}
+	}
+	,refreshScrollSteps: function() {
+		if(this.explicitHorizontalScrollStep != this.explicitHorizontalScrollStep) {
+			if(this._viewPort != null) {
+				this.actualHorizontalScrollStep = this._viewPort.get_horizontalScrollStep();
+			} else {
+				this.actualHorizontalScrollStep = 1;
+			}
+		} else {
+			this.actualHorizontalScrollStep = this.explicitHorizontalScrollStep;
+		}
+		if(this.explicitVerticalScrollStep != this.explicitVerticalScrollStep) {
+			if(this._viewPort != null) {
+				this.actualVerticalScrollStep = this._viewPort.get_verticalScrollStep();
+			} else {
+				this.actualVerticalScrollStep = 1;
+			}
+		} else {
+			this.actualVerticalScrollStep = this.explicitVerticalScrollStep;
+		}
+	}
+	,refreshMinAndMaxScrollPositions: function() {
+		var visibleViewPortWidth = this.actualWidth - (this._leftViewPortOffset + this._rightViewPortOffset);
+		var visibleViewPortHeight = this.actualHeight - (this._topViewPortOffset + this._bottomViewPortOffset);
+		if(this.explicitPageWidth != this.explicitPageWidth) {
+			this.actualPageWidth = visibleViewPortWidth;
+		}
+		if(this.explicitPageHeight != this.explicitPageHeight) {
+			this.actualPageHeight = visibleViewPortHeight;
+		}
+		if(this._viewPort != null) {
+			this._minHorizontalScrollPosition = this._viewPort.get_contentX();
+			if(this._viewPort.get_width() == Infinity) {
+				this._maxHorizontalScrollPosition = Infinity;
+			} else {
+				this._maxHorizontalScrollPosition = this._minHorizontalScrollPosition + this._viewPort.get_width() - visibleViewPortWidth;
+			}
+			if(this._maxHorizontalScrollPosition < this._minHorizontalScrollPosition) {
+				this._maxHorizontalScrollPosition = this._minHorizontalScrollPosition;
+			}
+			this._minVerticalScrollPosition = this._viewPort.get_contentY();
+			if(this._viewPort.get_height() == Infinity) {
+				this._maxVerticalScrollPosition = Infinity;
+			} else {
+				this._maxVerticalScrollPosition = this._minVerticalScrollPosition + this._viewPort.get_height() - visibleViewPortHeight;
+			}
+			if(this._maxVerticalScrollPosition < this._minVerticalScrollPosition) {
+				this._maxVerticalScrollPosition = this._minVerticalScrollPosition;
+			}
+		} else {
+			this._minHorizontalScrollPosition = 0;
+			this._minVerticalScrollPosition = 0;
+			this._maxHorizontalScrollPosition = 0;
+			this._maxVerticalScrollPosition = 0;
+		}
+	}
+	,refreshPageCount: function() {
+		var unroundedPageIndex;
+		var nearestPageIndex;
+		if(this._snapToPages) {
+			var horizontalScrollRange = this._maxHorizontalScrollPosition - this._minHorizontalScrollPosition;
+			if(horizontalScrollRange == Infinity) {
+				if(this._minHorizontalScrollPosition == -Infinity) {
+					this._minHorizontalPageIndex = -999999999;
+				} else {
+					this._minHorizontalPageIndex = 0;
+				}
+				this._maxHorizontalPageIndex = 999999999;
+			} else {
+				this._minHorizontalPageIndex = 0;
+				unroundedPageIndex = horizontalScrollRange / this.actualPageWidth;
+				nearestPageIndex = Math.round(unroundedPageIndex);
+				if(starling_utils_MathUtil.isEquivalent(unroundedPageIndex,nearestPageIndex,0.01)) {
+					this._maxHorizontalPageIndex = nearestPageIndex;
+				} else {
+					this._maxHorizontalPageIndex = Math.ceil(unroundedPageIndex);
+				}
+			}
+			var verticalScrollRange = this._maxVerticalScrollPosition - this._minVerticalScrollPosition;
+			if(verticalScrollRange == Infinity) {
+				if(this._minVerticalScrollPosition == -Infinity) {
+					this._minVerticalPageIndex = -999999999;
+				} else {
+					this._minVerticalPageIndex = 0;
+				}
+				this._maxVerticalPageIndex = 999999999;
+			} else {
+				this._minVerticalPageIndex = 0;
+				unroundedPageIndex = verticalScrollRange / this.actualPageHeight;
+				nearestPageIndex = Math.round(unroundedPageIndex);
+				if(starling_utils_MathUtil.isEquivalent(unroundedPageIndex,nearestPageIndex,0.01)) {
+					this._maxVerticalPageIndex = nearestPageIndex;
+				} else {
+					this._maxVerticalPageIndex = Math.ceil(unroundedPageIndex);
+				}
+			}
+		} else {
+			this._maxHorizontalPageIndex = 0;
+			this._maxHorizontalPageIndex = 0;
+			this._minVerticalPageIndex = 0;
+			this._maxVerticalPageIndex = 0;
+		}
+	}
+	,refreshPageIndices: function() {
+		var unroundedPageIndex;
+		var nearestPageIndex;
+		if(this._horizontalAutoScrollTween == null && !this.hasPendingHorizontalPageIndex) {
+			if(this._snapToPages) {
+				if(this._horizontalScrollPosition == this._maxHorizontalScrollPosition) {
+					this._horizontalPageIndex = this._maxHorizontalPageIndex;
+				} else if(this._horizontalScrollPosition == this._minHorizontalScrollPosition) {
+					this._horizontalPageIndex = this._minHorizontalPageIndex;
+				} else {
+					if(this._minHorizontalScrollPosition == -Infinity && this._horizontalScrollPosition < 0) {
+						unroundedPageIndex = this._horizontalScrollPosition / this.actualPageWidth;
+					} else if(this._maxHorizontalScrollPosition == Infinity && this._horizontalScrollPosition >= 0) {
+						unroundedPageIndex = this._horizontalScrollPosition / this.actualPageWidth;
+					} else {
+						var adjustedHorizontalScrollPosition = this._horizontalScrollPosition - this._minHorizontalScrollPosition;
+						unroundedPageIndex = adjustedHorizontalScrollPosition / this.actualPageWidth;
+					}
+					nearestPageIndex = Math.round(unroundedPageIndex);
+					if(unroundedPageIndex != nearestPageIndex && starling_utils_MathUtil.isEquivalent(unroundedPageIndex,nearestPageIndex,0.01)) {
+						this._horizontalPageIndex = nearestPageIndex;
+					} else {
+						this._horizontalPageIndex = Math.floor(unroundedPageIndex);
+					}
+				}
+			} else {
+				this._horizontalPageIndex = this._minHorizontalPageIndex;
+			}
+			if(this._horizontalPageIndex < this._minHorizontalPageIndex) {
+				this._horizontalPageIndex = this._minHorizontalPageIndex;
+			}
+			if(this._horizontalPageIndex > this._maxHorizontalPageIndex) {
+				this._horizontalPageIndex = this._maxHorizontalPageIndex;
+			}
+		}
+		if(this._verticalAutoScrollTween == null && !this.hasPendingVerticalPageIndex) {
+			if(this._snapToPages) {
+				if(this._verticalScrollPosition == this._maxVerticalScrollPosition) {
+					this._verticalPageIndex = this._maxVerticalPageIndex;
+				} else if(this._verticalScrollPosition == this._minVerticalScrollPosition) {
+					this._verticalPageIndex = this._minVerticalPageIndex;
+				} else {
+					if(this._minVerticalScrollPosition == -Infinity && this._verticalScrollPosition < 0) {
+						unroundedPageIndex = this._verticalScrollPosition / this.actualPageHeight;
+					} else if(this._maxVerticalScrollPosition == Infinity && this._verticalScrollPosition >= 0) {
+						unroundedPageIndex = this._verticalScrollPosition / this.actualPageHeight;
+					} else {
+						var adjustedVerticalScrollPosition = this._verticalScrollPosition - this._minVerticalScrollPosition;
+						unroundedPageIndex = adjustedVerticalScrollPosition / this.actualPageHeight;
+					}
+					nearestPageIndex = Math.round(unroundedPageIndex);
+					if(unroundedPageIndex != nearestPageIndex && starling_utils_MathUtil.isEquivalent(unroundedPageIndex,nearestPageIndex,0.01)) {
+						this._verticalPageIndex = nearestPageIndex;
+					} else {
+						this._verticalPageIndex = Math.floor(unroundedPageIndex);
+					}
+				}
+			} else {
+				this._verticalPageIndex = this._minVerticalScrollPosition | 0;
+			}
+			if(this._verticalPageIndex < this._minVerticalScrollPosition) {
+				this._verticalPageIndex = this._minVerticalScrollPosition | 0;
+			}
+			if(this._verticalPageIndex > this._maxVerticalPageIndex) {
+				this._verticalPageIndex = this._maxVerticalPageIndex;
+			}
+		}
+	}
+	,refreshScrollBarValues: function() {
+		if(this.horizontalScrollBar != null) {
+			this.horizontalScrollBar.set_minimum(this._minHorizontalScrollPosition);
+			this.horizontalScrollBar.set_maximum(this._maxHorizontalScrollPosition);
+			this.horizontalScrollBar.set_value(this._horizontalScrollPosition);
+			this.horizontalScrollBar.set_page((this._maxHorizontalScrollPosition - this._minHorizontalScrollPosition) * this.actualPageWidth / this._viewPort.get_width());
+			this.horizontalScrollBar.set_step(this.actualHorizontalScrollStep);
+		}
+		if(this.verticalScrollBar != null) {
+			this.verticalScrollBar.set_minimum(this._minVerticalScrollPosition);
+			this.verticalScrollBar.set_maximum(this._maxVerticalScrollPosition);
+			this.verticalScrollBar.set_value(this._verticalScrollPosition);
+			this.verticalScrollBar.set_page((this._maxVerticalScrollPosition - this._minVerticalScrollPosition) * this.actualPageHeight / this._viewPort.get_height());
+			this.verticalScrollBar.set_step(this.actualVerticalScrollStep);
+		}
+	}
+	,showOrHideChildren: function() {
+		var childCount = this.get_numRawChildrenInternal();
+		if(this.verticalScrollBar != null) {
+			this.verticalScrollBar.set_visible(this._hasVerticalScrollBar);
+			this.verticalScrollBar.set_touchable(this._hasVerticalScrollBar && this._interactionMode != "touch");
+			this.setRawChildIndexInternal(this.verticalScrollBar,childCount - 1);
+		}
+		if(this.horizontalScrollBar != null) {
+			this.horizontalScrollBar.set_visible(this._hasHorizontalScrollBar);
+			this.horizontalScrollBar.set_touchable(this._hasHorizontalScrollBar && this._interactionMode != "touch");
+			if(this.verticalScrollBar != null) {
+				this.setRawChildIndexInternal(this.horizontalScrollBar,childCount - 2);
+			} else {
+				this.setRawChildIndexInternal(this.horizontalScrollBar,childCount - 1);
+			}
+		}
+		if(this.currentBackgroundSkin != null) {
+			if(this._autoHideBackground) {
+				this.currentBackgroundSkin.set_visible(this._viewPort.get_width() <= this.actualWidth || this._viewPort.get_height() <= this.actualHeight || this._horizontalScrollPosition < 0 || this._horizontalScrollPosition > this._maxHorizontalScrollPosition || this._verticalScrollPosition < 0 || this._verticalScrollPosition > this._maxVerticalScrollPosition);
+			} else {
+				this.currentBackgroundSkin.set_visible(true);
+			}
+		}
+	}
+	,calculateViewPortOffsetsForFixedHorizontalScrollBar: function(forceScrollBars,useActualBounds) {
+		if(useActualBounds == null) {
+			useActualBounds = false;
+		}
+		if(forceScrollBars == null) {
+			forceScrollBars = false;
+		}
+		if(this.horizontalScrollBar != null && (this._measureViewPort || useActualBounds)) {
+			var scrollerWidth = useActualBounds ? this.actualWidth : this._explicitWidth;
+			if(!useActualBounds && !forceScrollBars && scrollerWidth != scrollerWidth) {
+				scrollerWidth = this._viewPort.get_visibleWidth() + this._leftViewPortOffset + this._rightViewPortOffset;
+			}
+			var totalWidth = this._viewPort.get_width() + this._leftViewPortOffset + this._rightViewPortOffset;
+			if(forceScrollBars || this._horizontalScrollPolicy == "on" || (totalWidth > scrollerWidth || totalWidth > this._explicitMaxWidth) && this._horizontalScrollPolicy != "off") {
+				this._hasHorizontalScrollBar = true;
+				if(this._scrollBarDisplayMode == "fixed") {
+					if(this._horizontalScrollBarPosition == "top") {
+						this._topViewPortOffset += this.horizontalScrollBar.get_height();
+					} else {
+						this._bottomViewPortOffset += this.horizontalScrollBar.get_height();
+					}
+				}
+			} else {
+				this._hasHorizontalScrollBar = false;
+			}
+		} else {
+			this._hasHorizontalScrollBar = false;
+		}
+	}
+	,calculateViewPortOffsetsForFixedVerticalScrollBar: function(forceScrollBars,useActualBounds) {
+		if(useActualBounds == null) {
+			useActualBounds = false;
+		}
+		if(forceScrollBars == null) {
+			forceScrollBars = false;
+		}
+		if(this.verticalScrollBar != null && (this._measureViewPort || useActualBounds)) {
+			var scrollerHeight = useActualBounds ? this.actualHeight : this._explicitHeight;
+			if(!useActualBounds && !forceScrollBars && scrollerHeight != scrollerHeight) {
+				scrollerHeight = this._viewPort.get_visibleHeight() + this._topViewPortOffset + this._bottomViewPortOffset;
+			}
+			var totalHeight = this._viewPort.get_height() + this._topViewPortOffset + this._bottomViewPortOffset;
+			if(forceScrollBars || this._verticalScrollPolicy == "on" || (totalHeight > scrollerHeight || totalHeight > this._explicitMaxHeight) && this._verticalScrollPolicy != "off") {
+				this._hasVerticalScrollBar = true;
+				if(this._scrollBarDisplayMode == "fixed") {
+					if(this._verticalScrollBarPosition == "left") {
+						this._leftViewPortOffset += this.verticalScrollBar.get_width();
+					} else {
+						this._rightViewPortOffset += this.verticalScrollBar.get_width();
+					}
+				}
+			} else {
+				this._hasVerticalScrollBar = false;
+			}
+		} else {
+			this._hasVerticalScrollBar = false;
+		}
+	}
+	,calculateViewPortOffsets: function(forceScrollBars,useActualBounds) {
+		if(useActualBounds == null) {
+			useActualBounds = false;
+		}
+		if(forceScrollBars == null) {
+			forceScrollBars = false;
+		}
+		this._topViewPortOffset = this._paddingTop;
+		this._rightViewPortOffset = this._paddingRight;
+		this._bottomViewPortOffset = this._paddingBottom;
+		this._leftViewPortOffset = this._paddingLeft;
+		this.calculateViewPortOffsetsForFixedHorizontalScrollBar(forceScrollBars,useActualBounds);
+		this.calculateViewPortOffsetsForFixedVerticalScrollBar(forceScrollBars,useActualBounds);
+		if(this._scrollBarDisplayMode == "fixed" && this._hasVerticalScrollBar && !this._hasHorizontalScrollBar) {
+			this.calculateViewPortOffsetsForFixedHorizontalScrollBar(forceScrollBars,useActualBounds);
+		}
+	}
+	,refreshInteractionModeEvents: function() {
+		if(this._interactionMode == "touch" || this._interactionMode == "touchAndScrollBars") {
+			this.addEventListener("touch",$bind(this,this.scroller_touchHandler));
+		} else {
+			this.removeEventListener("touch",$bind(this,this.scroller_touchHandler));
+		}
+		if((this._interactionMode == "mouse" || this._interactionMode == "touchAndScrollBars") && this._scrollBarDisplayMode == "float") {
+			if(this.horizontalScrollBar != null) {
+				this.horizontalScrollBar.addEventListener("touch",$bind(this,this.horizontalScrollBar_touchHandler));
+			}
+			if(this.verticalScrollBar != null) {
+				this.verticalScrollBar.addEventListener("touch",$bind(this,this.verticalScrollBar_touchHandler));
+			}
+		} else {
+			if(this.horizontalScrollBar != null) {
+				this.horizontalScrollBar.removeEventListener("touch",$bind(this,this.horizontalScrollBar_touchHandler));
+			}
+			if(this.verticalScrollBar != null) {
+				this.verticalScrollBar.removeEventListener("touch",$bind(this,this.verticalScrollBar_touchHandler));
+			}
+		}
+	}
+	,layoutChildren: function() {
+		var visibleWidth = this.actualWidth - this._leftViewPortOffset - this._rightViewPortOffset;
+		var visibleHeight = this.actualHeight - this._topViewPortOffset - this._bottomViewPortOffset;
+		if(this.currentBackgroundSkin != null) {
+			this.currentBackgroundSkin.set_width(this.actualWidth);
+			this.currentBackgroundSkin.set_height(this.actualHeight);
+		}
+		if(this._snapScrollPositionsToPixels) {
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			var pixelSize = 1 / starling.get_contentScaleFactor();
+			this._viewPort.set_x(Math.round((this._leftViewPortOffset - this._horizontalScrollPosition) / pixelSize) * pixelSize);
+			this._viewPort.set_y(Math.round((this._topViewPortOffset - this._verticalScrollPosition) / pixelSize) * pixelSize);
+		} else {
+			this._viewPort.set_x(this._leftViewPortOffset - this._horizontalScrollPosition);
+			this._viewPort.set_y(this._topViewPortOffset - this._verticalScrollPosition);
+		}
+		this.layoutPullViews();
+		this.layoutScrollBars();
+	}
+	,layoutScrollBars: function() {
+		var visibleWidth = this.actualWidth - this._leftViewPortOffset - this._rightViewPortOffset;
+		var visibleHeight = this.actualHeight - this._topViewPortOffset - this._bottomViewPortOffset;
+		if(this.horizontalScrollBar != null) {
+			this.horizontalScrollBar.validate();
+		}
+		if(this.verticalScrollBar != null) {
+			this.verticalScrollBar.validate();
+		}
+		if(this.horizontalScrollBar != null) {
+			if(this._horizontalScrollBarPosition == "top") {
+				this.horizontalScrollBar.set_y(this._paddingTop);
+			} else {
+				this.horizontalScrollBar.set_y(this._topViewPortOffset + visibleHeight);
+			}
+			this.horizontalScrollBar.set_x(this._leftViewPortOffset);
+			if(this._scrollBarDisplayMode != "fixed") {
+				var fh = this.horizontalScrollBar;
+				fh.set_y(fh.get_y() - this.horizontalScrollBar.get_height());
+				if((this._hasVerticalScrollBar || this._verticalScrollBarHideTween != null) && this.verticalScrollBar != null) {
+					this.horizontalScrollBar.set_width(visibleWidth - this.verticalScrollBar.get_width());
+				} else {
+					this.horizontalScrollBar.set_width(visibleWidth);
+				}
+			} else {
+				this.horizontalScrollBar.set_width(visibleWidth);
+			}
+		}
+		if(this.verticalScrollBar != null) {
+			if(this._verticalScrollBarPosition == "left") {
+				this.verticalScrollBar.set_x(this._paddingLeft);
+			} else {
+				this.verticalScrollBar.set_x(this._leftViewPortOffset + visibleWidth);
+			}
+			this.verticalScrollBar.set_y(this._topViewPortOffset);
+			if(this._scrollBarDisplayMode != "fixed") {
+				var fh = this.verticalScrollBar;
+				fh.set_x(fh.get_x() - this.verticalScrollBar.get_width());
+				if((this._hasHorizontalScrollBar || this._horizontalScrollBarHideTween != null) && this.horizontalScrollBar != null) {
+					this.verticalScrollBar.set_height(visibleHeight - this.horizontalScrollBar.get_height());
+				} else {
+					this.verticalScrollBar.set_height(visibleHeight);
+				}
+			} else {
+				this.verticalScrollBar.set_height(visibleHeight);
+			}
+		}
+	}
+	,layoutPullViews: function() {
+		var viewPortIndex = this.getRawChildIndexInternal(this._viewPort);
+		var pullViewIndex;
+		var pullViewSize;
+		var finalRatio;
+		var scrollRatio;
+		if(this._topPullView != null) {
+			if(js_Boot.__implements(this._topPullView,feathers_core_IValidating)) {
+				(js_Boot.__cast(this._topPullView , feathers_core_IValidating)).validate();
+			}
+			this._topPullView.set_x(this._topPullView.get_pivotX() * this._topPullView.get_scaleX() + (this.actualWidth - this._topPullView.get_width()) / 2);
+			if(this._topPullTween == null) {
+				pullViewSize = this._topPullView.get_height();
+				finalRatio = this._topPullViewRatio;
+				if(this._verticalScrollPosition < this._minVerticalScrollPosition) {
+					scrollRatio = (this._minVerticalScrollPosition - this._verticalScrollPosition) / pullViewSize;
+					if(scrollRatio > finalRatio) {
+						finalRatio = scrollRatio;
+					}
+				}
+				if(this._isTopPullViewActive && finalRatio < 1) {
+					finalRatio = 1;
+				}
+				if(finalRatio > 0) {
+					if(this._topPullViewDisplayMode == "fixed") {
+						this._topPullView.set_y(this._topViewPortOffset + this._topPullView.get_pivotY() * this._topPullView.get_scaleY());
+					} else {
+						this._topPullView.set_y(this._topViewPortOffset + this._topPullView.get_pivotY() * this._topPullView.get_scaleY() + finalRatio * pullViewSize - pullViewSize);
+					}
+					this._topPullView.set_visible(true);
+					this.refreshTopPullViewMask();
+				} else {
+					this._topPullView.set_visible(false);
+				}
+			}
+			pullViewIndex = this.getRawChildIndexInternal(this._topPullView);
+			if(this._topPullViewDisplayMode == "fixed" && this._hasElasticEdges) {
+				if(viewPortIndex < pullViewIndex) {
+					this.setRawChildIndexInternal(this._topPullView,viewPortIndex);
+					++viewPortIndex;
+				}
+			} else if(viewPortIndex > pullViewIndex) {
+				this.removeRawChildInternal(this._topPullView);
+				this.addRawChildAtInternal(this._topPullView,viewPortIndex);
+				--viewPortIndex;
+			}
+		}
+		if(this._rightPullView != null) {
+			if(js_Boot.__implements(this._rightPullView,feathers_core_IValidating)) {
+				(js_Boot.__cast(this._rightPullView , feathers_core_IValidating)).validate();
+			}
+			this._rightPullView.set_y(this._rightPullView.get_pivotY() * this._rightPullView.get_scaleY() + (this.actualHeight - this._rightPullView.get_height()) / 2);
+			if(this._rightPullTween == null) {
+				pullViewSize = this._rightPullView.get_width();
+				finalRatio = this._rightPullViewRatio;
+				if(this._horizontalScrollPosition > this._maxHorizontalScrollPosition) {
+					scrollRatio = (this._horizontalScrollPosition - this._maxHorizontalScrollPosition) / pullViewSize;
+					if(scrollRatio > finalRatio) {
+						finalRatio = scrollRatio;
+					}
+				}
+				if(this._isRightPullViewActive && finalRatio < 1) {
+					finalRatio = 1;
+				}
+				if(finalRatio > 0) {
+					if(this._rightPullViewDisplayMode == "fixed") {
+						this._rightPullView.set_x(this._rightPullView.get_pivotX() * this._rightPullView.get_scaleX() + this.actualWidth - this._rightViewPortOffset - pullViewSize);
+					} else {
+						this._rightPullView.set_x(this._rightPullView.get_pivotX() * this._rightPullView.get_scaleX() + this.actualWidth - this._rightViewPortOffset - finalRatio * pullViewSize);
+					}
+					this._rightPullView.set_visible(true);
+					this.refreshRightPullViewMask();
+				} else {
+					this._rightPullView.set_visible(false);
+				}
+			}
+			pullViewIndex = this.getRawChildIndexInternal(this._rightPullView);
+			if(this._rightPullViewDisplayMode == "fixed" && this._hasElasticEdges) {
+				if(viewPortIndex < pullViewIndex) {
+					this.setRawChildIndexInternal(this._rightPullView,viewPortIndex);
+					++viewPortIndex;
+				}
+			} else if(viewPortIndex > pullViewIndex) {
+				this.removeRawChildInternal(this._rightPullView);
+				this.addRawChildAtInternal(this._rightPullView,viewPortIndex);
+				--viewPortIndex;
+			}
+		}
+		if(this._bottomPullView != null) {
+			if(js_Boot.__implements(this._bottomPullView,feathers_core_IValidating)) {
+				(js_Boot.__cast(this._bottomPullView , feathers_core_IValidating)).validate();
+			}
+			this._bottomPullView.set_x(this._bottomPullView.get_pivotX() * this._bottomPullView.get_scaleX() + (this.actualWidth - this._bottomPullView.get_width()) / 2);
+			if(this._bottomPullTween == null) {
+				pullViewSize = this._bottomPullView.get_height();
+				finalRatio = this._bottomPullViewRatio;
+				if(this._verticalScrollPosition > this._maxVerticalScrollPosition) {
+					scrollRatio = (this._verticalScrollPosition - this._maxVerticalScrollPosition) / pullViewSize;
+					if(scrollRatio > finalRatio) {
+						finalRatio = scrollRatio;
+					}
+				}
+				if(this._isBottomPullViewActive && finalRatio < 1) {
+					finalRatio = 1;
+				}
+				if(finalRatio > 0) {
+					if(this._bottomPullViewDisplayMode == "fixed") {
+						this._bottomPullView.set_y(this._bottomPullView.get_pivotY() * this._bottomPullView.get_scaleY() + this.actualHeight - this._bottomViewPortOffset - pullViewSize);
+					} else {
+						this._bottomPullView.set_y(this._bottomPullView.get_pivotY() * this._bottomPullView.get_scaleY() + this.actualHeight - this._bottomViewPortOffset - finalRatio * pullViewSize);
+					}
+					this._bottomPullView.set_visible(true);
+					this.refreshBottomPullViewMask();
+				} else {
+					this._bottomPullView.set_visible(false);
+				}
+			}
+			pullViewIndex = this.getRawChildIndexInternal(this._bottomPullView);
+			if(this._bottomPullViewDisplayMode == "fixed" && this._hasElasticEdges) {
+				if(viewPortIndex < pullViewIndex) {
+					this.setRawChildIndexInternal(this._bottomPullView,viewPortIndex);
+					++viewPortIndex;
+				}
+			} else if(viewPortIndex > pullViewIndex) {
+				this.removeRawChildInternal(this._bottomPullView);
+				this.addRawChildAtInternal(this._bottomPullView,viewPortIndex);
+				--viewPortIndex;
+			}
+		}
+		if(this._leftPullView != null) {
+			if(js_Boot.__implements(this._leftPullView,feathers_core_IValidating)) {
+				(js_Boot.__cast(this._leftPullView , feathers_core_IValidating)).validate();
+			}
+			this._leftPullView.set_y(this._leftPullView.get_pivotY() * this._leftPullView.get_scaleY() + (this.actualHeight - this._leftPullView.get_height()) / 2);
+			if(this._leftPullTween == null) {
+				pullViewSize = this._leftPullView.get_width();
+				finalRatio = this._leftPullViewRatio;
+				if(this._horizontalScrollPosition < this._minHorizontalScrollPosition) {
+					scrollRatio = (this._minHorizontalScrollPosition - this._horizontalScrollPosition) / pullViewSize;
+					if(scrollRatio > finalRatio) {
+						finalRatio = scrollRatio;
+					}
+				}
+				if(this._isLeftPullViewActive && finalRatio < 1) {
+					finalRatio = 1;
+				}
+				if(finalRatio > 0) {
+					if(this._leftPullViewDisplayMode == "fixed") {
+						this._leftPullView.set_x(this._leftViewPortOffset + this._leftPullView.get_pivotX() * this._leftPullView.get_scaleX());
+					} else {
+						this._leftPullView.set_x(this._leftViewPortOffset + this._leftPullView.get_pivotX() * this._leftPullView.get_scaleX() + finalRatio * pullViewSize - pullViewSize);
+					}
+					this._leftPullView.set_visible(true);
+					this.refreshLeftPullViewMask();
+				} else {
+					this._leftPullView.set_visible(false);
+				}
+			}
+			pullViewIndex = this.getRawChildIndexInternal(this._leftPullView);
+			if(this._leftPullViewDisplayMode == "fixed" && this._hasElasticEdges) {
+				if(viewPortIndex < pullViewIndex) {
+					this.setRawChildIndexInternal(this._leftPullView,viewPortIndex);
+				}
+			} else if(viewPortIndex > pullViewIndex) {
+				this.removeRawChildInternal(this._leftPullView);
+				this.addRawChildAtInternal(this._leftPullView,viewPortIndex);
+			}
+		}
+	}
+	,refreshTopPullViewMask: function() {
+		var pullViewHeight = this._topPullView.get_height() / this._topPullView.get_scaleY();
+		var mask = this._topPullView.get_mask();
+		var maskHeight = pullViewHeight + (this._topPullView.get_y() - this._topPullView.get_pivotY() * this._topPullView.get_scaleY() - this._paddingTop) / this._topPullView.get_scaleY();
+		if(maskHeight < 0) {
+			maskHeight = 0;
+		} else if(maskHeight > pullViewHeight) {
+			maskHeight = pullViewHeight;
+		}
+		mask.set_width(this._topPullView.get_width() / this._topPullView.get_scaleX());
+		mask.set_height(maskHeight);
+		mask.set_x(0);
+		mask.set_y(pullViewHeight - maskHeight);
+	}
+	,refreshRightPullViewMask: function() {
+		var pullViewWidth = this._rightPullView.get_width() / this._rightPullView.get_scaleX();
+		var mask = this._rightPullView.get_mask();
+		var maskWidth = this.actualWidth - this._rightViewPortOffset - (this._rightPullView.get_x() - this._rightPullView.get_pivotX() / this._rightPullView.get_scaleX()) / this._rightPullView.get_scaleX();
+		if(maskWidth < 0) {
+			maskWidth = 0;
+		} else if(maskWidth > pullViewWidth) {
+			maskWidth = pullViewWidth;
+		}
+		mask.set_width(maskWidth);
+		mask.set_height(this._rightPullView.get_height() / this._rightPullView.get_scaleY());
+		mask.set_x(0);
+		mask.set_y(0);
+	}
+	,refreshBottomPullViewMask: function() {
+		var pullViewHeight = this._bottomPullView.get_height() / this._bottomPullView.get_scaleY();
+		var mask = this._bottomPullView.get_mask();
+		var maskHeight = this.actualHeight - this._bottomViewPortOffset - (this._bottomPullView.get_y() - this._bottomPullView.get_pivotY() / this._bottomPullView.get_scaleY()) / this._bottomPullView.get_scaleY();
+		if(maskHeight < 0) {
+			maskHeight = 0;
+		} else if(maskHeight > pullViewHeight) {
+			maskHeight = pullViewHeight;
+		}
+		mask.set_width(this._bottomPullView.get_width() / this._bottomPullView.get_scaleX());
+		mask.set_height(maskHeight);
+		mask.set_x(0);
+		mask.set_y(0);
+	}
+	,refreshLeftPullViewMask: function() {
+		var pullViewWidth = this._leftPullView.get_width() / this._leftPullView.get_scaleX();
+		var mask = this._leftPullView.get_mask();
+		var maskWidth = pullViewWidth + (this._leftPullView.get_x() - this._leftPullView.get_pivotX() * this._leftPullView.get_scaleX() - this._paddingLeft) / this._leftPullView.get_scaleX();
+		if(maskWidth < 0) {
+			maskWidth = 0;
+		} else if(maskWidth > pullViewWidth) {
+			maskWidth = pullViewWidth;
+		}
+		mask.set_width(maskWidth);
+		mask.set_height(this._leftPullView.get_height() / this._leftPullView.get_scaleY());
+		mask.set_x(pullViewWidth - maskWidth);
+		mask.set_y(0);
+	}
+	,refreshMask: function() {
+		if(!this._clipContent) {
+			return;
+		}
+		var clipWidth = this.actualWidth - this._leftViewPortOffset - this._rightViewPortOffset;
+		if(clipWidth < 0) {
+			clipWidth = 0;
+		}
+		var clipHeight = this.actualHeight - this._topViewPortOffset - this._bottomViewPortOffset;
+		if(clipHeight < 0) {
+			clipHeight = 0;
+		}
+		var mask = this._viewPort.get_mask();
+		if(mask == null) {
+			mask = new starling_display_Quad(1,1,1044735);
+			this._viewPort.set_mask(mask);
+		}
+		mask.set_x(this._horizontalScrollPosition);
+		mask.set_y(this._verticalScrollPosition);
+		mask.set_width(clipWidth);
+		mask.set_height(clipHeight);
+	}
+	,get_numRawChildrenInternal: function() {
+		if(js_Boot.__implements(this,feathers_controls_IScrollContainer)) {
+			return (js_Boot.__cast(this , feathers_controls_IScrollContainer)).get_numRawChildren();
+		}
+		return this.get_numChildren();
+	}
+	,addRawChildInternal: function(child) {
+		if(js_Boot.__implements(this,feathers_controls_IScrollContainer)) {
+			return (js_Boot.__cast(this , feathers_controls_IScrollContainer)).addRawChild(child);
+		}
+		return this.addChild(child);
+	}
+	,addRawChildAtInternal: function(child,index) {
+		if(js_Boot.__implements(this,feathers_controls_IScrollContainer)) {
+			return (js_Boot.__cast(this , feathers_controls_IScrollContainer)).addRawChildAt(child,index);
+		}
+		return this.addChildAt(child,index);
+	}
+	,removeRawChildInternal: function(child,dispose) {
+		if(dispose == null) {
+			dispose = false;
+		}
+		if(js_Boot.__implements(this,feathers_controls_IScrollContainer)) {
+			return (js_Boot.__cast(this , feathers_controls_IScrollContainer)).removeRawChild(child,dispose);
+		}
+		return this.removeChild(child,dispose);
+	}
+	,removeRawChildAtInternal: function(index,dispose) {
+		if(dispose == null) {
+			dispose = false;
+		}
+		if(js_Boot.__implements(this,feathers_controls_IScrollContainer)) {
+			return (js_Boot.__cast(this , feathers_controls_IScrollContainer)).removeRawChildAt(index,dispose);
+		}
+		return this.removeChildAt(index,dispose);
+	}
+	,getRawChildIndexInternal: function(child) {
+		if(js_Boot.__implements(this,feathers_controls_IScrollContainer)) {
+			return (js_Boot.__cast(this , feathers_controls_IScrollContainer)).getRawChildIndex(child);
+		}
+		return this.getChildIndex(child);
+	}
+	,setRawChildIndexInternal: function(child,index) {
+		if(js_Boot.__implements(this,feathers_controls_IScrollContainer)) {
+			(js_Boot.__cast(this , feathers_controls_IScrollContainer)).setRawChildIndex(child,index);
+			return;
+		}
+		this.setChildIndex(child,index);
+	}
+	,updateHorizontalScrollFromTouchPosition: function(touchX) {
+		var offset = this._startTouchX - touchX;
+		var position = this._startHorizontalScrollPosition + offset;
+		var adjustedMinScrollPosition = this._minHorizontalScrollPosition;
+		if(this._isLeftPullViewActive && this._hasElasticEdges) {
+			adjustedMinScrollPosition -= this._leftPullView.get_width();
+		}
+		var adjustedMaxScrollPosition = this._maxHorizontalScrollPosition;
+		if(this._isRightPullViewActive && this._hasElasticEdges) {
+			adjustedMaxScrollPosition += this._rightPullView.get_width();
+		}
+		if(position < adjustedMinScrollPosition) {
+			position -= (position - adjustedMinScrollPosition) * (1 - this._elasticity);
+			if(this._leftPullView != null && position < adjustedMinScrollPosition) {
+				if(this._isLeftPullViewActive) {
+					this.set_leftPullViewRatio(1);
+				} else {
+					this.set_leftPullViewRatio((adjustedMinScrollPosition - position) / this._leftPullView.get_width());
+				}
+			}
+			if(this._rightPullView != null && !this._isRightPullViewActive) {
+				this.set_rightPullViewRatio(0);
+			}
+			if(!this._hasElasticEdges || this._isRightPullViewActive && this._minHorizontalScrollPosition == this._maxHorizontalScrollPosition) {
+				position = adjustedMinScrollPosition;
+			}
+		} else if(position > adjustedMaxScrollPosition) {
+			position -= (position - adjustedMaxScrollPosition) * (1 - this._elasticity);
+			if(this._rightPullView != null && position > adjustedMaxScrollPosition) {
+				if(this._isRightPullViewActive) {
+					this.set_rightPullViewRatio(1);
+				} else {
+					this.set_rightPullViewRatio((position - adjustedMaxScrollPosition) / this._rightPullView.get_width());
+				}
+			}
+			if(this._leftPullView != null && !this._isLeftPullViewActive) {
+				this.set_leftPullViewRatio(0);
+			}
+			if(!this._hasElasticEdges || this._isLeftPullViewActive && this._minHorizontalScrollPosition == this._maxHorizontalScrollPosition) {
+				position = adjustedMaxScrollPosition;
+			}
+		} else {
+			if(this._leftPullView != null && !this._isLeftPullViewActive) {
+				this.set_leftPullViewRatio(0);
+			}
+			if(this._rightPullView != null && !this._isRightPullViewActive) {
+				this.set_rightPullViewRatio(0);
+			}
+		}
+		if(this._leftPullViewRatio > 0) {
+			if(this._leftPullTween != null) {
+				this._leftPullTween.dispatchEventWith("removeFromJuggler");
+				this._leftPullTween = null;
+			}
+			this.invalidate("scroll");
+		}
+		if(this._rightPullViewRatio > 0) {
+			if(this._rightPullTween != null) {
+				this._rightPullTween.dispatchEventWith("removeFromJuggler");
+				this._rightPullTween = null;
+			}
+			this.invalidate("scroll");
+		}
+		this.set_horizontalScrollPosition(position);
+	}
+	,updateVerticalScrollFromTouchPosition: function(touchY) {
+		var offset = this._startTouchY - touchY;
+		var position = this._startVerticalScrollPosition + offset;
+		var adjustedMinScrollPosition = this._minVerticalScrollPosition;
+		if(this._isTopPullViewActive && this._hasElasticEdges) {
+			adjustedMinScrollPosition -= this._topPullView.get_height();
+		}
+		var adjustedMaxScrollPosition = this._maxVerticalScrollPosition;
+		if(this._isBottomPullViewActive && this._hasElasticEdges) {
+			adjustedMaxScrollPosition += this._bottomPullView.get_height();
+		}
+		if(position < adjustedMinScrollPosition) {
+			position -= (position - adjustedMinScrollPosition) * (1 - this._elasticity);
+			if(this._topPullView != null && position < adjustedMinScrollPosition) {
+				if(this._isTopPullViewActive) {
+					this.set_topPullViewRatio(1);
+				} else {
+					this.set_topPullViewRatio((adjustedMinScrollPosition - position) / this._topPullView.get_height());
+				}
+			}
+			if(this._bottomPullView != null && !this._isBottomPullViewActive) {
+				this.set_bottomPullViewRatio(0);
+			}
+			if(!this._hasElasticEdges || this._isBottomPullViewActive && this._minVerticalScrollPosition == this._maxVerticalScrollPosition) {
+				position = adjustedMinScrollPosition;
+			}
+		} else if(position > adjustedMaxScrollPosition) {
+			position -= (position - adjustedMaxScrollPosition) * (1 - this._elasticity);
+			if(this._bottomPullView != null && position > adjustedMaxScrollPosition) {
+				if(this._isBottomPullViewActive) {
+					this.set_bottomPullViewRatio(1);
+				} else {
+					this.set_bottomPullViewRatio((position - adjustedMaxScrollPosition) / this._bottomPullView.get_height());
+				}
+			}
+			if(this._topPullView != null && !this._isTopPullViewActive) {
+				this.set_topPullViewRatio(0);
+			}
+			if(!this._hasElasticEdges || this._isTopPullViewActive && this._minVerticalScrollPosition == this._maxVerticalScrollPosition) {
+				position = adjustedMaxScrollPosition;
+			}
+		} else {
+			if(this._topPullView != null && !this._isTopPullViewActive) {
+				this.set_topPullViewRatio(0);
+			}
+			if(this._bottomPullView != null && !this._isBottomPullViewActive) {
+				this.set_bottomPullViewRatio(0);
+			}
+		}
+		if(this._topPullViewRatio > 0) {
+			if(this._topPullTween != null) {
+				this._topPullTween.dispatchEventWith("removeFromJuggler");
+				this._topPullTween = null;
+			}
+			this.invalidate("scroll");
+		}
+		if(this._bottomPullViewRatio > 0) {
+			if(this._bottomPullTween != null) {
+				this._bottomPullTween.dispatchEventWith("removeFromJuggler");
+				this._bottomPullTween = null;
+			}
+			this.invalidate("scroll");
+		}
+		this.set_verticalScrollPosition(position);
+	}
+	,throwTo: function(targetHorizontalScrollPosition,targetVerticalScrollPosition,duration) {
+		if(duration == null) {
+			duration = 0.5;
+		}
+		if(targetHorizontalScrollPosition == null) {
+			targetHorizontalScrollPosition = NaN;
+		}
+		if(targetVerticalScrollPosition == null) {
+			targetVerticalScrollPosition = NaN;
+		}
+		var changedPosition = false;
+		if(!isNaN(targetHorizontalScrollPosition)) {
+			if(this._snapToPages && targetHorizontalScrollPosition > this._minHorizontalScrollPosition && targetHorizontalScrollPosition < this._maxHorizontalScrollPosition) {
+				var nearest = this.actualPageWidth;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				if(nearest != 0) {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					var roundedNumber = Math.round(Math.round(decimalPlaces * (targetHorizontalScrollPosition / nearest)) / decimalPlaces) * nearest;
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					targetHorizontalScrollPosition = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+				}
+			}
+			if(this._horizontalAutoScrollTween != null) {
+				starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+				this._horizontalAutoScrollTween = null;
+			}
+			if(this._horizontalScrollPosition != targetHorizontalScrollPosition) {
+				changedPosition = true;
+				this.revealHorizontalScrollBar();
+				this.startScroll();
+				if(duration == 0) {
+					this.set_horizontalScrollPosition(targetHorizontalScrollPosition);
+				} else {
+					this._startHorizontalScrollPosition = this._horizontalScrollPosition;
+					this._targetHorizontalScrollPosition = targetHorizontalScrollPosition;
+					this._horizontalAutoScrollTween = new starling_animation_Tween(this,duration,this._throwEase);
+					this._horizontalAutoScrollTween.animate("horizontalScrollPosition",targetHorizontalScrollPosition);
+					if(this._snapScrollPositionsToPixels) {
+						this._horizontalAutoScrollTween.set_onUpdate($bind(this,this.horizontalAutoScrollTween_onUpdate));
+					}
+					this._horizontalAutoScrollTween.set_onComplete($bind(this,this.horizontalAutoScrollTween_onComplete));
+					starling_core_Starling.get_current().get_juggler().add(this._horizontalAutoScrollTween);
+					this.refreshHorizontalAutoScrollTweenEndRatio();
+				}
+			} else {
+				this.finishScrollingHorizontally();
+			}
+		}
+		if(targetVerticalScrollPosition == targetVerticalScrollPosition) {
+			if(this._snapToPages && targetVerticalScrollPosition > this._minVerticalScrollPosition && targetVerticalScrollPosition < this._maxVerticalScrollPosition) {
+				var nearest = this.actualPageHeight;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				if(nearest != 0) {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					var roundedNumber = Math.round(Math.round(decimalPlaces * (targetVerticalScrollPosition / nearest)) / decimalPlaces) * nearest;
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					targetVerticalScrollPosition = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+				}
+			}
+			if(this._verticalAutoScrollTween != null) {
+				starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+				this._verticalAutoScrollTween = null;
+			}
+			if(this._verticalScrollPosition != targetVerticalScrollPosition) {
+				changedPosition = true;
+				this.revealVerticalScrollBar();
+				this.startScroll();
+				if(duration == 0) {
+					this.set_verticalScrollPosition(targetVerticalScrollPosition);
+				} else {
+					this._startVerticalScrollPosition = this._verticalScrollPosition;
+					this._targetVerticalScrollPosition = targetVerticalScrollPosition;
+					this._verticalAutoScrollTween = new starling_animation_Tween(this,duration,this._throwEase);
+					this._verticalAutoScrollTween.animate("verticalScrollPosition",targetVerticalScrollPosition);
+					if(this._snapScrollPositionsToPixels) {
+						this._verticalAutoScrollTween.set_onUpdate($bind(this,this.verticalAutoScrollTween_onUpdate));
+					}
+					this._verticalAutoScrollTween.set_onComplete($bind(this,this.verticalAutoScrollTween_onComplete));
+					starling_core_Starling.get_current().get_juggler().add(this._verticalAutoScrollTween);
+					this.refreshVerticalAutoScrollTweenEndRatio();
+				}
+			} else {
+				this.finishScrollingVertically();
+			}
+		}
+		if(changedPosition && duration == 0) {
+			this.completeScroll();
+		}
+	}
+	,throwToPage: function(targetHorizontalPageIndex,targetVerticalPageIndex,duration) {
+		if(duration == null) {
+			duration = 0.5;
+		}
+		var targetHorizontalScrollPosition = this._horizontalScrollPosition;
+		if(targetHorizontalPageIndex >= this._minHorizontalPageIndex) {
+			targetHorizontalScrollPosition = this.actualPageWidth * targetHorizontalPageIndex;
+		}
+		if(targetHorizontalScrollPosition < this._minHorizontalScrollPosition) {
+			targetHorizontalScrollPosition = this._minHorizontalScrollPosition;
+		}
+		if(targetHorizontalScrollPosition > this._maxHorizontalScrollPosition) {
+			targetHorizontalScrollPosition = this._maxHorizontalScrollPosition;
+		}
+		var targetVerticalScrollPosition = this._verticalScrollPosition;
+		if(targetVerticalPageIndex >= this._minVerticalPageIndex) {
+			targetVerticalScrollPosition = this.actualPageHeight * targetVerticalPageIndex;
+		}
+		if(targetVerticalScrollPosition < this._minVerticalScrollPosition) {
+			targetVerticalScrollPosition = this._minVerticalScrollPosition;
+		}
+		if(targetVerticalScrollPosition > this._maxVerticalScrollPosition) {
+			targetVerticalScrollPosition = this._maxVerticalScrollPosition;
+		}
+		if(targetHorizontalPageIndex >= this._minHorizontalPageIndex) {
+			this._horizontalPageIndex = targetHorizontalPageIndex;
+		}
+		if(targetVerticalPageIndex >= this._minVerticalPageIndex) {
+			this._verticalPageIndex = targetVerticalPageIndex;
+		}
+		this.throwTo(targetHorizontalScrollPosition,targetVerticalScrollPosition,duration);
+	}
+	,calculateDynamicThrowDuration: function(pixelsPerMS) {
+		return Math.log(0.02 / Math.abs(pixelsPerMS)) / this._logDecelerationRate / 1000;
+	}
+	,calculateThrowDistance: function(pixelsPerMS) {
+		return (pixelsPerMS - 0.02) / this._logDecelerationRate;
+	}
+	,finishScrollingHorizontally: function() {
+		var adjustedMinScrollPosition = this._minHorizontalScrollPosition;
+		if(this._isLeftPullViewActive && this._hasElasticEdges) {
+			adjustedMinScrollPosition -= this._leftPullView.get_width();
+		}
+		var adjustedMaxScrollPosition = this._maxHorizontalScrollPosition;
+		if(this._isRightPullViewActive && this._hasElasticEdges) {
+			adjustedMaxScrollPosition += this._rightPullView.get_width();
+		}
+		var targetHorizontalScrollPosition = NaN;
+		if(this._horizontalScrollPosition < adjustedMinScrollPosition) {
+			targetHorizontalScrollPosition = adjustedMinScrollPosition;
+		} else if(this._horizontalScrollPosition > adjustedMaxScrollPosition) {
+			targetHorizontalScrollPosition = adjustedMaxScrollPosition;
+		}
+		this._isDraggingHorizontally = false;
+		if(targetHorizontalScrollPosition != targetHorizontalScrollPosition) {
+			this.completeScroll();
+		} else if(Math.abs(targetHorizontalScrollPosition - this._horizontalScrollPosition) < 1) {
+			this.set_horizontalScrollPosition(targetHorizontalScrollPosition);
+			this.completeScroll();
+		} else {
+			this.throwTo(targetHorizontalScrollPosition,NaN,this._elasticSnapDuration);
+		}
+		this.restoreHorizontalPullViews();
+	}
+	,finishScrollingVertically: function() {
+		var adjustedMinScrollPosition = this._minVerticalScrollPosition;
+		if(this._isTopPullViewActive && this._hasElasticEdges) {
+			adjustedMinScrollPosition -= this._topPullView.get_height();
+		}
+		var adjustedMaxScrollPosition = this._maxVerticalScrollPosition;
+		if(this._isBottomPullViewActive && this._hasElasticEdges) {
+			adjustedMaxScrollPosition += this._bottomPullView.get_height();
+		}
+		var targetVerticalScrollPosition = NaN;
+		if(this._verticalScrollPosition < adjustedMinScrollPosition) {
+			targetVerticalScrollPosition = adjustedMinScrollPosition;
+		} else if(this._verticalScrollPosition > adjustedMaxScrollPosition) {
+			targetVerticalScrollPosition = adjustedMaxScrollPosition;
+		}
+		this._isDraggingVertically = false;
+		if(targetVerticalScrollPosition != targetVerticalScrollPosition) {
+			this.completeScroll();
+		} else if(Math.abs(targetVerticalScrollPosition - this._verticalScrollPosition) < 1) {
+			this.set_verticalScrollPosition(targetVerticalScrollPosition);
+			this.completeScroll();
+		} else {
+			this.throwTo(NaN,targetVerticalScrollPosition,this._elasticSnapDuration);
+		}
+		this.restoreVerticalPullViews();
+	}
+	,restoreVerticalPullViews: function() {
+		var yPosition;
+		if(this._topPullView != null && this._topPullViewRatio > 0) {
+			if(this._topPullTween != null) {
+				this._topPullTween.dispatchEventWith("removeFromJuggler");
+				this._topPullTween = null;
+			}
+			if(this._topPullViewDisplayMode == "drag") {
+				yPosition = this._topViewPortOffset + this._topPullView.get_pivotY() * this._topPullView.get_scaleY();
+				if(!this._isTopPullViewActive) {
+					yPosition -= this._topPullView.get_height();
+				}
+				if(this._topPullView.get_y() != yPosition) {
+					this._topPullTween = new starling_animation_Tween(this._topPullView,this._elasticSnapDuration,this._throwEase);
+					this._topPullTween.animate("y",yPosition);
+					this._topPullTween.set_onUpdate($bind(this,this.refreshTopPullViewMask));
+					this._topPullTween.set_onComplete($bind(this,this.topPullTween_onComplete));
+					starling_core_Starling.get_current().get_juggler().add(this._topPullTween);
+				}
+			} else {
+				this.topPullTween_onComplete();
+			}
+		}
+		if(this._bottomPullView != null && this._bottomPullViewRatio > 0) {
+			if(this._bottomPullTween != null) {
+				this._bottomPullTween.dispatchEventWith("removeFromJuggler");
+				this._bottomPullTween = null;
+			}
+			if(this._bottomPullViewDisplayMode == "drag") {
+				yPosition = this.actualHeight - this._bottomViewPortOffset + this._bottomPullView.get_pivotY() * this._bottomPullView.get_scaleY();
+				if(this._isBottomPullViewActive) {
+					yPosition -= this._bottomPullView.get_height();
+				}
+				if(this._bottomPullView.get_y() != yPosition) {
+					this._bottomPullTween = new starling_animation_Tween(this._bottomPullView,this._elasticSnapDuration,this._throwEase);
+					this._bottomPullTween.animate("y",yPosition);
+					this._bottomPullTween.set_onUpdate($bind(this,this.refreshBottomPullViewMask));
+					this._bottomPullTween.set_onComplete($bind(this,this.bottomPullTween_onComplete));
+					starling_core_Starling.get_current().get_juggler().add(this._bottomPullTween);
+				}
+			} else {
+				this.bottomPullTween_onComplete();
+			}
+		}
+	}
+	,restoreHorizontalPullViews: function() {
+		var xPosition;
+		if(this._leftPullView != null && this._leftPullViewRatio > 0) {
+			if(this._leftPullTween != null) {
+				this._leftPullTween.dispatchEventWith("removeFromJuggler");
+				this._leftPullTween = null;
+			}
+			if(this._leftPullViewDisplayMode == "drag") {
+				xPosition = this._leftViewPortOffset + this._leftPullView.get_pivotX() * this._leftPullView.get_scaleX();
+				if(!this._isLeftPullViewActive) {
+					xPosition -= this._leftPullView.get_width();
+				}
+				if(this._leftPullView.get_x() != xPosition) {
+					this._leftPullTween = new starling_animation_Tween(this._leftPullView,this._elasticSnapDuration,this._throwEase);
+					this._leftPullTween.animate("x",xPosition);
+					this._leftPullTween.set_onUpdate($bind(this,this.refreshLeftPullViewMask));
+					this._leftPullTween.set_onComplete($bind(this,this.leftPullTween_onComplete));
+					starling_core_Starling.get_current().get_juggler().add(this._leftPullTween);
+				}
+			} else {
+				this.leftPullTween_onComplete();
+			}
+		}
+		if(this._rightPullView != null && this._rightPullViewRatio > 0) {
+			if(this._rightPullTween != null) {
+				this._rightPullTween.dispatchEventWith("removeFromJuggler");
+				this._rightPullTween = null;
+			}
+			if(this._rightPullViewDisplayMode == "drag") {
+				xPosition = this.actualWidth - this._rightViewPortOffset + this._rightPullView.get_pivotX() * this._rightPullView.get_scaleX();
+				if(this._isRightPullViewActive) {
+					xPosition -= this._rightPullView.get_width();
+				}
+				if(this._rightPullView.get_x() != xPosition) {
+					this._rightPullTween = new starling_animation_Tween(this._rightPullView,this._elasticSnapDuration,this._throwEase);
+					this._rightPullTween.animate("x",xPosition);
+					this._rightPullTween.set_onUpdate($bind(this,this.refreshRightPullViewMask));
+					this._rightPullTween.set_onComplete($bind(this,this.rightPullTween_onComplete));
+					starling_core_Starling.get_current().get_juggler().add(this._rightPullTween);
+				}
+			} else {
+				this.rightPullTween_onComplete();
+			}
+		}
+	}
+	,throwHorizontally: function(pixelsPerMS) {
+		if(this._snapToPages && !this._snapOnComplete) {
+			var snappedPageHorizontalScrollPosition;
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			var inchesPerSecond = 1000 * pixelsPerMS / (feathers_system_DeviceCapabilities.dpi / starling.get_contentScaleFactor());
+			if(inchesPerSecond > this._minimumPageThrowVelocity) {
+				var number = this._horizontalScrollPosition;
+				var nearest = this.actualPageWidth;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				if(nearest == 0) {
+					snappedPageHorizontalScrollPosition = number;
+				} else {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					snappedPageHorizontalScrollPosition = Math.floor(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+				}
+			} else if(inchesPerSecond < -this._minimumPageThrowVelocity) {
+				var number = this._horizontalScrollPosition;
+				var nearest = this.actualPageWidth;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				if(nearest == 0) {
+					snappedPageHorizontalScrollPosition = number;
+				} else {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					snappedPageHorizontalScrollPosition = Math.ceil(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+				}
+			} else {
+				var lastPageWidth = this._maxHorizontalScrollPosition % this.actualPageWidth;
+				var startOfLastPage = this._maxHorizontalScrollPosition - lastPageWidth;
+				if(lastPageWidth < this.actualPageWidth && this._horizontalScrollPosition >= startOfLastPage) {
+					var lastPagePosition = this._horizontalScrollPosition - startOfLastPage;
+					if(inchesPerSecond > this._minimumPageThrowVelocity) {
+						var nearest = lastPageWidth;
+						if(nearest == null) {
+							nearest = 1;
+						}
+						var snappedPageHorizontalScrollPosition1;
+						if(nearest == 0) {
+							snappedPageHorizontalScrollPosition1 = lastPagePosition;
+						} else {
+							var precision = 10;
+							if(precision == null) {
+								precision = 0;
+							}
+							var decimalPlaces = Math.pow(10,precision);
+							snappedPageHorizontalScrollPosition1 = Math.floor(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
+						}
+						snappedPageHorizontalScrollPosition = startOfLastPage + snappedPageHorizontalScrollPosition1;
+					} else if(inchesPerSecond < -this._minimumPageThrowVelocity) {
+						var nearest = lastPageWidth;
+						if(nearest == null) {
+							nearest = 1;
+						}
+						var snappedPageHorizontalScrollPosition1;
+						if(nearest == 0) {
+							snappedPageHorizontalScrollPosition1 = lastPagePosition;
+						} else {
+							var precision = 10;
+							if(precision == null) {
+								precision = 0;
+							}
+							var decimalPlaces = Math.pow(10,precision);
+							snappedPageHorizontalScrollPosition1 = Math.ceil(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
+						}
+						snappedPageHorizontalScrollPosition = startOfLastPage + snappedPageHorizontalScrollPosition1;
+					} else {
+						var nearest = lastPageWidth;
+						if(nearest == null) {
+							nearest = 1;
+						}
+						var snappedPageHorizontalScrollPosition1;
+						if(nearest == 0) {
+							snappedPageHorizontalScrollPosition1 = lastPagePosition;
+						} else {
+							var precision = 10;
+							if(precision == null) {
+								precision = 0;
+							}
+							var decimalPlaces = Math.pow(10,precision);
+							var roundedNumber = Math.round(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
+							var precision = 10;
+							if(precision == null) {
+								precision = 0;
+							}
+							var decimalPlaces = Math.pow(10,precision);
+							snappedPageHorizontalScrollPosition1 = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+						}
+						snappedPageHorizontalScrollPosition = startOfLastPage + snappedPageHorizontalScrollPosition1;
+					}
+				} else {
+					var number = this._horizontalScrollPosition;
+					var nearest = this.actualPageWidth;
+					if(nearest == null) {
+						nearest = 1;
+					}
+					if(nearest == 0) {
+						snappedPageHorizontalScrollPosition = number;
+					} else {
+						var precision = 10;
+						if(precision == null) {
+							precision = 0;
+						}
+						var decimalPlaces = Math.pow(10,precision);
+						var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+						var precision = 10;
+						if(precision == null) {
+							precision = 0;
+						}
+						var decimalPlaces = Math.pow(10,precision);
+						snappedPageHorizontalScrollPosition = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+					}
+				}
+			}
+			if(snappedPageHorizontalScrollPosition < this._minHorizontalScrollPosition) {
+				snappedPageHorizontalScrollPosition = this._minHorizontalScrollPosition;
+			} else if(snappedPageHorizontalScrollPosition > this._maxHorizontalScrollPosition) {
+				snappedPageHorizontalScrollPosition = this._maxHorizontalScrollPosition;
+			}
+			var targetHorizontalPageIndex;
+			if(snappedPageHorizontalScrollPosition == this._maxHorizontalScrollPosition) {
+				targetHorizontalPageIndex = this._maxHorizontalPageIndex;
+			} else if(this._minHorizontalScrollPosition == -Infinity) {
+				targetHorizontalPageIndex = Math.round(snappedPageHorizontalScrollPosition / this.actualPageWidth);
+			} else {
+				targetHorizontalPageIndex = Math.round((snappedPageHorizontalScrollPosition - this._minHorizontalScrollPosition) / this.actualPageWidth);
+			}
+			this.throwToPage(targetHorizontalPageIndex,-1,this._pageThrowDuration);
+			return;
+		}
+		var absPixelsPerMS = Math.abs(pixelsPerMS);
+		if(!this._snapToPages && absPixelsPerMS <= 0.02) {
+			this.finishScrollingHorizontally();
+			return;
+		}
+		var duration = this._fixedThrowDuration;
+		if(!this._useFixedThrowDuration) {
+			duration = this.calculateDynamicThrowDuration(pixelsPerMS);
+		}
+		this.throwTo(this._horizontalScrollPosition + this.calculateThrowDistance(pixelsPerMS),NaN,duration);
+	}
+	,throwVertically: function(pixelsPerMS) {
+		if(this._snapToPages && !this._snapOnComplete) {
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			var inchesPerSecond = 1000 * pixelsPerMS / (feathers_system_DeviceCapabilities.dpi / starling.get_contentScaleFactor());
+			var snappedPageVerticalScrollPosition;
+			if(inchesPerSecond > this._minimumPageThrowVelocity) {
+				var number = this._verticalScrollPosition;
+				var nearest = this.actualPageHeight;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				if(nearest == 0) {
+					snappedPageVerticalScrollPosition = number;
+				} else {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					snappedPageVerticalScrollPosition = Math.floor(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+				}
+			} else if(inchesPerSecond < -this._minimumPageThrowVelocity) {
+				var number = this._verticalScrollPosition;
+				var nearest = this.actualPageHeight;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				if(nearest == 0) {
+					snappedPageVerticalScrollPosition = number;
+				} else {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					snappedPageVerticalScrollPosition = Math.ceil(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+				}
+			} else {
+				var lastPageHeight = this._maxVerticalScrollPosition % this.actualPageHeight;
+				var startOfLastPage = this._maxVerticalScrollPosition - lastPageHeight;
+				if(lastPageHeight < this.actualPageHeight && this._verticalScrollPosition >= startOfLastPage) {
+					var lastPagePosition = this._verticalScrollPosition - startOfLastPage;
+					if(inchesPerSecond > this._minimumPageThrowVelocity) {
+						var nearest = lastPageHeight;
+						if(nearest == null) {
+							nearest = 1;
+						}
+						var snappedPageVerticalScrollPosition1;
+						if(nearest == 0) {
+							snappedPageVerticalScrollPosition1 = lastPagePosition;
+						} else {
+							var precision = 10;
+							if(precision == null) {
+								precision = 0;
+							}
+							var decimalPlaces = Math.pow(10,precision);
+							snappedPageVerticalScrollPosition1 = Math.floor(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
+						}
+						snappedPageVerticalScrollPosition = startOfLastPage + snappedPageVerticalScrollPosition1;
+					} else if(inchesPerSecond < -this._minimumPageThrowVelocity) {
+						var nearest = lastPageHeight;
+						if(nearest == null) {
+							nearest = 1;
+						}
+						var snappedPageVerticalScrollPosition1;
+						if(nearest == 0) {
+							snappedPageVerticalScrollPosition1 = lastPagePosition;
+						} else {
+							var precision = 10;
+							if(precision == null) {
+								precision = 0;
+							}
+							var decimalPlaces = Math.pow(10,precision);
+							snappedPageVerticalScrollPosition1 = Math.ceil(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
+						}
+						snappedPageVerticalScrollPosition = startOfLastPage + snappedPageVerticalScrollPosition1;
+					} else {
+						var nearest = lastPageHeight;
+						if(nearest == null) {
+							nearest = 1;
+						}
+						var snappedPageVerticalScrollPosition1;
+						if(nearest == 0) {
+							snappedPageVerticalScrollPosition1 = lastPagePosition;
+						} else {
+							var precision = 10;
+							if(precision == null) {
+								precision = 0;
+							}
+							var decimalPlaces = Math.pow(10,precision);
+							var roundedNumber = Math.round(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
+							var precision = 10;
+							if(precision == null) {
+								precision = 0;
+							}
+							var decimalPlaces = Math.pow(10,precision);
+							snappedPageVerticalScrollPosition1 = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+						}
+						snappedPageVerticalScrollPosition = startOfLastPage + snappedPageVerticalScrollPosition1;
+					}
+				} else {
+					var number = this._verticalScrollPosition;
+					var nearest = this.actualPageHeight;
+					if(nearest == null) {
+						nearest = 1;
+					}
+					if(nearest == 0) {
+						snappedPageVerticalScrollPosition = number;
+					} else {
+						var precision = 10;
+						if(precision == null) {
+							precision = 0;
+						}
+						var decimalPlaces = Math.pow(10,precision);
+						var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+						var precision = 10;
+						if(precision == null) {
+							precision = 0;
+						}
+						var decimalPlaces = Math.pow(10,precision);
+						snappedPageVerticalScrollPosition = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+					}
+				}
+			}
+			if(snappedPageVerticalScrollPosition < this._minVerticalScrollPosition) {
+				snappedPageVerticalScrollPosition = this._minVerticalScrollPosition;
+			} else if(snappedPageVerticalScrollPosition > this._maxVerticalScrollPosition) {
+				snappedPageVerticalScrollPosition = this._maxVerticalScrollPosition;
+			}
+			var targetVerticalPageIndex;
+			if(snappedPageVerticalScrollPosition == this._maxVerticalScrollPosition) {
+				targetVerticalPageIndex = this._maxVerticalPageIndex;
+			} else if(this._minVerticalScrollPosition == -Infinity) {
+				targetVerticalPageIndex = Math.round(snappedPageVerticalScrollPosition / this.actualPageHeight);
+			} else {
+				targetVerticalPageIndex = Math.round((snappedPageVerticalScrollPosition - this._minVerticalScrollPosition) / this.actualPageHeight);
+			}
+			this.throwToPage(-1,targetVerticalPageIndex,this._pageThrowDuration);
+			return;
+		}
+		var absPixelsPerMS = Math.abs(pixelsPerMS);
+		if(!this._snapToPages && absPixelsPerMS <= 0.02) {
+			this.finishScrollingVertically();
+			return;
+		}
+		var duration = this._fixedThrowDuration;
+		if(!this._useFixedThrowDuration) {
+			duration = this.calculateDynamicThrowDuration(pixelsPerMS);
+		}
+		this.throwTo(NaN,this._verticalScrollPosition + this.calculateThrowDistance(pixelsPerMS),duration);
+	}
+	,horizontalAutoScrollTween_onUpdateWithEndRatio: function() {
+		var ratio = (this._horizontalAutoScrollTween.get_transitionFunc())(this._horizontalAutoScrollTween.get_currentTime() / this._horizontalAutoScrollTween.get_totalTime());
+		if(ratio >= this._horizontalAutoScrollTweenEndRatio && this._horizontalAutoScrollTween.get_currentTime() < this._horizontalAutoScrollTween.get_totalTime()) {
+			if(!this._hasElasticEdges) {
+				if(this._horizontalScrollPosition < this._minHorizontalScrollPosition) {
+					this._horizontalScrollPosition = this._minHorizontalScrollPosition;
+				} else if(this._horizontalScrollPosition > this._maxHorizontalScrollPosition) {
+					this._horizontalScrollPosition = this._maxHorizontalScrollPosition;
+				}
+			}
+			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			this._horizontalAutoScrollTween = null;
+			this.finishScrollingHorizontally();
+			return;
+		}
+		if(this._snapScrollPositionsToPixels) {
+			this.horizontalAutoScrollTween_onUpdate();
+		}
+	}
+	,verticalAutoScrollTween_onUpdateWithEndRatio: function() {
+		var ratio = (this._verticalAutoScrollTween.get_transitionFunc())(this._verticalAutoScrollTween.get_currentTime() / this._verticalAutoScrollTween.get_totalTime());
+		if(ratio >= this._verticalAutoScrollTweenEndRatio && this._verticalAutoScrollTween.get_currentTime() < this._verticalAutoScrollTween.get_totalTime()) {
+			if(!this._hasElasticEdges) {
+				if(this._verticalScrollPosition < this._minVerticalScrollPosition) {
+					this._verticalScrollPosition = this._minVerticalScrollPosition;
+				} else if(this._verticalScrollPosition > this._maxVerticalScrollPosition) {
+					this._verticalScrollPosition = this._maxVerticalScrollPosition;
+				}
+			}
+			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			this._verticalAutoScrollTween = null;
+			this.finishScrollingVertically();
+			return;
+		}
+		if(this._snapScrollPositionsToPixels) {
+			this.verticalAutoScrollTween_onUpdate();
+		}
+	}
+	,refreshHorizontalAutoScrollTweenEndRatio: function() {
+		var adjustedMinVerticalScrollPosition = this._minHorizontalScrollPosition;
+		if(this._isLeftPullViewActive && this._hasElasticEdges) {
+			adjustedMinVerticalScrollPosition -= this._leftPullView.get_width();
+		}
+		var adjustedMaxScrollPosition = this._maxHorizontalScrollPosition;
+		if(this._isRightPullViewActive && this._hasElasticEdges) {
+			adjustedMaxScrollPosition += this._rightPullView.get_width();
+		}
+		var distance = Math.abs(this._targetHorizontalScrollPosition - this._startHorizontalScrollPosition);
+		var ratioOutOfBounds = 0;
+		if(this._targetHorizontalScrollPosition > adjustedMaxScrollPosition) {
+			ratioOutOfBounds = (this._targetHorizontalScrollPosition - adjustedMaxScrollPosition) / distance;
+		} else if(this._targetHorizontalScrollPosition < adjustedMinVerticalScrollPosition) {
+			ratioOutOfBounds = (adjustedMinVerticalScrollPosition - this._targetHorizontalScrollPosition) / distance;
+		}
+		if(ratioOutOfBounds > 0) {
+			if(this._hasElasticEdges) {
+				this._horizontalAutoScrollTweenEndRatio = 1 - ratioOutOfBounds + ratioOutOfBounds * this._throwElasticity;
+			} else {
+				this._horizontalAutoScrollTweenEndRatio = 1 - ratioOutOfBounds;
+			}
+		} else {
+			this._horizontalAutoScrollTweenEndRatio = 1;
+		}
+		if(this._horizontalAutoScrollTween != null) {
+			if(this._horizontalAutoScrollTweenEndRatio < 1) {
+				this._horizontalAutoScrollTween.set_onUpdate($bind(this,this.horizontalAutoScrollTween_onUpdateWithEndRatio));
+			} else if(this._snapScrollPositionsToPixels) {
+				this._horizontalAutoScrollTween.set_onUpdate($bind(this,this.horizontalAutoScrollTween_onUpdate));
+			}
+		}
+	}
+	,refreshVerticalAutoScrollTweenEndRatio: function() {
+		var adjustedMinVerticalScrollPosition = this._minVerticalScrollPosition;
+		if(this._isTopPullViewActive && this._hasElasticEdges) {
+			adjustedMinVerticalScrollPosition -= this._topPullView.get_height();
+		}
+		var adjustedMaxScrollPosition = this._maxVerticalScrollPosition;
+		if(this._isBottomPullViewActive && this._hasElasticEdges) {
+			adjustedMaxScrollPosition += this._bottomPullView.get_height();
+		}
+		var distance = Math.abs(this._targetVerticalScrollPosition - this._startVerticalScrollPosition);
+		var ratioOutOfBounds = 0;
+		if(this._targetVerticalScrollPosition > adjustedMaxScrollPosition) {
+			ratioOutOfBounds = (this._targetVerticalScrollPosition - adjustedMaxScrollPosition) / distance;
+		} else if(this._targetVerticalScrollPosition < adjustedMinVerticalScrollPosition) {
+			ratioOutOfBounds = (adjustedMinVerticalScrollPosition - this._targetVerticalScrollPosition) / distance;
+		}
+		if(ratioOutOfBounds > 0) {
+			if(this._hasElasticEdges) {
+				this._verticalAutoScrollTweenEndRatio = 1 - ratioOutOfBounds + ratioOutOfBounds * this._throwElasticity;
+			} else {
+				this._verticalAutoScrollTweenEndRatio = 1 - ratioOutOfBounds;
+			}
+		} else {
+			this._verticalAutoScrollTweenEndRatio = 1;
+		}
+		if(this._verticalAutoScrollTween != null) {
+			if(this._verticalAutoScrollTweenEndRatio < 1) {
+				this._verticalAutoScrollTween.set_onUpdate($bind(this,this.verticalAutoScrollTween_onUpdateWithEndRatio));
+			} else if(this._snapScrollPositionsToPixels) {
+				this._verticalAutoScrollTween.set_onUpdate($bind(this,this.verticalAutoScrollTween_onUpdate));
+			}
+		}
+	}
+	,hideHorizontalScrollBar: function(delay) {
+		if(delay == null) {
+			delay = 0;
+		}
+		if(this.horizontalScrollBar == null || this._scrollBarDisplayMode != "float" || this._horizontalScrollBarHideTween != null) {
+			return;
+		}
+		if(this.horizontalScrollBar.get_alpha() == 0) {
+			return;
+		}
+		if(this._hideScrollBarAnimationDuration == 0 && delay == 0) {
+			this.horizontalScrollBar.set_alpha(0);
+		} else {
+			this._horizontalScrollBarHideTween = new starling_animation_Tween(this.horizontalScrollBar,this._hideScrollBarAnimationDuration,this._hideScrollBarAnimationEase);
+			this._horizontalScrollBarHideTween.fadeTo(0);
+			this._horizontalScrollBarHideTween.set_delay(delay);
+			this._horizontalScrollBarHideTween.set_onComplete($bind(this,this.horizontalScrollBarHideTween_onComplete));
+			starling_core_Starling.get_current().get_juggler().add(this._horizontalScrollBarHideTween);
+		}
+	}
+	,hideVerticalScrollBar: function(delay) {
+		if(delay == null) {
+			delay = 0;
+		}
+		if(this.verticalScrollBar == null || this._scrollBarDisplayMode != "float" || this._verticalScrollBarHideTween != null) {
+			return;
+		}
+		if(this.verticalScrollBar.get_alpha() == 0) {
+			return;
+		}
+		if(this._hideScrollBarAnimationDuration == 0 && delay == 0) {
+			this.verticalScrollBar.set_alpha(0);
+		} else {
+			this._verticalScrollBarHideTween = new starling_animation_Tween(this.verticalScrollBar,this._hideScrollBarAnimationDuration,this._hideScrollBarAnimationEase);
+			this._verticalScrollBarHideTween.fadeTo(0);
+			this._verticalScrollBarHideTween.set_delay(delay);
+			this._verticalScrollBarHideTween.set_onComplete($bind(this,this.verticalScrollBarHideTween_onComplete));
+			starling_core_Starling.get_current().get_juggler().add(this._verticalScrollBarHideTween);
+		}
+	}
+	,revealHorizontalScrollBar: function() {
+		if(this.horizontalScrollBar == null || this._scrollBarDisplayMode != "float") {
+			return;
+		}
+		if(this._horizontalScrollBarHideTween != null) {
+			starling_core_Starling.get_current().get_juggler().remove(this._horizontalScrollBarHideTween);
+			this._horizontalScrollBarHideTween = null;
+		}
+		this.horizontalScrollBar.set_alpha(1);
+	}
+	,revealVerticalScrollBar: function() {
+		if(this.verticalScrollBar == null || this._scrollBarDisplayMode != "float") {
+			return;
+		}
+		if(this._verticalScrollBarHideTween != null) {
+			starling_core_Starling.get_current().get_juggler().remove(this._verticalScrollBarHideTween);
+			this._verticalScrollBarHideTween = null;
+		}
+		this.verticalScrollBar.set_alpha(1);
+	}
+	,startScroll: function() {
+		if(this._isScrolling) {
+			return;
+		}
+		this._isScrolling = true;
+		this.dispatchEventWith("scrollStart");
+	}
+	,completeScroll: function() {
+		if(!this._isScrolling || this._verticalAutoScrollTween != null || this._horizontalAutoScrollTween != null || this._isDraggingHorizontally || this._isDraggingVertically || this._horizontalScrollBarIsScrolling || this._verticalScrollBarIsScrolling) {
+			return;
+		}
+		this._isScrolling = false;
+		this.hideHorizontalScrollBar();
+		this.hideVerticalScrollBar();
+		this.validate();
+		this.dispatchEventWith("scrollComplete");
+	}
+	,handlePendingScroll: function() {
+		if(this.pendingHorizontalScrollPosition == this.pendingHorizontalScrollPosition || this.pendingVerticalScrollPosition == this.pendingVerticalScrollPosition) {
+			this.throwTo(this.pendingHorizontalScrollPosition,this.pendingVerticalScrollPosition,this.pendingScrollDuration);
+			this.pendingHorizontalScrollPosition = NaN;
+			this.pendingVerticalScrollPosition = NaN;
+		}
+		if(this.hasPendingHorizontalPageIndex && this.hasPendingVerticalPageIndex) {
+			this.throwToPage(this.pendingHorizontalPageIndex,this.pendingVerticalPageIndex,this.pendingScrollDuration);
+		} else if(this.hasPendingHorizontalPageIndex) {
+			this.throwToPage(this.pendingHorizontalPageIndex,this._verticalPageIndex,this.pendingScrollDuration);
+		} else if(this.hasPendingVerticalPageIndex) {
+			this.throwToPage(this._horizontalPageIndex,this.pendingVerticalPageIndex,this.pendingScrollDuration);
+		}
+		this.hasPendingHorizontalPageIndex = false;
+		this.hasPendingVerticalPageIndex = false;
+	}
+	,handlePendingRevealScrollBars: function() {
+		if(!this.isScrollBarRevealPending) {
+			return;
+		}
+		this.isScrollBarRevealPending = false;
+		if(this._scrollBarDisplayMode != "float") {
+			return;
+		}
+		this.revealHorizontalScrollBar();
+		this.revealVerticalScrollBar();
+		this.hideHorizontalScrollBar(this._revealScrollBarsDuration);
+		this.hideVerticalScrollBar(this._revealScrollBarsDuration);
+	}
+	,handlePendingPullView: function() {
+		var targetY;
+		var targetX;
+		if(this._isTopPullViewPending) {
+			this._isTopPullViewPending = false;
+			if(this._isTopPullViewActive) {
+				if(this._topPullTween != null) {
+					this._topPullTween.dispatchEventWith("removeFromJuggler");
+					this._topPullTween = null;
+				}
+				if(js_Boot.__implements(this._topPullView,feathers_core_IValidating)) {
+					(js_Boot.__cast(this._topPullView , feathers_core_IValidating)).validate();
+				}
+				this._topPullView.set_visible(true);
+				this._topPullViewRatio = 1;
+				if(this._topPullViewDisplayMode == "drag") {
+					targetY = this._topViewPortOffset + this._topPullView.get_pivotY() * this._topPullView.get_scaleY();
+					if(this.get_isCreated()) {
+						this._topPullView.set_y(targetY - this._topPullView.get_height());
+						this._topPullTween = new starling_animation_Tween(this._topPullView,this._elasticSnapDuration,this._throwEase);
+						this._topPullTween.animate("y",targetY);
+						this._topPullTween.set_onUpdate($bind(this,this.refreshTopPullViewMask));
+						this._topPullTween.set_onComplete($bind(this,this.topPullTween_onComplete));
+						starling_core_Starling.get_current().get_juggler().add(this._topPullTween);
+					} else {
+						this._topPullView.set_y(targetY);
+					}
+				}
+			} else if(this._isScrolling) {
+				this.restoreVerticalPullViews();
+			} else {
+				this.finishScrollingVertically();
+			}
+		}
+		if(this._isRightPullViewPending) {
+			this._isRightPullViewPending = false;
+			if(this._isRightPullViewActive) {
+				if(this._rightPullTween != null) {
+					this._rightPullTween.dispatchEventWith("removeFromJuggler");
+					this._rightPullTween = null;
+				}
+				if(js_Boot.__implements(this._rightPullView,feathers_core_IValidating)) {
+					(js_Boot.__cast(this._rightPullView , feathers_core_IValidating)).validate();
+				}
+				this._rightPullView.set_visible(true);
+				this._rightPullViewRatio = 1;
+				if(this._rightPullViewDisplayMode == "drag") {
+					targetX = this.actualWidth - this._rightViewPortOffset + this._rightPullView.get_pivotX() * this._rightPullView.get_scaleX() - this._rightPullView.get_width();
+					if(this.get_isCreated()) {
+						this._rightPullView.set_x(targetX + this._rightPullView.get_width());
+						this._rightPullTween = new starling_animation_Tween(this._rightPullView,this._elasticSnapDuration,this._throwEase);
+						this._rightPullTween.animate("x",targetX);
+						this._rightPullTween.set_onUpdate($bind(this,this.refreshRightPullViewMask));
+						this._rightPullTween.set_onComplete($bind(this,this.rightPullTween_onComplete));
+						starling_core_Starling.get_current().get_juggler().add(this._rightPullTween);
+					} else {
+						this._rightPullView.set_x(targetX);
+					}
+				}
+			} else if(this._isScrolling) {
+				this.restoreHorizontalPullViews();
+			} else {
+				this.finishScrollingHorizontally();
+			}
+		}
+		if(this._isBottomPullViewPending) {
+			this._isBottomPullViewPending = false;
+			if(this._isBottomPullViewActive) {
+				if(this._bottomPullTween != null) {
+					this._bottomPullTween.dispatchEventWith("removeFromJuggler");
+					this._bottomPullTween = null;
+				}
+				if(js_Boot.__implements(this._bottomPullView,feathers_core_IValidating)) {
+					(js_Boot.__cast(this._bottomPullView , feathers_core_IValidating)).validate();
+				}
+				this._bottomPullView.set_visible(true);
+				this._bottomPullViewRatio = 1;
+				if(this._bottomPullViewDisplayMode == "drag") {
+					targetY = this.actualHeight - this._bottomViewPortOffset + this._bottomPullView.get_pivotY() * this._bottomPullView.get_scaleY() - this._bottomPullView.get_height();
+					if(this.get_isCreated()) {
+						this._bottomPullView.set_y(targetY + this._bottomPullView.get_height());
+						this._bottomPullTween = new starling_animation_Tween(this._bottomPullView,this._elasticSnapDuration,this._throwEase);
+						this._bottomPullTween.animate("y",targetY);
+						this._bottomPullTween.set_onUpdate($bind(this,this.refreshBottomPullViewMask));
+						this._bottomPullTween.set_onComplete($bind(this,this.bottomPullTween_onComplete));
+						starling_core_Starling.get_current().get_juggler().add(this._bottomPullTween);
+					} else {
+						this._bottomPullView.set_y(targetY);
+					}
+				}
+			} else if(this._isScrolling) {
+				this.restoreVerticalPullViews();
+			} else {
+				this.finishScrollingVertically();
+			}
+		}
+		if(this._isLeftPullViewPending) {
+			this._isLeftPullViewPending = false;
+			if(this._isLeftPullViewActive) {
+				if(this._leftPullTween != null) {
+					this._leftPullTween.dispatchEventWith("removeFromJuggler");
+					this._leftPullTween = null;
+				}
+				if(js_Boot.__implements(this._leftPullView,feathers_core_IValidating)) {
+					(js_Boot.__cast(this._leftPullView , feathers_core_IValidating)).validate();
+				}
+				this._leftPullView.set_visible(true);
+				this._leftPullViewRatio = 1;
+				if(this._leftPullViewDisplayMode == "drag") {
+					targetX = this._leftViewPortOffset + this._leftPullView.get_pivotX() * this._leftPullView.get_scaleX();
+					if(this.get_isCreated()) {
+						this._leftPullView.set_x(targetX - this._leftPullView.get_width());
+						this._leftPullTween = new starling_animation_Tween(this._leftPullView,this._elasticSnapDuration,this._throwEase);
+						this._leftPullTween.animate("x",targetX);
+						this._leftPullTween.set_onUpdate($bind(this,this.refreshLeftPullViewMask));
+						this._leftPullTween.set_onComplete($bind(this,this.leftPullTween_onComplete));
+						starling_core_Starling.get_current().get_juggler().add(this._leftPullTween);
+					} else {
+						this._leftPullView.set_x(targetX);
+					}
+				}
+			} else if(this._isScrolling) {
+				this.restoreHorizontalPullViews();
+			} else {
+				this.finishScrollingHorizontally();
+			}
+		}
+	}
+	,checkForDrag: function() {
+		if(this._isScrollingStopped) {
+			return;
+		}
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var horizontalInchesMoved = (this._currentTouchX - this._startTouchX) / (feathers_system_DeviceCapabilities.dpi / starling.get_contentScaleFactor());
+		var verticalInchesMoved = (this._currentTouchY - this._startTouchY) / (feathers_system_DeviceCapabilities.dpi / starling.get_contentScaleFactor());
+		var exclusiveTouch;
+		if(!this._isDraggingHorizontally && (this._horizontalScrollPolicy == "on" || this._horizontalScrollPolicy == "auto" && this._minHorizontalScrollPosition != this._maxHorizontalScrollPosition || this._leftPullView != null && (this._currentTouchX > this._startTouchX || this._horizontalScrollPosition < this._minHorizontalScrollPosition) || this._rightPullView != null && (this._currentTouchX < this._startTouchX || this._horizontalScrollPosition > this._minHorizontalScrollPosition)) && (horizontalInchesMoved <= -this._minimumDragDistance && (this._hasElasticEdges || this._horizontalScrollPosition < this._maxHorizontalScrollPosition || this._rightPullView != null) || horizontalInchesMoved >= this._minimumDragDistance && (this._hasElasticEdges || this._horizontalScrollPosition > this._minHorizontalScrollPosition || this._leftPullView != null))) {
+			if(this.horizontalScrollBar != null) {
+				this.revealHorizontalScrollBar();
+			}
+			this._startTouchX = this._currentTouchX;
+			this._startHorizontalScrollPosition = this._horizontalScrollPosition;
+			this._isDraggingHorizontally = true;
+			if(!this._isDraggingVertically) {
+				this.dispatchEventWith("beginInteraction");
+				exclusiveTouch = feathers_events_ExclusiveTouch.forStage(this.get_stage());
+				exclusiveTouch.removeEventListener("change",$bind(this,this.exclusiveTouch_changeHandler));
+				exclusiveTouch.claimTouch(this._touchPointID,this);
+				this.startScroll();
+			}
+		}
+		if(!this._isDraggingVertically && (this._verticalScrollPolicy == "on" || this._verticalScrollPolicy == "auto" && this._minVerticalScrollPosition != this._maxVerticalScrollPosition || this._topPullView != null && (this._currentTouchY > this._startTouchY || this._verticalScrollPosition < this._minVerticalScrollPosition) || this._bottomPullView != null && (this._currentTouchY < this._startTouchY || this._verticalScrollPosition > this._minVerticalScrollPosition)) && (verticalInchesMoved <= -this._minimumDragDistance && (this._hasElasticEdges || this._verticalScrollPosition < this._maxVerticalScrollPosition || this._bottomPullView != null) || verticalInchesMoved >= this._minimumDragDistance && (this._hasElasticEdges || this._verticalScrollPosition > this._minVerticalScrollPosition || this._topPullView != null))) {
+			if(this.verticalScrollBar != null) {
+				this.revealVerticalScrollBar();
+			}
+			this._startTouchY = this._currentTouchY;
+			this._startVerticalScrollPosition = this._verticalScrollPosition;
+			this._isDraggingVertically = true;
+			if(!this._isDraggingHorizontally) {
+				exclusiveTouch = feathers_events_ExclusiveTouch.forStage(this.get_stage());
+				exclusiveTouch.removeEventListener("change",$bind(this,this.exclusiveTouch_changeHandler));
+				exclusiveTouch.claimTouch(this._touchPointID,this);
+				this.dispatchEventWith("beginInteraction");
+				this.startScroll();
+			}
+		}
+		if(this._isDraggingHorizontally && this._horizontalAutoScrollTween == null) {
+			this.updateHorizontalScrollFromTouchPosition(this._currentTouchX);
+		}
+		if(this._isDraggingVertically && this._verticalAutoScrollTween == null) {
+			this.updateVerticalScrollFromTouchPosition(this._currentTouchY);
+		}
+	}
+	,saveVelocity: function() {
+		this._pendingVelocityChange = false;
+		if(this._isScrollingStopped) {
+			return;
+		}
+		var now = openfl_Lib.getTimer();
+		var timeOffset = now - this._previousTouchTime;
+		if(timeOffset > 0) {
+			this._previousVelocityX[this._previousVelocityX.length] = this._velocityX;
+			if(this._previousVelocityX.length > 4) {
+				this._previousVelocityX.shift();
+			}
+			this._previousVelocityY[this._previousVelocityY.length] = this._velocityY;
+			if(this._previousVelocityY.length > 4) {
+				this._previousVelocityY.shift();
+			}
+			this._velocityX = (this._currentTouchX - this._previousTouchX) / timeOffset;
+			this._velocityY = (this._currentTouchY - this._previousTouchY) / timeOffset;
+			this._previousTouchTime = now;
+			this._previousTouchX = this._currentTouchX;
+			this._previousTouchY = this._currentTouchY;
+		}
+	}
+	,viewPort_resizeHandler: function(event) {
+		if(this.ignoreViewPortResizing || this._viewPort.get_width() == this._lastViewPortWidth && this._viewPort.get_height() == this._lastViewPortHeight) {
+			return;
+		}
+		this._lastViewPortWidth = this._viewPort.get_width();
+		this._lastViewPortHeight = this._viewPort.get_height();
+		if(this._isValidating) {
+			this._hasViewPortBoundsChanged = true;
+		} else {
+			this.invalidate("size");
+		}
+	}
+	,childProperties_onChange: function(proxy,name) {
+		this.invalidate("styles");
+	}
+	,verticalScrollBar_changeHandler: function(event) {
+		this.set_verticalScrollPosition(this.verticalScrollBar.get_value());
+	}
+	,horizontalScrollBar_changeHandler: function(event) {
+		this.set_horizontalScrollPosition(this.horizontalScrollBar.get_value());
+	}
+	,horizontalScrollBar_beginInteractionHandler: function(event) {
+		if(this._horizontalAutoScrollTween != null) {
+			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			this._horizontalAutoScrollTween = null;
+		}
+		this._isDraggingHorizontally = false;
+		this._horizontalScrollBarIsScrolling = true;
+		this.dispatchEventWith("beginInteraction");
+		if(!this._isScrolling) {
+			this.startScroll();
+		}
+	}
+	,horizontalScrollBar_endInteractionHandler: function(event) {
+		this._horizontalScrollBarIsScrolling = false;
+		this.dispatchEventWith("endInteraction");
+		this.completeScroll();
+	}
+	,verticalScrollBar_beginInteractionHandler: function(event) {
+		if(this._verticalAutoScrollTween != null) {
+			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			this._verticalAutoScrollTween = null;
+		}
+		this._isDraggingVertically = false;
+		this._verticalScrollBarIsScrolling = true;
+		this.dispatchEventWith("beginInteraction");
+		if(!this._isScrolling) {
+			this.startScroll();
+		}
+	}
+	,verticalScrollBar_endInteractionHandler: function(event) {
+		this._verticalScrollBarIsScrolling = false;
+		this.dispatchEventWith("endInteraction");
+		this.completeScroll();
+	}
+	,horizontalAutoScrollTween_onUpdate: function() {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var pixelSize = 1 / starling.get_contentScaleFactor();
+		var viewPortX = Math.round((this._leftViewPortOffset - this._horizontalScrollPosition) / pixelSize) * pixelSize;
+		var targetViewPortX = Math.round((this._leftViewPortOffset - this._targetHorizontalScrollPosition) / pixelSize) * pixelSize;
+		if(viewPortX == targetViewPortX) {
+			this._horizontalAutoScrollTween.advanceTime(this._horizontalAutoScrollTween.get_totalTime());
+		}
+	}
+	,horizontalAutoScrollTween_onComplete: function() {
+		if(this._horizontalAutoScrollTween != null) {
+			this._horizontalAutoScrollTween.set_onUpdate(null);
+			this._horizontalAutoScrollTween.set_onComplete(null);
+			this._horizontalAutoScrollTween = null;
+		}
+		this.invalidate("scroll");
+		this.finishScrollingHorizontally();
+	}
+	,verticalAutoScrollTween_onUpdate: function() {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var pixelSize = 1 / starling.get_contentScaleFactor();
+		var viewPortY = Math.round((this._topViewPortOffset - this._verticalScrollPosition) / pixelSize) * pixelSize;
+		var targetViewPortY = Math.round((this._topViewPortOffset - this._targetVerticalScrollPosition) / pixelSize) * pixelSize;
+		if(viewPortY == targetViewPortY) {
+			this._verticalAutoScrollTween.advanceTime(this._verticalAutoScrollTween.get_totalTime());
+		}
+	}
+	,verticalAutoScrollTween_onComplete: function() {
+		if(this._verticalAutoScrollTween != null) {
+			this._verticalAutoScrollTween.set_onUpdate(null);
+			this._verticalAutoScrollTween.set_onComplete(null);
+			this._verticalAutoScrollTween = null;
+		}
+		this.invalidate("scroll");
+		this.finishScrollingVertically();
+	}
+	,topPullTween_onComplete: function() {
+		this._topPullTween = null;
+		if(this._isTopPullViewActive) {
+			this._topPullViewRatio = 1;
+		} else {
+			this._topPullViewRatio = 0;
+		}
+		this.invalidate("scroll");
+	}
+	,rightPullTween_onComplete: function() {
+		this._rightPullTween = null;
+		if(this._isRightPullViewActive) {
+			this._rightPullViewRatio = 1;
+		} else {
+			this._rightPullViewRatio = 0;
+		}
+		this.invalidate("scroll");
+	}
+	,bottomPullTween_onComplete: function() {
+		this._bottomPullTween = null;
+		if(this._isBottomPullViewActive) {
+			this._bottomPullViewRatio = 1;
+		} else {
+			this._bottomPullViewRatio = 0;
+		}
+		this.invalidate("scroll");
+	}
+	,leftPullTween_onComplete: function() {
+		this._leftPullTween = null;
+		if(this._isLeftPullViewActive) {
+			this._leftPullViewRatio = 1;
+		} else {
+			this._leftPullViewRatio = 0;
+		}
+		this.invalidate("scroll");
+	}
+	,horizontalScrollBarHideTween_onComplete: function() {
+		this._horizontalScrollBarHideTween = null;
+	}
+	,verticalScrollBarHideTween_onComplete: function() {
+		this._verticalScrollBarHideTween = null;
+	}
+	,scroller_touchHandler: function(event) {
+		if(!this._isEnabled || this.get_stage() == null) {
+			this._touchPointID = -1;
+			return;
+		}
+		if(this._touchPointID != -1) {
+			return;
+		}
+		var touch = event.getTouch(this,"began");
+		if(touch == null) {
+			return;
+		}
+		if(this._interactionMode == "touchAndScrollBars" && (event.interactsWith(this.horizontalScrollBar) || event.interactsWith(this.verticalScrollBar))) {
+			return;
+		}
+		var touchPosition = touch.getLocation(this,starling_utils_Pool.getPoint());
+		var touchX = touchPosition.x;
+		var touchY = touchPosition.y;
+		starling_utils_Pool.putPoint(touchPosition);
+		if(touchX < this._leftViewPortOffset || touchY < this._topViewPortOffset || touchX >= this.actualWidth - this._rightViewPortOffset || touchY >= this.actualHeight - this._bottomViewPortOffset) {
+			return;
+		}
+		var exclusiveTouch = feathers_events_ExclusiveTouch.forStage(this.get_stage());
+		if(exclusiveTouch.getClaim(touch.get_id()) != null) {
+			return;
+		}
+		if(this._horizontalAutoScrollTween != null && this._horizontalScrollPolicy != "off") {
+			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			this._horizontalAutoScrollTween = null;
+		}
+		if(this._verticalAutoScrollTween != null && this._verticalScrollPolicy != "off") {
+			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			this._verticalAutoScrollTween = null;
+		}
+		this._touchPointID = touch.get_id();
+		this._velocityX = 0;
+		this._velocityY = 0;
+		this._previousVelocityX.splice(0,this._previousVelocityX.length);
+		this._previousVelocityY.splice(0,this._previousVelocityY.length);
+		this._previousTouchTime = openfl_Lib.getTimer();
+		this._previousTouchX = this._startTouchX = this._currentTouchX = touchX;
+		this._previousTouchY = this._startTouchY = this._currentTouchY = touchY;
+		this._startHorizontalScrollPosition = this._horizontalScrollPosition;
+		this._startVerticalScrollPosition = this._verticalScrollPosition;
+		this._isScrollingStopped = false;
+		if(!this._isScrolling || !this._snapToPages) {
+			this._isDraggingVertically = false;
+			this._isDraggingHorizontally = false;
+		}
+		if(this._isScrolling) {
+			this.completeScroll();
+		}
+		this.addEventListener("enterFrame",$bind(this,this.scroller_enterFrameHandler));
+		this.get_stage().addEventListener("touch",$bind(this,this.stage_touchHandler));
+		exclusiveTouch.addEventListener("change",$bind(this,this.exclusiveTouch_changeHandler));
+	}
+	,scroller_enterFrameHandler: function(event) {
+		this.saveVelocity();
+	}
+	,stage_touchHandler: function(event) {
+		if(this._touchPointID < 0) {
+			return;
+		}
+		var touch = event.getTouch(this.get_stage(),null,this._touchPointID);
+		if(touch == null) {
+			return;
+		}
+		if(touch.get_phase() == "moved") {
+			var touchPosition = touch.getLocation(this,starling_utils_Pool.getPoint());
+			this._currentTouchX = touchPosition.x;
+			this._currentTouchY = touchPosition.y;
+			starling_utils_Pool.putPoint(touchPosition);
+			this.checkForDrag();
+			this._pendingVelocityChange = true;
+		} else if(touch.get_phase() == "ended") {
+			if(this._pendingVelocityChange) {
+				this.saveVelocity();
+			}
+			if(!this._isDraggingHorizontally && !this._isDraggingVertically) {
+				feathers_events_ExclusiveTouch.forStage(this.get_stage()).removeEventListener("change",$bind(this,this.exclusiveTouch_changeHandler));
+			}
+			this.removeEventListener("enterFrame",$bind(this,this.scroller_enterFrameHandler));
+			this.get_stage().removeEventListener("touch",$bind(this,this.stage_touchHandler));
+			this._touchPointID = -1;
+			this.dispatchEventWith("endInteraction");
+			if(!this._isTopPullViewActive && this._isDraggingVertically && this._topPullView != null && this._topPullViewRatio >= 1) {
+				this._isTopPullViewActive = true;
+				this._topPullView.dispatchEventWith("update");
+				this.dispatchEventWith("update",false,this._topPullView);
+			}
+			if(!this._isRightPullViewActive && this._isDraggingHorizontally && this._rightPullView != null && this._rightPullViewRatio >= 1) {
+				this._isRightPullViewActive = true;
+				this._rightPullView.dispatchEventWith("update");
+				this.dispatchEventWith("update",false,this._rightPullView);
+			}
+			if(!this._isBottomPullViewActive && this._isDraggingVertically && this._bottomPullView != null && this._bottomPullViewRatio >= 1) {
+				this._isBottomPullViewActive = true;
+				this._bottomPullView.dispatchEventWith("update");
+				this.dispatchEventWith("update",false,this._bottomPullView);
+			}
+			if(!this._isLeftPullViewActive && this._isDraggingHorizontally && this._leftPullView != null && this._leftPullViewRatio >= 1) {
+				this._isLeftPullViewActive = true;
+				this._leftPullView.dispatchEventWith("update");
+				this.dispatchEventWith("update",false,this._leftPullView);
+			}
+			var isFinishingHorizontally = false;
+			var adjustedMinHorizontalScrollPosition = this._minHorizontalScrollPosition;
+			if(this._isLeftPullViewActive && this._hasElasticEdges) {
+				adjustedMinHorizontalScrollPosition -= this._leftPullView.get_width();
+			}
+			var adjustedMaxHorizontalScrollPosition = this._maxHorizontalScrollPosition;
+			if(this._isRightPullViewActive && this._hasElasticEdges) {
+				adjustedMaxHorizontalScrollPosition += this._rightPullView.get_width();
+			}
+			if(this._horizontalScrollPosition < adjustedMinHorizontalScrollPosition || this._horizontalScrollPosition > adjustedMaxHorizontalScrollPosition) {
+				isFinishingHorizontally = true;
+				this.finishScrollingHorizontally();
+			}
+			var isFinishingVertically = false;
+			var adjustedMinVerticalScrollPosition = this._minVerticalScrollPosition;
+			if(this._isTopPullViewActive && this._hasElasticEdges) {
+				adjustedMinVerticalScrollPosition -= this._topPullView.get_height();
+			}
+			var adjustedMaxVerticalScrollPosition = this._maxVerticalScrollPosition;
+			if(this._isBottomPullViewActive && this._hasElasticEdges) {
+				adjustedMaxVerticalScrollPosition += this._bottomPullView.get_height();
+			}
+			if(this._verticalScrollPosition < adjustedMinVerticalScrollPosition || this._verticalScrollPosition > adjustedMaxVerticalScrollPosition) {
+				isFinishingVertically = true;
+				this.finishScrollingVertically();
+			}
+			if(isFinishingHorizontally && isFinishingVertically) {
+				return;
+			}
+			var sum;
+			var velocityCount;
+			var totalWeight;
+			var weight;
+			if(!isFinishingHorizontally) {
+				if(this._isDraggingHorizontally) {
+					sum = this._velocityX * 2.33;
+					velocityCount = this._previousVelocityX.length;
+					totalWeight = 2.33;
+					var _g = 0;
+					var _g1 = velocityCount;
+					while(_g < _g1) {
+						var i = _g++;
+						weight = feathers_controls_Scroller.VELOCITY_WEIGHTS[i];
+						sum += this._previousVelocityX.shift() * weight;
+						totalWeight += weight;
+					}
+					this.throwHorizontally(sum / totalWeight);
+				} else {
+					this.hideHorizontalScrollBar();
+				}
+			}
+			if(!isFinishingVertically) {
+				if(this._isDraggingVertically) {
+					sum = this._velocityY * 2.33;
+					velocityCount = this._previousVelocityY.length;
+					totalWeight = 2.33;
+					var _g = 0;
+					var _g1 = velocityCount;
+					while(_g < _g1) {
+						var i = _g++;
+						weight = feathers_controls_Scroller.VELOCITY_WEIGHTS[i];
+						sum += this._previousVelocityY.shift() * weight;
+						totalWeight += weight;
+					}
+					this.throwVertically(sum / totalWeight);
+				} else {
+					this.hideVerticalScrollBar();
+				}
+			}
+		}
+	}
+	,exclusiveTouch_changeHandler: function(event,touchID) {
+		if(this._touchPointID < 0 || this._touchPointID != touchID || this._isDraggingHorizontally || this._isDraggingVertically) {
+			return;
+		}
+		var exclusiveTouch = feathers_events_ExclusiveTouch.forStage(this.get_stage());
+		if(exclusiveTouch.getClaim(touchID) == this) {
+			return;
+		}
+		this._touchPointID = -1;
+		this.removeEventListener("enterFrame",$bind(this,this.scroller_enterFrameHandler));
+		this.get_stage().removeEventListener("touch",$bind(this,this.stage_touchHandler));
+		exclusiveTouch.removeEventListener("change",$bind(this,this.exclusiveTouch_changeHandler));
+		this.dispatchEventWith("endInteraction");
+	}
+	,nativeStage_mouseWheelHandler: function(event) {
+		if(!this._isEnabled) {
+			this._touchPointID = -1;
+			return;
+		}
+		if(this._verticalMouseWheelScrollDirection == "vertical" && (this._maxVerticalScrollPosition == this._minVerticalScrollPosition || this._verticalScrollPolicy == "off") || this._verticalMouseWheelScrollDirection == "horizontal" && (this._maxHorizontalScrollPosition == this._minHorizontalScrollPosition || this._horizontalScrollPolicy == "off")) {
+			return;
+		}
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var nativeScaleFactor = 1;
+		if(starling.get_supportHighResolutions()) {
+			nativeScaleFactor = starling.get_nativeStage().get_contentsScaleFactor();
+		}
+		var starlingViewPort = starling.get_viewPort();
+		var scaleFactor = nativeScaleFactor / starling.get_contentScaleFactor();
+		var point = starling_utils_Pool.getPoint((event.stageX - starlingViewPort.x) * scaleFactor,(event.stageY - starlingViewPort.y) * scaleFactor);
+		var isContained = this.get_stage() != null && this.contains(this.get_stage().hitTest(point));
+		if(!isContained) {
+			starling_utils_Pool.putPoint(point);
+		} else {
+			this.globalToLocal(point,point);
+			var localMouseX = point.x;
+			var localMouseY = point.y;
+			starling_utils_Pool.putPoint(point);
+			if(localMouseX < this._leftViewPortOffset || localMouseY < this._topViewPortOffset || localMouseX >= this.actualWidth - this._rightViewPortOffset || localMouseY >= this.actualHeight - this._bottomViewPortOffset) {
+				return;
+			}
+			var targetHorizontalScrollPosition = this._horizontalScrollPosition;
+			var targetVerticalScrollPosition = this._verticalScrollPosition;
+			var scrollStep = this._verticalMouseWheelScrollStep;
+			if(this._verticalMouseWheelScrollDirection == "horizontal") {
+				if(scrollStep != scrollStep) {
+					scrollStep = this.actualHorizontalScrollStep;
+				}
+				targetHorizontalScrollPosition -= event.delta * scrollStep;
+				if(targetHorizontalScrollPosition < this._minHorizontalScrollPosition) {
+					targetHorizontalScrollPosition = this._minHorizontalScrollPosition;
+				} else if(targetHorizontalScrollPosition > this._maxHorizontalScrollPosition) {
+					targetHorizontalScrollPosition = this._maxHorizontalScrollPosition;
+				}
+			} else {
+				if(scrollStep != scrollStep) {
+					scrollStep = this.actualVerticalScrollStep;
+				}
+				targetVerticalScrollPosition -= event.delta * scrollStep;
+				if(targetVerticalScrollPosition < this._minVerticalScrollPosition) {
+					targetVerticalScrollPosition = this._minVerticalScrollPosition;
+				} else if(targetVerticalScrollPosition > this._maxVerticalScrollPosition) {
+					targetVerticalScrollPosition = this._maxVerticalScrollPosition;
+				}
+			}
+			this.throwTo(targetHorizontalScrollPosition,targetVerticalScrollPosition,this._mouseWheelScrollDuration);
+		}
+	}
+	,nativeStage_orientationChangeHandler: function(event) {
+		if(this._touchPointID < 0) {
+			return;
+		}
+		this._startTouchX = this._previousTouchX = this._currentTouchX;
+		this._startTouchY = this._previousTouchY = this._currentTouchY;
+		this._startHorizontalScrollPosition = this._horizontalScrollPosition;
+		this._startVerticalScrollPosition = this._verticalScrollPosition;
+	}
+	,horizontalScrollBar_touchHandler: function(event) {
+		if(!this._isEnabled) {
+			this._horizontalScrollBarTouchPointID = -1;
+			return;
+		}
+		var displayHorizontalScrollBar = event.currentTarget;
+		var touch;
+		if(this._horizontalScrollBarTouchPointID >= 0) {
+			touch = event.getTouch(displayHorizontalScrollBar,"ended",this._horizontalScrollBarTouchPointID);
+			if(touch == null) {
+				return;
+			}
+			this._horizontalScrollBarTouchPointID = -1;
+			var touchPosition = touch.getLocation(displayHorizontalScrollBar,starling_utils_Pool.getPoint());
+			var isInBounds = this.horizontalScrollBar.hitTest(touchPosition) != null;
+			starling_utils_Pool.putPoint(touchPosition);
+			if(!isInBounds) {
+				this.hideHorizontalScrollBar();
+			}
+		} else {
+			touch = event.getTouch(displayHorizontalScrollBar,"began");
+			if(touch != null) {
+				this._horizontalScrollBarTouchPointID = touch.get_id();
+				return;
+			}
+			if(this._isScrolling) {
+				return;
+			}
+			touch = event.getTouch(displayHorizontalScrollBar,"hover");
+			if(touch != null) {
+				this.revealHorizontalScrollBar();
+				return;
+			}
+			this.hideHorizontalScrollBar();
+		}
+	}
+	,verticalScrollBar_touchHandler: function(event) {
+		if(!this._isEnabled) {
+			this._verticalScrollBarTouchPointID = -1;
+			return;
+		}
+		var displayVerticalScrollBar = event.currentTarget;
+		var touch;
+		if(this._verticalScrollBarTouchPointID >= 0) {
+			touch = event.getTouch(displayVerticalScrollBar,"ended",this._verticalScrollBarTouchPointID);
+			if(touch == null) {
+				return;
+			}
+			this._verticalScrollBarTouchPointID = -1;
+			var touchPosition = touch.getLocation(displayVerticalScrollBar,starling_utils_Pool.getPoint());
+			var isInBounds = this.verticalScrollBar.hitTest(touchPosition) != null;
+			starling_utils_Pool.putPoint(touchPosition);
+			if(!isInBounds) {
+				this.hideVerticalScrollBar();
+			}
+		} else {
+			touch = event.getTouch(displayVerticalScrollBar,"began");
+			if(touch != null) {
+				this._verticalScrollBarTouchPointID = touch.get_id();
+				return;
+			}
+			if(this._isScrolling) {
+				return;
+			}
+			touch = event.getTouch(displayVerticalScrollBar,"hover");
+			if(touch != null) {
+				this.revealVerticalScrollBar();
+				return;
+			}
+			this.hideVerticalScrollBar();
+		}
+	}
+	,scroller_addedToStageHandler: function(event) {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		starling.get_nativeStage().addEventListener("mouseWheel",$bind(this,this.nativeStage_mouseWheelHandler),false,0,true);
+		starling.get_nativeStage().addEventListener("orientationChange",$bind(this,this.nativeStage_orientationChangeHandler),false,0,true);
+	}
+	,scroller_removedFromStageHandler: function(event) {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		starling.get_nativeStage().removeEventListener("mouseWheel",$bind(this,this.nativeStage_mouseWheelHandler));
+		starling.get_nativeStage().removeEventListener("orientationChange",$bind(this,this.nativeStage_orientationChangeHandler));
+		if(this._touchPointID >= 0) {
+			var exclusiveTouch = feathers_events_ExclusiveTouch.forStage(this.get_stage());
+			exclusiveTouch.removeEventListener("change",$bind(this,this.exclusiveTouch_changeHandler));
+		}
+		this._touchPointID = -1;
+		this._horizontalScrollBarTouchPointID = -1;
+		this._verticalScrollBarTouchPointID = -1;
+		this._isDraggingHorizontally = false;
+		this._isDraggingVertically = false;
+		this._velocityX = 0;
+		this._velocityY = 0;
+		this._previousVelocityX.splice(0,this._previousVelocityX.length);
+		this._previousVelocityY.splice(0,this._previousVelocityY.length);
+		this._horizontalScrollBarIsScrolling = false;
+		this._verticalScrollBarIsScrolling = false;
+		this.removeEventListener("enterFrame",$bind(this,this.scroller_enterFrameHandler));
+		this.get_stage().removeEventListener("touch",$bind(this,this.stage_touchHandler));
+		if(this._verticalAutoScrollTween != null) {
+			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			this._verticalAutoScrollTween = null;
+		}
+		if(this._horizontalAutoScrollTween != null) {
+			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			this._horizontalAutoScrollTween = null;
+		}
+		if(this._topPullTween != null) {
+			this._topPullTween.dispatchEventWith("removeFromJuggler");
+			this._topPullTween = null;
+		}
+		if(this._rightPullTween != null) {
+			this._rightPullTween.dispatchEventWith("removeFromJuggler");
+			this._rightPullTween = null;
+		}
+		if(this._bottomPullTween != null) {
+			this._bottomPullTween.dispatchEventWith("removeFromJuggler");
+			this._bottomPullTween = null;
+		}
+		if(this._leftPullTween != null) {
+			this._leftPullTween.dispatchEventWith("removeFromJuggler");
+			this._leftPullTween = null;
+		}
+		var oldHorizontalScrollPosition = this._horizontalScrollPosition;
+		var oldVerticalScrollPosition = this._verticalScrollPosition;
+		if(this._horizontalScrollPosition < this._minHorizontalScrollPosition) {
+			this._horizontalScrollPosition = this._minHorizontalScrollPosition;
+		} else if(this._horizontalScrollPosition > this._maxHorizontalScrollPosition) {
+			this._horizontalScrollPosition = this._maxHorizontalScrollPosition;
+		}
+		if(this._verticalScrollPosition < this._minVerticalScrollPosition) {
+			this._verticalScrollPosition = this._minVerticalScrollPosition;
+		} else if(this._verticalScrollPosition > this._maxVerticalScrollPosition) {
+			this._verticalScrollPosition = this._maxVerticalScrollPosition;
+		}
+		if(oldHorizontalScrollPosition != this._horizontalScrollPosition || oldVerticalScrollPosition != this._verticalScrollPosition) {
+			this.dispatchEventWith("scroll");
+		}
+		this.completeScroll();
+	}
+	,focusInHandler: function(event) {
+		feathers_core_FeathersControl.prototype.focusInHandler.call(this,event);
+		var priority = -feathers_utils_display_FeathersDisplayUtil.getDisplayObjectDepthFromStage(this);
+		this.get_stage().get_starling().get_nativeStage().addEventListener("keyDown",$bind(this,this.nativeStage_keyDownHandler),false,priority,true);
+	}
+	,focusOutHandler: function(event) {
+		feathers_core_FeathersControl.prototype.focusOutHandler.call(this,event);
+		this.get_stage().get_starling().get_nativeStage().removeEventListener("keyDown",$bind(this,this.nativeStage_keyDownHandler));
+	}
+	,nativeStage_keyDownHandler: function(event) {
+		if(event.isDefaultPrevented()) {
+			return;
+		}
+		var newHorizontalScrollPosition = this._horizontalScrollPosition;
+		var newVerticalScrollPosition = this._verticalScrollPosition;
+		if(event.keyCode == 36) {
+			newVerticalScrollPosition = this._minVerticalScrollPosition;
+		} else if(event.keyCode == 35) {
+			newVerticalScrollPosition = this._maxVerticalScrollPosition;
+		} else if(event.keyCode == 33) {
+			newVerticalScrollPosition = Math.max(this._minVerticalScrollPosition,this._verticalScrollPosition - this.get_viewPort().get_visibleHeight());
+		} else if(event.keyCode == 34) {
+			newVerticalScrollPosition = Math.min(this._maxVerticalScrollPosition,this._verticalScrollPosition + this.get_viewPort().get_visibleHeight());
+		} else if(event.keyCode == 38) {
+			newVerticalScrollPosition = Math.max(this._minVerticalScrollPosition,this._verticalScrollPosition - this.get_verticalScrollStep());
+		} else if(event.keyCode == 40) {
+			newVerticalScrollPosition = Math.min(this._maxVerticalScrollPosition,this._verticalScrollPosition + this.get_verticalScrollStep());
+		} else if(event.keyCode == 37) {
+			newHorizontalScrollPosition = Math.max(this._minHorizontalScrollPosition,this._horizontalScrollPosition - this.get_horizontalScrollStep());
+		} else if(event.keyCode == 39) {
+			newHorizontalScrollPosition = Math.min(this._maxHorizontalScrollPosition,this._horizontalScrollPosition + this.get_horizontalScrollStep());
+		}
+		if(this._horizontalScrollPosition != newHorizontalScrollPosition && this._horizontalScrollPolicy != "off") {
+			event.preventDefault();
+			this.set_horizontalScrollPosition(newHorizontalScrollPosition);
+		}
+		if(this._verticalScrollPosition != newVerticalScrollPosition && this._verticalScrollPolicy != "off") {
+			event.preventDefault();
+			this.set_verticalScrollPosition(newVerticalScrollPosition);
+		}
+	}
+	,__class__: feathers_controls_Scroller
+	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{get_numRawChildrenInternal:"get_numRawChildrenInternal",set_leftPullViewDisplayMode:"set_leftPullViewDisplayMode",get_leftPullViewDisplayMode:"get_leftPullViewDisplayMode",set_leftPullViewRatio:"set_leftPullViewRatio",get_leftPullViewRatio:"get_leftPullViewRatio",set_leftPullView:"set_leftPullView",get_leftPullView:"get_leftPullView",set_isLeftPullViewActive:"set_isLeftPullViewActive",get_isLeftPullViewActive:"get_isLeftPullViewActive",set_bottomPullViewRatio:"set_bottomPullViewRatio",get_bottomPullViewRatio:"get_bottomPullViewRatio",set_bottomPullViewDisplayMode:"set_bottomPullViewDisplayMode",get_bottomPullViewDisplayMode:"get_bottomPullViewDisplayMode",set_bottomPullView:"set_bottomPullView",get_bottomPullView:"get_bottomPullView",set_isBottomPullViewActive:"set_isBottomPullViewActive",get_isBottomPullViewActive:"get_isBottomPullViewActive",set_rightPullViewRatio:"set_rightPullViewRatio",get_rightPullViewRatio:"get_rightPullViewRatio",set_rightPullViewDisplayMode:"set_rightPullViewDisplayMode",get_rightPullViewDisplayMode:"get_rightPullViewDisplayMode",set_rightPullView:"set_rightPullView",get_rightPullView:"get_rightPullView",set_isRightPullViewActive:"set_isRightPullViewActive",get_isRightPullViewActive:"get_isRightPullViewActive",set_topPullViewRatio:"set_topPullViewRatio",get_topPullViewRatio:"get_topPullViewRatio",set_topPullViewDisplayMode:"set_topPullViewDisplayMode",get_topPullViewDisplayMode:"get_topPullViewDisplayMode",set_topPullView:"set_topPullView",get_topPullView:"get_topPullView",set_isTopPullViewActive:"set_isTopPullViewActive",get_isTopPullViewActive:"get_isTopPullViewActive",set_revealScrollBarsDuration:"set_revealScrollBarsDuration",get_revealScrollBarsDuration:"get_revealScrollBarsDuration",get_isScrolling:"get_isScrolling",set_snapScrollPositionsToPixels:"set_snapScrollPositionsToPixels",get_snapScrollPositionsToPixels:"get_snapScrollPositionsToPixels",set_throwEase:"set_throwEase",get_throwEase:"get_throwEase",set_verticalMouseWheelScrollDirection:"set_verticalMouseWheelScrollDirection",get_verticalMouseWheelScrollDirection:"get_verticalMouseWheelScrollDirection",set_mouseWheelScrollDuration:"set_mouseWheelScrollDuration",get_mouseWheelScrollDuration:"get_mouseWheelScrollDuration",set_pageThrowDuration:"set_pageThrowDuration",get_pageThrowDuration:"get_pageThrowDuration",set_useFixedThrowDuration:"set_useFixedThrowDuration",get_useFixedThrowDuration:"get_useFixedThrowDuration",set_decelerationRate:"set_decelerationRate",get_decelerationRate:"get_decelerationRate",set_elasticSnapDuration:"set_elasticSnapDuration",get_elasticSnapDuration:"get_elasticSnapDuration",set_hideScrollBarAnimationEase:"set_hideScrollBarAnimationEase",get_hideScrollBarAnimationEase:"get_hideScrollBarAnimationEase",set_hideScrollBarAnimationDuration:"set_hideScrollBarAnimationDuration",get_hideScrollBarAnimationDuration:"get_hideScrollBarAnimationDuration",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_minimumPageThrowVelocity:"set_minimumPageThrowVelocity",get_minimumPageThrowVelocity:"get_minimumPageThrowVelocity",set_minimumDragDistance:"set_minimumDragDistance",get_minimumDragDistance:"get_minimumDragDistance",set_autoHideBackground:"set_autoHideBackground",get_autoHideBackground:"get_autoHideBackground",set_backgroundDisabledSkin:"set_backgroundDisabledSkin",get_backgroundDisabledSkin:"get_backgroundDisabledSkin",set_backgroundSkin:"set_backgroundSkin",get_backgroundSkin:"get_backgroundSkin",set_interactionMode:"set_interactionMode",get_interactionMode:"get_interactionMode",set_scrollBarDisplayMode:"set_scrollBarDisplayMode",get_scrollBarDisplayMode:"get_scrollBarDisplayMode",set_throwElasticity:"set_throwElasticity",get_throwElasticity:"get_throwElasticity",set_elasticity:"set_elasticity",get_elasticity:"get_elasticity",set_hasElasticEdges:"set_hasElasticEdges",get_hasElasticEdges:"get_hasElasticEdges",set_pageHeight:"set_pageHeight",get_pageHeight:"get_pageHeight",set_pageWidth:"set_pageWidth",get_pageWidth:"get_pageWidth",set_clipContent:"set_clipContent",get_clipContent:"get_clipContent",set_verticalScrollPolicy:"set_verticalScrollPolicy",get_verticalScrollPolicy:"get_verticalScrollPolicy",get_verticalPageCount:"get_verticalPageCount",get_maxVerticalPageIndex:"get_maxVerticalPageIndex",get_minVerticalPageIndex:"get_minVerticalPageIndex",set_verticalPageIndex:"set_verticalPageIndex",get_verticalPageIndex:"get_verticalPageIndex",get_maxVerticalScrollPosition:"get_maxVerticalScrollPosition",get_minVerticalScrollPosition:"get_minVerticalScrollPosition",set_verticalScrollPosition:"set_verticalScrollPosition",get_verticalScrollPosition:"get_verticalScrollPosition",set_verticalMouseWheelScrollStep:"set_verticalMouseWheelScrollStep",get_verticalMouseWheelScrollStep:"get_verticalMouseWheelScrollStep",set_verticalScrollStep:"set_verticalScrollStep",get_verticalScrollStep:"get_verticalScrollStep",set_horizontalScrollPolicy:"set_horizontalScrollPolicy",get_horizontalScrollPolicy:"get_horizontalScrollPolicy",get_horizontalPageCount:"get_horizontalPageCount",get_maxHorizontalPageIndex:"get_maxHorizontalPageIndex",get_minHorizontalPageIndex:"get_minHorizontalPageIndex",set_horizontalPageIndex:"set_horizontalPageIndex",get_horizontalPageIndex:"get_horizontalPageIndex",get_maxHorizontalScrollPosition:"get_maxHorizontalScrollPosition",get_minHorizontalScrollPosition:"get_minHorizontalScrollPosition",set_horizontalScrollPosition:"set_horizontalScrollPosition",get_horizontalScrollPosition:"get_horizontalScrollPosition",set_horizontalScrollStep:"set_horizontalScrollStep",get_horizontalScrollStep:"get_horizontalScrollStep",set_verticalScrollBarProperties:"set_verticalScrollBarProperties",get_verticalScrollBarProperties:"get_verticalScrollBarProperties",set_customVerticalScrollBarStyleName:"set_customVerticalScrollBarStyleName",get_customVerticalScrollBarStyleName:"get_customVerticalScrollBarStyleName",set_verticalScrollBarFactory:"set_verticalScrollBarFactory",get_verticalScrollBarFactory:"get_verticalScrollBarFactory",set_horizontalScrollBarPosition:"set_horizontalScrollBarPosition",get_horizontalScrollBarPosition:"get_horizontalScrollBarPosition",set_verticalScrollBarPosition:"set_verticalScrollBarPosition",get_verticalScrollBarPosition:"get_verticalScrollBarPosition",set_horizontalScrollBarProperties:"set_horizontalScrollBarProperties",get_horizontalScrollBarProperties:"get_horizontalScrollBarProperties",set_customHorizontalScrollBarStyleName:"set_customHorizontalScrollBarStyleName",get_customHorizontalScrollBarStyleName:"get_customHorizontalScrollBarStyleName",set_horizontalScrollBarFactory:"set_horizontalScrollBarFactory",get_horizontalScrollBarFactory:"get_horizontalScrollBarFactory",set_snapToPages:"set_snapToPages",get_snapToPages:"get_snapToPages",set_measureViewPort:"set_measureViewPort",get_measureViewPort:"get_measureViewPort",set_viewPort:"set_viewPort",get_viewPort:"get_viewPort",get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus"})
+});
+var feathers_core_IFocusContainer = function() { };
+$hxClasses["feathers.core.IFocusContainer"] = feathers_core_IFocusContainer;
+feathers_core_IFocusContainer.__name__ = "feathers.core.IFocusContainer";
+feathers_core_IFocusContainer.__isInterface__ = true;
+feathers_core_IFocusContainer.__interfaces__ = [feathers_core_IFocusDisplayObject];
+feathers_core_IFocusContainer.prototype = {
+	get_isChildFocusEnabled: null
+	,set_isChildFocusEnabled: null
+	,__class__: feathers_core_IFocusContainer
+	,__properties__: {set_isChildFocusEnabled:"set_isChildFocusEnabled",get_isChildFocusEnabled:"get_isChildFocusEnabled"}
+};
+var feathers_controls_IScrollContainer = function() { };
+$hxClasses["feathers.controls.IScrollContainer"] = feathers_controls_IScrollContainer;
+feathers_controls_IScrollContainer.__name__ = "feathers.controls.IScrollContainer";
+feathers_controls_IScrollContainer.__isInterface__ = true;
+feathers_controls_IScrollContainer.__interfaces__ = [feathers_core_IFeathersControl];
+feathers_controls_IScrollContainer.prototype = {
+	get_numRawChildren: null
+	,getRawChildByName: null
+	,getRawChildIndex: null
+	,getRawChildAt: null
+	,setRawChildIndex: null
+	,addRawChild: null
+	,addRawChildAt: null
+	,removeRawChild: null
+	,removeRawChildAt: null
+	,swapRawChildren: null
+	,swapRawChildrenAt: null
+	,sortRawChildren: null
+	,__class__: feathers_controls_IScrollContainer
+	,__properties__: {get_numRawChildren:"get_numRawChildren"}
+};
+var feathers_controls_ScrollContainer = function() {
+	this._ignoreChildChangesButSetFlags = false;
+	this._ignoreChildChanges = false;
+	this._autoSizeMode = "content";
+	this._isChildFocusEnabled = true;
+	this.displayListBypassEnabled = true;
+	feathers_controls_Scroller.call(this);
+	this.layoutViewPort = new feathers_controls_supportClasses_LayoutViewPort();
+	this.set_viewPort(this.layoutViewPort);
+	this.addEventListener("addedToStage",$bind(this,this.scrollContainer_addedToStageHandler));
+	this.addEventListener("removedFromStage",$bind(this,this.scrollContainer_removedFromStageHandler));
+};
+$hxClasses["feathers.controls.ScrollContainer"] = feathers_controls_ScrollContainer;
+feathers_controls_ScrollContainer.__name__ = "feathers.controls.ScrollContainer";
+feathers_controls_ScrollContainer.__interfaces__ = [feathers_core_IFocusContainer,feathers_controls_IScrollContainer];
+feathers_controls_ScrollContainer.globalStyleProvider = null;
+feathers_controls_ScrollContainer.__super__ = feathers_controls_Scroller;
+feathers_controls_ScrollContainer.prototype = $extend(feathers_controls_Scroller.prototype,{
+	displayListBypassEnabled: null
+	,layoutViewPort: null
+	,get_defaultStyleProvider: function() {
+		return feathers_controls_ScrollContainer.globalStyleProvider;
+	}
+	,_isChildFocusEnabled: null
+	,get_isChildFocusEnabled: function() {
+		if(this._isEnabled) {
+			return this._isChildFocusEnabled;
+		} else {
+			return false;
+		}
+	}
+	,set_isChildFocusEnabled: function(value) {
+		return this._isChildFocusEnabled = value;
+	}
+	,_layout: null
+	,get_layout: function() {
+		return this._layout;
+	}
+	,set_layout: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_layout))) {
+			return value;
+		}
+		if(this._layout == value) {
+			return value;
+		}
+		this._layout = value;
+		this.invalidate("layout");
+		return this._layout;
+	}
+	,_autoSizeMode: null
+	,get_autoSizeMode: function() {
+		return this._autoSizeMode;
+	}
+	,set_autoSizeMode: function(value) {
+		if(this._autoSizeMode == value) {
+			return value;
+		}
+		this._autoSizeMode = value;
+		this._measureViewPort = this._autoSizeMode != "stage";
+		if(this.get_stage() != null) {
+			if(this._autoSizeMode == "stage") {
+				this.get_stage().addEventListener("resize",$bind(this,this.scrollContainer_stage_resizeHandler));
+			} else {
+				this.get_stage().removeEventListener("resize",$bind(this,this.scrollContainer_stage_resizeHandler));
+			}
+		}
+		this.invalidate("size");
+		return this._autoSizeMode;
+	}
+	,_ignoreChildChanges: null
+	,_ignoreChildChangesButSetFlags: null
+	,get_numChildren: function() {
+		if(!this.displayListBypassEnabled) {
+			return feathers_controls_Scroller.prototype.get_numChildren.call(this);
+		}
+		return (js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).get_numChildren();
+	}
+	,get_numRawChildren: function() {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		var result = feathers_controls_Scroller.prototype.get_numChildren.call(this);
+		this.displayListBypassEnabled = oldBypass;
+		return result;
+	}
+	,getChildByName: function(name) {
+		if(!this.displayListBypassEnabled) {
+			return feathers_controls_Scroller.prototype.getChildByName.call(this,name);
+		}
+		return (js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).getChildByName(name);
+	}
+	,getRawChildByName: function(name) {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		var child = feathers_controls_Scroller.prototype.getChildByName.call(this,name);
+		this.displayListBypassEnabled = oldBypass;
+		return child;
+	}
+	,getChildAt: function(index) {
+		if(!this.displayListBypassEnabled) {
+			return feathers_controls_Scroller.prototype.getChildAt.call(this,index);
+		}
+		return (js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).getChildAt(index);
+	}
+	,getRawChildAt: function(index) {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		var child = feathers_controls_Scroller.prototype.getChildAt.call(this,index);
+		this.displayListBypassEnabled = oldBypass;
+		return child;
+	}
+	,addRawChild: function(child) {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		if(child.get_parent() == this) {
+			feathers_controls_Scroller.prototype.setChildIndex.call(this,child,feathers_controls_Scroller.prototype.get_numChildren.call(this));
+		} else {
+			child = feathers_controls_Scroller.prototype.addChildAt.call(this,child,feathers_controls_Scroller.prototype.get_numChildren.call(this));
+		}
+		this.displayListBypassEnabled = oldBypass;
+		return child;
+	}
+	,addChild: function(child) {
+		return this.addChildAt(child,this.get_numChildren());
+	}
+	,addChildAt: function(child,index) {
+		if(!this.displayListBypassEnabled) {
+			return feathers_controls_Scroller.prototype.addChildAt.call(this,child,index);
+		}
+		var result = (js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).addChildAt(child,index);
+		if(js_Boot.__implements(result,feathers_core_IFeathersControl)) {
+			result.addEventListener("resize",$bind(this,this.child_resizeHandler));
+		}
+		if(js_Boot.__implements(result,feathers_layout_ILayoutDisplayObject)) {
+			result.addEventListener("layoutDataChange",$bind(this,this.child_layoutDataChangeHandler));
+		}
+		this.invalidate("size");
+		return result;
+	}
+	,addRawChildAt: function(child,index) {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		child = feathers_controls_Scroller.prototype.addChildAt.call(this,child,index);
+		this.displayListBypassEnabled = oldBypass;
+		return child;
+	}
+	,removeRawChild: function(child,dispose) {
+		if(dispose == null) {
+			dispose = false;
+		}
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		var index = feathers_controls_Scroller.prototype.getChildIndex.call(this,child);
+		if(index >= 0) {
+			feathers_controls_Scroller.prototype.removeChildAt.call(this,index,dispose);
+		}
+		this.displayListBypassEnabled = oldBypass;
+		return child;
+	}
+	,removeChildAt: function(index,dispose) {
+		if(dispose == null) {
+			dispose = false;
+		}
+		if(!this.displayListBypassEnabled) {
+			return feathers_controls_Scroller.prototype.removeChildAt.call(this,index,dispose);
+		}
+		var result = (js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).removeChildAt(index,dispose);
+		if(js_Boot.__implements(result,feathers_core_IFeathersControl)) {
+			result.removeEventListener("resize",$bind(this,this.child_resizeHandler));
+		}
+		if(js_Boot.__implements(result,feathers_layout_ILayoutDisplayObject)) {
+			result.removeEventListener("layoutDataChange",$bind(this,this.child_layoutDataChangeHandler));
+		}
+		this.invalidate("size");
+		return result;
+	}
+	,removeRawChildAt: function(index,dispose) {
+		if(dispose == null) {
+			dispose = false;
+		}
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		var child = feathers_controls_Scroller.prototype.removeChildAt.call(this,index,dispose);
+		this.displayListBypassEnabled = oldBypass;
+		return child;
+	}
+	,getChildIndex: function(child) {
+		if(!this.displayListBypassEnabled) {
+			return feathers_controls_Scroller.prototype.getChildIndex.call(this,child);
+		}
+		return (js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).getChildIndex(child);
+	}
+	,getRawChildIndex: function(child) {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		var index = feathers_controls_Scroller.prototype.getChildIndex.call(this,child);
+		this.displayListBypassEnabled = oldBypass;
+		return index;
+	}
+	,setChildIndex: function(child,index) {
+		if(!this.displayListBypassEnabled) {
+			feathers_controls_Scroller.prototype.setChildIndex.call(this,child,index);
+			return;
+		}
+		(js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).setChildIndex(child,index);
+	}
+	,setRawChildIndex: function(child,index) {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		feathers_controls_Scroller.prototype.setChildIndex.call(this,child,index);
+		this.displayListBypassEnabled = oldBypass;
+	}
+	,swapRawChildren: function(child1,child2) {
+		var index1 = this.getRawChildIndex(child1);
+		var index2 = this.getRawChildIndex(child2);
+		if(index1 < 0 || index2 < 0) {
+			throw new openfl_errors_ArgumentError("Not a child of this container");
+		}
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		this.swapRawChildrenAt(index1,index2);
+		this.displayListBypassEnabled = oldBypass;
+	}
+	,swapChildrenAt: function(index1,index2) {
+		if(!this.displayListBypassEnabled) {
+			feathers_controls_Scroller.prototype.swapChildrenAt.call(this,index1,index2);
+			return;
+		}
+		(js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).swapChildrenAt(index1,index2);
+	}
+	,swapRawChildrenAt: function(index1,index2) {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		feathers_controls_Scroller.prototype.swapChildrenAt.call(this,index1,index2);
+		this.displayListBypassEnabled = oldBypass;
+	}
+	,sortChildren: function(compareFunction) {
+		if(!this.displayListBypassEnabled) {
+			feathers_controls_Scroller.prototype.sortChildren.call(this,compareFunction);
+			return;
+		}
+		(js_Boot.__cast(this.get_viewPort() , starling_display_DisplayObjectContainer)).sortChildren(compareFunction);
+	}
+	,sortRawChildren: function(compareFunction) {
+		var oldBypass = this.displayListBypassEnabled;
+		this.displayListBypassEnabled = false;
+		feathers_controls_Scroller.prototype.sortChildren.call(this,compareFunction);
+		this.displayListBypassEnabled = oldBypass;
+	}
+	,readjustLayout: function() {
+		this.layoutViewPort.readjustLayout();
+		this.invalidate("size");
+	}
+	,validate: function() {
+		var oldIgnoreChildChanges = this._ignoreChildChangesButSetFlags;
+		this._ignoreChildChangesButSetFlags = true;
+		feathers_controls_Scroller.prototype.validate.call(this);
+		this._ignoreChildChangesButSetFlags = oldIgnoreChildChanges;
+	}
+	,initialize: function() {
+		if(this.get_stage() != null) {
+			if(this.get_stage().get_starling().get_root() == this) {
+				this.set_autoSizeMode("stage");
+			}
+		}
+		feathers_controls_Scroller.prototype.initialize.call(this);
+	}
+	,draw: function() {
+		this._ignoreChildChangesButSetFlags = false;
+		var layoutInvalid = this.isInvalid("layout");
+		if(layoutInvalid) {
+			if(js_Boot.__implements(this._layout,feathers_layout_IVirtualLayout)) {
+				(js_Boot.__cast(this._layout , feathers_layout_IVirtualLayout)).set_useVirtualLayout(false);
+			}
+			this.layoutViewPort.set_layout(this._layout);
+		}
+		var oldIgnoreChildChanges = this._ignoreChildChanges;
+		this._ignoreChildChanges = true;
+		feathers_controls_Scroller.prototype.draw.call(this);
+		this._ignoreChildChanges = oldIgnoreChildChanges;
+	}
+	,autoSizeIfNeeded: function() {
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
+		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
+		if(!needsWidth && !needsHeight && !needsMinWidth && !needsMinHeight) {
+			return false;
+		}
+		if(this._autoSizeMode == "stage" && this.get_stage() != null) {
+			var newWidth = this.get_stage().get_stageWidth();
+			var newHeight = this.get_stage().get_stageHeight();
+			return this.saveMeasurements(newWidth,newHeight,newWidth,newHeight);
+		}
+		return feathers_controls_Scroller.prototype.autoSizeIfNeeded.call(this);
+	}
+	,scrollContainer_addedToStageHandler: function(event) {
+		if(this._autoSizeMode == "stage") {
+			this.invalidate("size");
+			this.get_stage().addEventListener("resize",$bind(this,this.scrollContainer_stage_resizeHandler));
+		}
+	}
+	,scrollContainer_removedFromStageHandler: function(event) {
+		this.get_stage().removeEventListener("resize",$bind(this,this.scrollContainer_stage_resizeHandler));
+	}
+	,child_resizeHandler: function(event) {
+		if(this._ignoreChildChanges) {
+			return;
+		}
+		if(this._ignoreChildChangesButSetFlags) {
+			this.setInvalidationFlag("size");
+			return;
+		}
+		this.invalidate("size");
+	}
+	,child_layoutDataChangeHandler: function(event) {
+		if(this._ignoreChildChanges) {
+			return;
+		}
+		if(this._ignoreChildChangesButSetFlags) {
+			this.setInvalidationFlag("size");
+			return;
+		}
+		this.invalidate("size");
+	}
+	,scrollContainer_stage_resizeHandler: function(event) {
+		this.invalidate("size");
+	}
+	,__class__: feathers_controls_ScrollContainer
+	,__properties__: $extend(feathers_controls_Scroller.prototype.__properties__,{get_numRawChildren:"get_numRawChildren",set_autoSizeMode:"set_autoSizeMode",get_autoSizeMode:"get_autoSizeMode",set_layout:"set_layout",get_layout:"get_layout",set_isChildFocusEnabled:"set_isChildFocusEnabled",get_isChildFocusEnabled:"get_isChildFocusEnabled"})
+});
+var feathers_layout_BaseVariableVirtualLayout = function() {
+	this._hasVariableItemDimensions = false;
+	this._useVirtualLayout = true;
+	this._virtualCache = [];
+	starling_events_EventDispatcher.call(this);
+};
+$hxClasses["feathers.layout.BaseVariableVirtualLayout"] = feathers_layout_BaseVariableVirtualLayout;
+feathers_layout_BaseVariableVirtualLayout.__name__ = "feathers.layout.BaseVariableVirtualLayout";
+feathers_layout_BaseVariableVirtualLayout.__super__ = starling_events_EventDispatcher;
+feathers_layout_BaseVariableVirtualLayout.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_virtualCache: null
+	,_useVirtualLayout: null
+	,get_useVirtualLayout: function() {
+		return this._useVirtualLayout;
+	}
+	,set_useVirtualLayout: function(value) {
+		if(this._useVirtualLayout == value) {
+			return value;
+		}
+		this._useVirtualLayout = value;
+		this.dispatchEventWith("change");
+		return this._useVirtualLayout;
+	}
+	,_typicalItem: null
+	,get_typicalItem: function() {
+		return this._typicalItem;
+	}
+	,set_typicalItem: function(value) {
+		if(this._typicalItem == value) {
+			return value;
+		}
+		this._typicalItem = value;
+		this.dispatchEventWith("change");
+		return this._typicalItem;
+	}
+	,_hasVariableItemDimensions: null
+	,get_hasVariableItemDimensions: function() {
+		return this._hasVariableItemDimensions;
+	}
+	,set_hasVariableItemDimensions: function(value) {
+		if(this._hasVariableItemDimensions == value) {
+			return value;
+		}
+		this._hasVariableItemDimensions = value;
+		this.dispatchEventWith("change");
+		return this._hasVariableItemDimensions;
+	}
+	,get_requiresLayoutOnScroll: function() {
+		return this._useVirtualLayout;
+	}
+	,resetVariableVirtualCache: function() {
+		this._virtualCache.splice(0,this._virtualCache.length);
+	}
+	,resetVariableVirtualCacheAtIndex: function(index,item) {
+		this._virtualCache.splice(index,1);
+		if(item != null) {
+			this._virtualCache[index] = item.get_height();
+			this.dispatchEventWith("change");
+		}
+	}
+	,addToVariableVirtualCacheAtIndex: function(index,item) {
+		var heightValue = item != null ? item.get_height() : NaN;
+		this._virtualCache.splice(index,0,heightValue);
+	}
+	,removeFromVariableVirtualCacheAtIndex: function(index) {
+		this._virtualCache.splice(index,1);
+	}
+	,__class__: feathers_layout_BaseVariableVirtualLayout
+	,__properties__: {get_requiresLayoutOnScroll:"get_requiresLayoutOnScroll",set_hasVariableItemDimensions:"set_hasVariableItemDimensions",get_hasVariableItemDimensions:"get_hasVariableItemDimensions",set_typicalItem:"set_typicalItem",get_typicalItem:"get_typicalItem",set_useVirtualLayout:"set_useVirtualLayout",get_useVirtualLayout:"get_useVirtualLayout"}
+});
+var feathers_layout_BaseLinearLayout = function() {
+	this._typicalItemHeight = NaN;
+	this._typicalItemWidth = NaN;
+	this._resetTypicalItemDimensionsOnMeasure = false;
+	this._afterVirtualizedItemCount = 0;
+	this._beforeVirtualizedItemCount = 0;
+	this._horizontalAlign = "left";
+	this._verticalAlign = "top";
+	this._paddingLeft = 0;
+	this._paddingBottom = 0;
+	this._paddingRight = 0;
+	this._paddingTop = 0;
+	this._lastGap = NaN;
+	this._firstGap = NaN;
+	this._gap = 0;
+	this._discoveredItemsCache = [];
+	feathers_layout_BaseVariableVirtualLayout.call(this);
+};
+$hxClasses["feathers.layout.BaseLinearLayout"] = feathers_layout_BaseLinearLayout;
+feathers_layout_BaseLinearLayout.__name__ = "feathers.layout.BaseLinearLayout";
+feathers_layout_BaseLinearLayout.__super__ = feathers_layout_BaseVariableVirtualLayout;
+feathers_layout_BaseLinearLayout.prototype = $extend(feathers_layout_BaseVariableVirtualLayout.prototype,{
+	_discoveredItemsCache: null
+	,_gap: null
+	,get_gap: function() {
+		return this._gap;
+	}
+	,set_gap: function(value) {
+		if(this._gap == value) {
+			return value;
+		}
+		this._gap = value;
+		this.dispatchEventWith("change");
+		return this._gap;
+	}
+	,_firstGap: null
+	,get_firstGap: function() {
+		return this._firstGap;
+	}
+	,set_firstGap: function(value) {
+		if(this._firstGap == value) {
+			return value;
+		}
+		this._firstGap = value;
+		this.dispatchEventWith("change");
+		return this._firstGap;
+	}
+	,_lastGap: null
+	,get_lastGap: function() {
+		return this._lastGap;
+	}
+	,set_lastGap: function(value) {
+		if(this._lastGap == value) {
+			return value;
+		}
+		this._lastGap = value;
+		this.dispatchEventWith("change");
+		return this._lastGap;
+	}
+	,get_padding: function() {
+		return this._paddingTop;
+	}
+	,set_padding: function(value) {
+		this.set_paddingTop(value);
+		this.set_paddingRight(value);
+		this.set_paddingBottom(value);
+		return this.set_paddingLeft(value);
+	}
+	,_paddingTop: null
+	,get_paddingTop: function() {
+		return this._paddingTop;
+	}
+	,set_paddingTop: function(value) {
+		if(this._paddingTop == value) {
+			return value;
+		}
+		this._paddingTop = value;
+		this.dispatchEventWith("change");
+		return this._paddingTop;
+	}
+	,_paddingRight: null
+	,get_paddingRight: function() {
+		return this._paddingRight;
+	}
+	,set_paddingRight: function(value) {
+		if(this._paddingRight == value) {
+			return value;
+		}
+		this._paddingRight = value;
+		this.dispatchEventWith("change");
+		return this._paddingRight;
+	}
+	,_paddingBottom: null
+	,get_paddingBottom: function() {
+		return this._paddingBottom;
+	}
+	,set_paddingBottom: function(value) {
+		if(this._paddingBottom == value) {
+			return value;
+		}
+		this._paddingBottom = value;
+		this.dispatchEventWith("change");
+		return this._paddingBottom;
+	}
+	,_paddingLeft: null
+	,get_paddingLeft: function() {
+		return this._paddingLeft;
+	}
+	,set_paddingLeft: function(value) {
+		if(this._paddingLeft == value) {
+			return value;
+		}
+		this._paddingLeft = value;
+		this.dispatchEventWith("change");
+		return this._paddingLeft;
+	}
+	,_verticalAlign: null
+	,get_verticalAlign: function() {
+		return this._verticalAlign;
+	}
+	,set_verticalAlign: function(value) {
+		if(this._verticalAlign == value) {
+			return value;
+		}
+		this._verticalAlign = value;
+		this.dispatchEventWith("change");
+		return this._verticalAlign;
+	}
+	,_horizontalAlign: null
+	,get_horizontalAlign: function() {
+		return this._horizontalAlign;
+	}
+	,set_horizontalAlign: function(value) {
+		if(this._horizontalAlign == value) {
+			return this._horizontalAlign;
+		}
+		this._horizontalAlign = value;
+		this.dispatchEventWith("change");
+		return this._horizontalAlign;
+	}
+	,_beforeVirtualizedItemCount: null
+	,get_beforeVirtualizedItemCount: function() {
+		return this._beforeVirtualizedItemCount;
+	}
+	,set_beforeVirtualizedItemCount: function(value) {
+		if(this._beforeVirtualizedItemCount == value) {
+			return value;
+		}
+		this._beforeVirtualizedItemCount = value;
+		this.dispatchEventWith("change");
+		return this._beforeVirtualizedItemCount;
+	}
+	,_afterVirtualizedItemCount: null
+	,get_afterVirtualizedItemCount: function() {
+		return this._afterVirtualizedItemCount;
+	}
+	,set_afterVirtualizedItemCount: function(value) {
+		if(this._afterVirtualizedItemCount == value) {
+			return value;
+		}
+		this._afterVirtualizedItemCount = value;
+		this.dispatchEventWith("change");
+		return this._afterVirtualizedItemCount;
+	}
+	,_resetTypicalItemDimensionsOnMeasure: null
+	,get_resetTypicalItemDimensionsOnMeasure: function() {
+		return this._resetTypicalItemDimensionsOnMeasure;
+	}
+	,set_resetTypicalItemDimensionsOnMeasure: function(value) {
+		if(this._resetTypicalItemDimensionsOnMeasure == value) {
+			return value;
+		}
+		this._resetTypicalItemDimensionsOnMeasure = value;
+		this.dispatchEventWith("change");
+		return this._resetTypicalItemDimensionsOnMeasure;
+	}
+	,_typicalItemWidth: null
+	,get_typicalItemWidth: function() {
+		return this._typicalItemWidth;
+	}
+	,set_typicalItemWidth: function(value) {
+		if(this._typicalItemWidth == value) {
+			return value;
+		}
+		this._typicalItemWidth = value;
+		this.dispatchEventWith("change");
+		return this._typicalItemWidth;
+	}
+	,_typicalItemHeight: null
+	,get_typicalItemHeight: function() {
+		return this._typicalItemHeight;
+	}
+	,set_typicalItemHeight: function(value) {
+		if(this._typicalItemHeight == value) {
+			return value;
+		}
+		this._typicalItemHeight = value;
+		this.dispatchEventWith("change");
+		return this._typicalItemHeight;
+	}
+	,__class__: feathers_layout_BaseLinearLayout
+	,__properties__: $extend(feathers_layout_BaseVariableVirtualLayout.prototype.__properties__,{set_typicalItemHeight:"set_typicalItemHeight",get_typicalItemHeight:"get_typicalItemHeight",set_typicalItemWidth:"set_typicalItemWidth",get_typicalItemWidth:"get_typicalItemWidth",set_resetTypicalItemDimensionsOnMeasure:"set_resetTypicalItemDimensionsOnMeasure",get_resetTypicalItemDimensionsOnMeasure:"get_resetTypicalItemDimensionsOnMeasure",set_afterVirtualizedItemCount:"set_afterVirtualizedItemCount",get_afterVirtualizedItemCount:"get_afterVirtualizedItemCount",set_beforeVirtualizedItemCount:"set_beforeVirtualizedItemCount",get_beforeVirtualizedItemCount:"get_beforeVirtualizedItemCount",set_horizontalAlign:"set_horizontalAlign",get_horizontalAlign:"get_horizontalAlign",set_verticalAlign:"set_verticalAlign",get_verticalAlign:"get_verticalAlign",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_lastGap:"set_lastGap",get_lastGap:"get_lastGap",set_firstGap:"set_firstGap",get_firstGap:"get_firstGap",set_gap:"set_gap",get_gap:"get_gap"})
+});
+var feathers_layout_IDragDropLayout = function() { };
+$hxClasses["feathers.layout.IDragDropLayout"] = feathers_layout_IDragDropLayout;
+feathers_layout_IDragDropLayout.__name__ = "feathers.layout.IDragDropLayout";
+feathers_layout_IDragDropLayout.__isInterface__ = true;
+feathers_layout_IDragDropLayout.__interfaces__ = [feathers_layout_ILayout];
+feathers_layout_IDragDropLayout.prototype = {
+	getDropIndex: null
+	,positionDropIndicator: null
+	,__class__: feathers_layout_IDragDropLayout
+};
+var feathers_layout_IVirtualLayout = function() { };
+$hxClasses["feathers.layout.IVirtualLayout"] = feathers_layout_IVirtualLayout;
+feathers_layout_IVirtualLayout.__name__ = "feathers.layout.IVirtualLayout";
+feathers_layout_IVirtualLayout.__isInterface__ = true;
+feathers_layout_IVirtualLayout.__interfaces__ = [feathers_layout_ILayout];
+feathers_layout_IVirtualLayout.prototype = {
+	get_useVirtualLayout: null
+	,set_useVirtualLayout: null
+	,get_typicalItem: null
+	,set_typicalItem: null
+	,measureViewPort: null
+	,getVisibleIndicesAtScrollPosition: null
+	,__class__: feathers_layout_IVirtualLayout
+	,__properties__: {set_typicalItem:"set_typicalItem",get_typicalItem:"get_typicalItem",set_useVirtualLayout:"set_useVirtualLayout",get_useVirtualLayout:"get_useVirtualLayout"}
+};
+var feathers_layout_ITrimmedVirtualLayout = function() { };
+$hxClasses["feathers.layout.ITrimmedVirtualLayout"] = feathers_layout_ITrimmedVirtualLayout;
+feathers_layout_ITrimmedVirtualLayout.__name__ = "feathers.layout.ITrimmedVirtualLayout";
+feathers_layout_ITrimmedVirtualLayout.__isInterface__ = true;
+feathers_layout_ITrimmedVirtualLayout.__interfaces__ = [feathers_layout_IVirtualLayout];
+feathers_layout_ITrimmedVirtualLayout.prototype = {
+	get_beforeVirtualizedItemCount: null
+	,set_beforeVirtualizedItemCount: null
+	,get_afterVirtualizedItemCount: null
+	,set_afterVirtualizedItemCount: null
+	,__class__: feathers_layout_ITrimmedVirtualLayout
+	,__properties__: {set_afterVirtualizedItemCount:"set_afterVirtualizedItemCount",get_afterVirtualizedItemCount:"get_afterVirtualizedItemCount",set_beforeVirtualizedItemCount:"set_beforeVirtualizedItemCount",get_beforeVirtualizedItemCount:"get_beforeVirtualizedItemCount"}
+};
+var feathers_layout_IVariableVirtualLayout = function() { };
+$hxClasses["feathers.layout.IVariableVirtualLayout"] = feathers_layout_IVariableVirtualLayout;
+feathers_layout_IVariableVirtualLayout.__name__ = "feathers.layout.IVariableVirtualLayout";
+feathers_layout_IVariableVirtualLayout.__isInterface__ = true;
+feathers_layout_IVariableVirtualLayout.__interfaces__ = [feathers_layout_IVirtualLayout];
+feathers_layout_IVariableVirtualLayout.prototype = {
+	get_hasVariableItemDimensions: null
+	,set_hasVariableItemDimensions: null
+	,resetVariableVirtualCache: null
+	,resetVariableVirtualCacheAtIndex: null
+	,addToVariableVirtualCacheAtIndex: null
+	,removeFromVariableVirtualCacheAtIndex: null
+	,__class__: feathers_layout_IVariableVirtualLayout
+	,__properties__: {set_hasVariableItemDimensions:"set_hasVariableItemDimensions",get_hasVariableItemDimensions:"get_hasVariableItemDimensions"}
+};
+var feathers_layout_HorizontalLayout = function() {
+	this._scrollPositionHorizontalAlign = "center";
+	this._maxColumnCount = 0;
+	this._requestedColumnCount = 0;
+	this._distributeWidths = false;
+	feathers_layout_BaseLinearLayout.call(this);
+};
+$hxClasses["feathers.layout.HorizontalLayout"] = feathers_layout_HorizontalLayout;
+feathers_layout_HorizontalLayout.__name__ = "feathers.layout.HorizontalLayout";
+feathers_layout_HorizontalLayout.__interfaces__ = [feathers_layout_IDragDropLayout,feathers_layout_ITrimmedVirtualLayout,feathers_layout_IVariableVirtualLayout];
+feathers_layout_HorizontalLayout.__super__ = feathers_layout_BaseLinearLayout;
+feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearLayout.prototype,{
+	get_horizontalAlign: function() {
+		return this._horizontalAlign;
+	}
+	,get_verticalAlign: function() {
+		return this._verticalAlign;
+	}
+	,_distributeWidths: null
+	,get_distributeWidths: function() {
+		return this._distributeWidths;
+	}
+	,set_distributeWidths: function(value) {
+		if(this._distributeWidths == value) {
+			return value;
+		}
+		this._distributeWidths = value;
+		this.dispatchEventWith("change");
+		return this._distributeWidths;
+	}
+	,_requestedColumnCount: null
+	,get_requestedColumnCount: function() {
+		return this._requestedColumnCount;
+	}
+	,set_requestedColumnCount: function(value) {
+		if(value < 0) {
+			throw new openfl_errors_RangeError("requestedColumnCount requires a value >= 0");
+		}
+		if(this._requestedColumnCount == value) {
+			return this._requestedColumnCount;
+		}
+		this._requestedColumnCount = value;
+		this.dispatchEventWith("change");
+		return this._requestedColumnCount;
+	}
+	,_maxColumnCount: null
+	,get_maxColumnCount: function() {
+		return this._maxColumnCount;
+	}
+	,set_maxColumnCount: function(value) {
+		if(value < 0) {
+			throw new openfl_errors_RangeError("maxColumnCount requires a value >= 0");
+		}
+		if(this._maxColumnCount == value) {
+			return value;
+		}
+		this._maxColumnCount = value;
+		this.dispatchEventWith("change");
+		return this._maxColumnCount;
+	}
+	,_scrollPositionHorizontalAlign: null
+	,get_scrollPositionHorizontalAlign: function() {
+		return this._scrollPositionHorizontalAlign;
+	}
+	,set_scrollPositionHorizontalAlign: function(value) {
+		return this._scrollPositionHorizontalAlign = value;
+	}
+	,layout: function(items,viewPortBounds,result) {
+		var scrollX = viewPortBounds != null ? viewPortBounds.scrollX : 0;
+		var scrollY = viewPortBounds != null ? viewPortBounds.scrollY : 0;
+		var boundsX = viewPortBounds != null ? viewPortBounds.x : 0;
+		var boundsY = viewPortBounds != null ? viewPortBounds.y : 0;
+		var minWidth = viewPortBounds != null ? viewPortBounds.minWidth : 0;
+		var minHeight = viewPortBounds != null ? viewPortBounds.minHeight : 0;
+		var maxWidth = viewPortBounds != null ? viewPortBounds.maxWidth : Infinity;
+		var maxHeight = viewPortBounds != null ? viewPortBounds.maxHeight : Infinity;
+		var explicitWidth = viewPortBounds != null ? viewPortBounds.explicitWidth : NaN;
+		var explicitHeight = viewPortBounds != null ? viewPortBounds.explicitHeight : NaN;
+		var calculatedTypicalItemWidth = NaN;
+		var calculatedTypicalItemHeight = NaN;
+		if(this._useVirtualLayout) {
+			this.prepareTypicalItem(explicitHeight - this._paddingTop - this._paddingBottom);
+			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+			calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		}
+		var needsExplicitWidth = explicitWidth != explicitWidth;
+		var needsExplicitHeight = explicitHeight != explicitHeight;
+		var distributedWidth = NaN;
+		if(!needsExplicitWidth && this._distributeWidths) {
+			distributedWidth = this.calculateDistributedWidth(items,explicitWidth,minWidth,maxWidth,false);
+			if(this._useVirtualLayout) {
+				calculatedTypicalItemWidth = distributedWidth;
+			}
+		}
+		if(!this._useVirtualLayout || this._hasVariableItemDimensions || this._distributeWidths || this._verticalAlign != "justify" || needsExplicitHeight) {
+			this.validateItems(items,explicitHeight - this._paddingTop - this._paddingBottom,minHeight - this._paddingTop - this._paddingBottom,maxHeight - this._paddingTop - this._paddingBottom,explicitWidth - this._paddingLeft - this._paddingRight,minWidth - this._paddingLeft - this._paddingRight,maxWidth - this._paddingLeft - this._paddingRight,distributedWidth);
+		}
+		if(needsExplicitWidth && this._distributeWidths) {
+			distributedWidth = this.calculateDistributedWidth(items,explicitWidth,minWidth,maxWidth,true);
+		}
+		var hasDistributedWidth = distributedWidth == distributedWidth;
+		if(!this._useVirtualLayout) {
+			this.applyPercentWidths(items,explicitWidth,minWidth,maxWidth);
+		}
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var maxItemHeight = this._useVirtualLayout ? calculatedTypicalItemHeight : 0;
+		var positionX = boundsX + this._paddingLeft;
+		var itemCount = items.length;
+		var totalItemCount = itemCount;
+		var requestedColumnAvailableWidth = 0;
+		var maxColumnAvailableWidth = Infinity;
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+			positionX += this._beforeVirtualizedItemCount * (calculatedTypicalItemWidth + this._gap);
+			if(hasFirstGap && this._beforeVirtualizedItemCount > 0) {
+				positionX = positionX - this._gap + this._firstGap;
+			}
+		}
+		var secondToLastIndex = totalItemCount - 2;
+		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		var discoveredItemsCacheLastIndex = 0;
+		var gap = 0;
+		var item;
+		var itemWidth;
+		var itemHeight;
+		var layoutItem;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			if(!this._useVirtualLayout) {
+				if(this._maxColumnCount > 0 && this._maxColumnCount == i) {
+					maxColumnAvailableWidth = positionX;
+				}
+				if(this._requestedColumnCount > 0 && this._requestedColumnCount == i) {
+					requestedColumnAvailableWidth = positionX;
+				}
+			}
+			item = items[i];
+			var iNormalized = i + this._beforeVirtualizedItemCount;
+			gap = this._gap;
+			if(hasFirstGap && iNormalized == 0) {
+				gap = this._firstGap;
+			} else if(hasLastGap && iNormalized > 0 && iNormalized == secondToLastIndex) {
+				gap = this._lastGap;
+			}
+			var cachedWidth = NaN;
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				cachedWidth = this._virtualCache[iNormalized];
+			}
+			if(this._useVirtualLayout && item == null) {
+				if(!this._hasVariableItemDimensions || cachedWidth != cachedWidth) {
+					positionX += calculatedTypicalItemWidth + gap;
+				} else {
+					positionX += cachedWidth + gap;
+				}
+			} else {
+				layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				if(layoutItem != null && !layoutItem.get_includeInLayout()) {
+					continue;
+				}
+				var pivotX = item.get_pivotX();
+				if(pivotX != 0) {
+					pivotX *= item.get_scaleX();
+				}
+				item.set_x(pivotX + positionX);
+				if(hasDistributedWidth) {
+					itemWidth = distributedWidth;
+					item.set_width(itemWidth);
+				} else {
+					itemWidth = item.get_width();
+				}
+				itemHeight = item.get_height();
+				if(this._useVirtualLayout) {
+					if(this._hasVariableItemDimensions) {
+						if(itemWidth != cachedWidth) {
+							this._virtualCache[iNormalized] = itemWidth;
+							if(positionX < scrollX && cachedWidth != cachedWidth && itemWidth != calculatedTypicalItemWidth) {
+								this.dispatchEventWith("scroll",false,new openfl_geom_Point(itemWidth - calculatedTypicalItemWidth,0));
+							}
+							this.dispatchEventWith("change");
+						}
+					} else if(calculatedTypicalItemWidth >= 0) {
+						itemWidth = calculatedTypicalItemWidth;
+						if(item != this._typicalItem || item.get_width() != itemWidth) {
+							item.set_width(itemWidth);
+						}
+					}
+				}
+				positionX += itemWidth + gap;
+				if(itemHeight > maxItemHeight) {
+					maxItemHeight = itemHeight;
+				}
+				if(this._useVirtualLayout) {
+					this._discoveredItemsCache[discoveredItemsCacheLastIndex] = item;
+					++discoveredItemsCacheLastIndex;
+				}
+			}
+		}
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			positionX += this._afterVirtualizedItemCount * (calculatedTypicalItemWidth + this._gap);
+			if(hasLastGap && this._afterVirtualizedItemCount > 0) {
+				positionX = positionX - this._gap + this._lastGap;
+			}
+		}
+		if(!this._useVirtualLayout && this._requestedColumnCount > itemCount) {
+			if(itemCount > 0) {
+				requestedColumnAvailableWidth = this._requestedColumnCount * positionX / itemCount;
+			} else {
+				requestedColumnAvailableWidth = 0;
+			}
+		}
+		var discoveredItems = this._useVirtualLayout ? this._discoveredItemsCache : items;
+		var discoveredItemCount = discoveredItems.length;
+		var totalHeight = maxItemHeight + this._paddingTop + this._paddingBottom;
+		var availableHeight = explicitHeight;
+		if(availableHeight != availableHeight) {
+			availableHeight = totalHeight;
+			if(availableHeight < minHeight) {
+				availableHeight = minHeight;
+			} else if(availableHeight > maxHeight) {
+				availableHeight = maxHeight;
+			}
+		}
+		var totalWidth = positionX - gap + this._paddingRight - boundsX;
+		var availableWidth = explicitWidth;
+		if(availableWidth != availableWidth) {
+			if(this._requestedColumnCount > 0) {
+				if(this._useVirtualLayout) {
+					availableWidth = (calculatedTypicalItemWidth + this._gap) * this._requestedColumnCount - this._gap + this._paddingLeft + this._paddingRight;
+				} else {
+					availableWidth = requestedColumnAvailableWidth;
+				}
+			} else {
+				availableWidth = totalWidth;
+				if(this._maxColumnCount > 0) {
+					if(this._useVirtualLayout) {
+						maxColumnAvailableWidth = (calculatedTypicalItemWidth + this._gap) * this._maxColumnCount - this._gap + this._paddingLeft + this._paddingRight;
+					}
+					if(maxColumnAvailableWidth < availableWidth) {
+						availableWidth = maxColumnAvailableWidth;
+					}
+				}
+			}
+			if(availableWidth < minWidth) {
+				availableWidth = minWidth;
+			} else if(availableWidth > maxWidth) {
+				availableWidth = maxWidth;
+			}
+		}
+		if(totalWidth < availableWidth) {
+			var horizontalAlignOffsetX = 0;
+			if(this._horizontalAlign == "right") {
+				horizontalAlignOffsetX = availableWidth - totalWidth;
+			} else if(this._horizontalAlign == "center") {
+				horizontalAlignOffsetX = Math.round((availableWidth - totalWidth) / 2);
+			}
+			if(horizontalAlignOffsetX != 0) {
+				var _g = 0;
+				var _g1 = discoveredItemCount;
+				while(_g < _g1) {
+					var i = _g++;
+					item = discoveredItems[i];
+					if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+						continue;
+					}
+					item.set_x(item.get_x() + horizontalAlignOffsetX);
+				}
+			}
+		}
+		var availableHeightMinusPadding = availableHeight - this._paddingTop - this._paddingBottom;
+		var _g = 0;
+		var _g1 = discoveredItemCount;
+		_hx_loop3: while(_g < _g1) {
+			var i = _g++;
+			item = discoveredItems[i];
+			layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+			if(layoutItem != null && !layoutItem.get_includeInLayout()) {
+				continue;
+			}
+			var pivotY = item.get_pivotY();
+			if(pivotY != 0) {
+				pivotY *= item.get_scaleY();
+			}
+			if(this._verticalAlign == "justify") {
+				item.set_y(pivotY + boundsY + this._paddingTop);
+				item.set_height(availableHeightMinusPadding);
+			} else {
+				if(layoutItem != null) {
+					var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_HorizontalLayoutData);
+					if(layoutData != null) {
+						var percentHeight = layoutData.get_percentHeight();
+						if(percentHeight == percentHeight) {
+							if(percentHeight < 0) {
+								percentHeight = 0;
+							}
+							if(percentHeight > 100) {
+								percentHeight = 100;
+							}
+							itemHeight = percentHeight * availableHeightMinusPadding / 100;
+							if(js_Boot.__implements(item,feathers_core_IFeathersControl)) {
+								var feathersItem = item;
+								var itemMinHeight = feathersItem.get_explicitMinHeight();
+								if(itemMinHeight > availableHeightMinusPadding) {
+									itemMinHeight = availableHeightMinusPadding;
+								}
+								if(itemHeight < itemMinHeight) {
+									itemHeight = itemMinHeight;
+								} else {
+									var itemMaxHeight = feathersItem.get_explicitMaxHeight();
+									if(itemHeight > itemMaxHeight) {
+										itemHeight = itemMaxHeight;
+									}
+								}
+							}
+							item.set_height(itemHeight);
+						}
+					}
+				}
+				var verticalAlignHeight = availableHeight;
+				if(totalHeight > verticalAlignHeight) {
+					verticalAlignHeight = totalHeight;
+				}
+				switch(this._verticalAlign) {
+				case "bottom":
+					item.set_y(pivotY + boundsY + verticalAlignHeight - this._paddingBottom - item.get_height());
+					break _hx_loop3;
+				case "middle":
+					item.set_y(pivotY + boundsY + this._paddingTop + Math.round((verticalAlignHeight - this._paddingTop - this._paddingBottom - item.get_height()) / 2));
+					break _hx_loop3;
+				default:
+					item.set_y(pivotY + boundsY + this._paddingTop);
+				}
+			}
+		}
+		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		if(result == null) {
+			result = new feathers_layout_LayoutBoundsResult();
+		}
+		result.contentX = 0;
+		result.contentWidth = totalWidth;
+		result.contentY = 0;
+		result.contentHeight = this._verticalAlign == "justify" ? availableHeight : totalHeight;
+		result.viewPortWidth = availableWidth;
+		result.viewPortHeight = availableHeight;
+		return result;
+	}
+	,measureViewPort: function(itemCount,viewPortBounds,result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		if(!this._useVirtualLayout) {
+			throw new openfl_errors_IllegalOperationError("measureViewPort() may be called only if useVirtualLayout is true.");
+		}
+		var explicitWidth = viewPortBounds != null ? viewPortBounds.explicitWidth : NaN;
+		var explicitHeight = viewPortBounds != null ? viewPortBounds.explicitHeight : NaN;
+		var needsWidth = explicitWidth != explicitWidth;
+		var needsHeight = explicitHeight != explicitHeight;
+		if(!needsWidth && !needsHeight) {
+			result.x = explicitWidth;
+			result.y = explicitHeight;
+			return result;
+		}
+		var minWidth = viewPortBounds != null ? viewPortBounds.minWidth : 0;
+		var minHeight = viewPortBounds != null ? viewPortBounds.minHeight : 0;
+		var maxWidth = viewPortBounds != null ? viewPortBounds.maxWidth : Infinity;
+		var maxHeight = viewPortBounds != null ? viewPortBounds.maxHeight : Infinity;
+		this.prepareTypicalItem(explicitHeight - this._paddingTop - this._paddingBottom);
+		var calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+		var calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var positionX;
+		var maxItemHeight = 0;
+		if(this._distributeWidths) {
+			positionX = (calculatedTypicalItemWidth + this._gap) * itemCount;
+		} else {
+			positionX = 0;
+			maxItemHeight = calculatedTypicalItemHeight;
+			if(!this._hasVariableItemDimensions) {
+				positionX += (calculatedTypicalItemWidth + this._gap) * itemCount;
+			} else {
+				var _g = 0;
+				var _g1 = itemCount;
+				while(_g < _g1) {
+					var i = _g++;
+					var cachedWidth = this._virtualCache[i];
+					if(cachedWidth != cachedWidth) {
+						positionX += calculatedTypicalItemWidth + this._gap;
+					} else {
+						positionX += cachedWidth + this._gap;
+					}
+				}
+			}
+		}
+		positionX -= this._gap;
+		if(hasFirstGap && itemCount > 1) {
+			positionX = positionX - this._gap + this._firstGap;
+		}
+		if(hasLastGap && itemCount > 2) {
+			positionX = positionX - this._gap + this._lastGap;
+		}
+		var resultWidth;
+		if(needsWidth) {
+			if(this._requestedColumnCount > 0) {
+				resultWidth = (calculatedTypicalItemWidth + this._gap) * this._requestedColumnCount - this._gap + this._paddingLeft + this._paddingRight;
+			} else {
+				resultWidth = positionX + this._paddingLeft + this._paddingRight;
+				if(this._maxColumnCount > 0) {
+					var maxColumnResultWidth = (calculatedTypicalItemWidth + this._gap) * this._maxColumnCount - this._gap + this._paddingLeft + this._paddingRight;
+					if(maxColumnResultWidth < resultWidth) {
+						resultWidth = maxColumnResultWidth;
+					}
+				}
+			}
+			if(resultWidth < minWidth) {
+				resultWidth = minWidth;
+			} else if(resultWidth > maxWidth) {
+				resultWidth = maxWidth;
+			}
+			result.x = resultWidth;
+		} else {
+			result.x = explicitWidth;
+		}
+		if(needsHeight) {
+			var resultHeight = maxItemHeight + this._paddingTop + this._paddingBottom;
+			if(resultHeight < minHeight) {
+				resultHeight = minHeight;
+			} else if(resultHeight > maxHeight) {
+				resultHeight = maxHeight;
+			}
+			result.y = resultHeight;
+		} else {
+			result.y = explicitHeight;
+		}
+		return result;
+	}
+	,getVisibleIndicesAtScrollPosition: function(scrollX,scrollY,width,height,itemCount,result) {
+		if(result != null) {
+			result.splice(0,result.length);
+		} else {
+			result = [];
+		}
+		if(!this._useVirtualLayout) {
+			throw new openfl_errors_IllegalOperationError("getVisibleIndicesAtScrollPosition() may be called only if useVirtualLayout is true.");
+		}
+		this.prepareTypicalItem(height - this._paddingTop - this._paddingBottom);
+		var calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+		var calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var resultLastIndex = 0;
+		var maxVisibleTypicalItemCount = Math.ceil(width / (calculatedTypicalItemWidth + this._gap)) + 1;
+		if(!this._hasVariableItemDimensions) {
+			var totalItemWidth = itemCount * (calculatedTypicalItemWidth + this._gap) - this._gap;
+			if(hasFirstGap && itemCount > 1) {
+				totalItemWidth = totalItemWidth - this._gap + this._firstGap;
+			}
+			if(hasLastGap && itemCount > 2) {
+				totalItemWidth = totalItemWidth - this._gap + this._lastGap;
+			}
+			var indexOffset = 0;
+			if(totalItemWidth < width) {
+				if(this._horizontalAlign == "right") {
+					indexOffset = Math.ceil((width - totalItemWidth) / (calculatedTypicalItemWidth + this._gap));
+				} else if(this._horizontalAlign == "center") {
+					indexOffset = Math.ceil((width - totalItemWidth) / (calculatedTypicalItemWidth + this._gap) / 2);
+				}
+			}
+			var minimum = (scrollX - this._paddingLeft) / (calculatedTypicalItemWidth + this._gap) | 0;
+			if(minimum < 0) {
+				minimum = 0;
+			}
+			minimum -= indexOffset;
+			var maximum = minimum + maxVisibleTypicalItemCount;
+			if(maximum >= itemCount) {
+				maximum = itemCount - 1;
+			}
+			minimum = maximum - maxVisibleTypicalItemCount;
+			if(minimum < 0) {
+				minimum = 0;
+			}
+			var _g = minimum;
+			var _g1 = maximum + 1;
+			while(_g < _g1) {
+				var i = _g++;
+				if(i >= 0 && i < itemCount) {
+					result[resultLastIndex] = i;
+				} else if(i < 0) {
+					result[resultLastIndex] = itemCount + i;
+				} else if(i >= itemCount) {
+					result[resultLastIndex] = i - itemCount;
+				}
+				++resultLastIndex;
+			}
+			return result;
+		}
+		var secondToLastIndex = itemCount - 2;
+		var maxPositionX = scrollX + width;
+		var positionX = this._paddingLeft;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var gap = this._gap;
+			if(hasFirstGap && i == 0) {
+				gap = this._firstGap;
+			} else if(hasLastGap && i > 0 && i == secondToLastIndex) {
+				gap = this._lastGap;
+			}
+			var cachedWidth = this._virtualCache[i];
+			var itemWidth;
+			if(cachedWidth != cachedWidth) {
+				itemWidth = calculatedTypicalItemWidth;
+			} else {
+				itemWidth = cachedWidth;
+			}
+			var oldPositionX = positionX;
+			positionX += itemWidth + gap;
+			if(positionX > scrollX && oldPositionX < maxPositionX) {
+				result[resultLastIndex] = i;
+				++resultLastIndex;
+			}
+			if(positionX >= maxPositionX) {
+				break;
+			}
+		}
+		var resultLength = result.length;
+		var visibleItemCountDifference = maxVisibleTypicalItemCount - resultLength;
+		if(visibleItemCountDifference > 0 && resultLength > 0) {
+			var firstExistingIndex = result[0];
+			var lastIndexToAdd = firstExistingIndex - visibleItemCountDifference;
+			if(lastIndexToAdd < 0) {
+				lastIndexToAdd = 0;
+			}
+			var i = firstExistingIndex - 1;
+			while(i >= lastIndexToAdd) {
+				result.unshift(i);
+				--i;
+			}
+		}
+		resultLength = result.length;
+		resultLastIndex = resultLength;
+		visibleItemCountDifference = maxVisibleTypicalItemCount - resultLength;
+		if(visibleItemCountDifference > 0) {
+			var startIndex = resultLength > 0 ? result[resultLength - 1] + 1 : 0;
+			var endIndex = startIndex + visibleItemCountDifference;
+			if(endIndex > itemCount) {
+				endIndex = itemCount;
+			}
+			var _g = startIndex;
+			var _g1 = endIndex;
+			while(_g < _g1) {
+				var i = _g++;
+				result[resultLastIndex] = i;
+				++resultLastIndex;
+			}
+		}
+		return result;
+	}
+	,getNearestScrollPositionForIndex: function(index,scrollX,scrollY,items,x,y,width,height,result) {
+		var maxScrollX = this.calculateMaxScrollXOfIndex(index,items,x,y,width,height);
+		var itemWidth;
+		if(this._useVirtualLayout) {
+			if(this._hasVariableItemDimensions) {
+				itemWidth = this._virtualCache[index];
+				if(itemWidth != itemWidth) {
+					itemWidth = this._typicalItem.get_width();
+				}
+			} else {
+				itemWidth = this._typicalItem.get_width();
+			}
+		} else {
+			itemWidth = items[index].get_width();
+		}
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		var rightPosition = maxScrollX - (width - itemWidth);
+		if(scrollX >= rightPosition && scrollX <= maxScrollX) {
+			result.x = scrollX;
+		} else {
+			var leftDifference = Math.abs(maxScrollX - scrollX);
+			var rightDifference = Math.abs(rightPosition - scrollX);
+			if(rightDifference < leftDifference) {
+				result.x = rightPosition;
+			} else {
+				result.x = maxScrollX;
+			}
+		}
+		result.y = 0;
+		return result;
+	}
+	,calculateNavigationDestination: function(items,index,keyCode,bounds) {
+		var itemArrayCount = items.length;
+		var itemCount = itemArrayCount + this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+		var calculatedTypicalItemWidth = NaN;
+		if(this._useVirtualLayout) {
+			this.prepareTypicalItem(bounds.viewPortHeight - this._paddingTop - this._paddingBottom);
+			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+		}
+		var result = index;
+		var item;
+		var cachedWidth = NaN;
+		var iNormalized;
+		var xPosition;
+		var indexOffset;
+		if(keyCode == 36) {
+			if(itemCount > 0) {
+				result = 0;
+			}
+		} else if(keyCode == 35) {
+			result = itemCount - 1;
+		} else if(keyCode == 33) {
+			xPosition = 0;
+			indexOffset = 0;
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				indexOffset = -this._beforeVirtualizedItemCount;
+			}
+			var i = index;
+			while(i >= 0) {
+				iNormalized = i + indexOffset;
+				if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+					cachedWidth = this._virtualCache[i];
+				}
+				if(iNormalized < 0 || iNormalized >= itemArrayCount) {
+					if(cachedWidth == cachedWidth) {
+						xPosition += cachedWidth;
+					} else {
+						xPosition += calculatedTypicalItemWidth;
+					}
+				} else {
+					item = items[iNormalized];
+					if(item == null) {
+						if(cachedWidth == cachedWidth) {
+							xPosition += cachedWidth;
+						} else {
+							xPosition += calculatedTypicalItemWidth;
+						}
+					} else {
+						xPosition += item.get_width();
+					}
+				}
+				if(xPosition > bounds.viewPortWidth) {
+					break;
+				}
+				xPosition += this._gap;
+				result = i;
+				--i;
+			}
+		} else if(keyCode == 34) {
+			xPosition = 0;
+			indexOffset = 0;
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				indexOffset = -this._beforeVirtualizedItemCount;
+			}
+			var _g = index;
+			var _g1 = itemCount;
+			while(_g < _g1) {
+				var i = _g++;
+				iNormalized = i + indexOffset;
+				if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+					cachedWidth = this._virtualCache[i];
+				}
+				if(iNormalized < 0 || iNormalized >= itemArrayCount) {
+					if(cachedWidth == cachedWidth) {
+						xPosition += cachedWidth;
+					} else {
+						xPosition += calculatedTypicalItemWidth;
+					}
+				} else {
+					item = items[iNormalized];
+					if(item == null) {
+						if(cachedWidth == cachedWidth) {
+							xPosition += cachedWidth;
+						} else {
+							xPosition += calculatedTypicalItemWidth;
+						}
+					} else {
+						xPosition += item.get_width();
+					}
+				}
+				if(xPosition > bounds.viewPortWidth) {
+					break;
+				}
+				xPosition += this._gap;
+				result = i;
+			}
+		} else if(keyCode == 37) {
+			--result;
+		} else if(keyCode == 39) {
+			++result;
+		}
+		if(result < 0) {
+			return 0;
+		}
+		if(result >= itemCount) {
+			return itemCount - 1;
+		}
+		return result;
+	}
+	,getScrollPositionForIndex: function(index,items,x,y,width,height,result) {
+		var maxScrollX = this.calculateMaxScrollXOfIndex(index,items,x,y,width,height);
+		var itemWidth;
+		if(this._useVirtualLayout) {
+			if(this._hasVariableItemDimensions) {
+				itemWidth = this._virtualCache[index];
+				if(itemWidth != itemWidth) {
+					itemWidth = this._typicalItem.get_width();
+				}
+			} else {
+				itemWidth = this._typicalItem.get_width();
+			}
+		} else {
+			itemWidth = items[index].get_width();
+		}
+		if(this._scrollPositionHorizontalAlign == "center") {
+			maxScrollX -= Math.round((width - itemWidth) / 2);
+		} else if(this._scrollPositionHorizontalAlign == "right") {
+			maxScrollX -= width - itemWidth;
+		}
+		result.x = maxScrollX;
+		result.y = 0;
+		return result;
+	}
+	,positionDropIndicator: function(dropIndicator,index,x,y,items,width,height) {
+		var indexOffset = 0;
+		var itemCount = items.length;
+		var totalItemCount = itemCount;
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+			indexOffset = this._beforeVirtualizedItemCount;
+		}
+		var indexMinusOffset = index - indexOffset;
+		if(js_Boot.__implements(dropIndicator,feathers_core_IValidating)) {
+			(js_Boot.__cast(dropIndicator , feathers_core_IValidating)).validate();
+		}
+		dropIndicator.set_y(this._paddingTop);
+		var xPosition = 0;
+		var item;
+		if(index < totalItemCount) {
+			item = items[indexMinusOffset];
+			xPosition = item.get_x() - dropIndicator.get_width() / 2;
+			dropIndicator.set_y(item.get_y());
+			dropIndicator.set_height(item.get_height());
+		} else {
+			item = items[indexMinusOffset - 1];
+			xPosition = item.get_x() + item.get_width() - dropIndicator.get_width();
+			dropIndicator.set_y(item.get_y());
+			dropIndicator.set_height(item.get_height());
+		}
+		if(xPosition < 0) {
+			xPosition = 0;
+		}
+		dropIndicator.set_x(xPosition);
+	}
+	,getDropIndex: function(x,y,items,boundsX,boundsY,width,height) {
+		var calculatedTypicalItemWidth = NaN;
+		var calculatedTypicalItemHeight;
+		if(this._useVirtualLayout) {
+			this.prepareTypicalItem(height - this._paddingTop - this._paddingBottom);
+			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+			calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		}
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var positionX = boundsX + this._paddingLeft;
+		var lastWidth = 0;
+		var gap = this._gap;
+		var indexOffset = 0;
+		var itemCount = items.length;
+		var totalItemCount = itemCount;
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+			indexOffset = this._beforeVirtualizedItemCount;
+		}
+		var secondToLastIndex = totalItemCount - 2;
+		var cachedWidth = NaN;
+		var _g = 0;
+		var _g1 = totalItemCount + 1;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = null;
+			var indexMinusOffset = i - indexOffset;
+			var itemWidth;
+			if(indexMinusOffset >= 0 && indexMinusOffset < itemCount) {
+				item = items[indexMinusOffset];
+			}
+			if(hasFirstGap && i == 0) {
+				gap = this._firstGap;
+			} else if(hasLastGap && i > 0 && i == secondToLastIndex) {
+				gap = this._lastGap;
+			} else {
+				gap = this._gap;
+			}
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				cachedWidth = this._virtualCache[i];
+			}
+			if(this._useVirtualLayout && item == null) {
+				if(!this._hasVariableItemDimensions || cachedWidth != cachedWidth) {
+					lastWidth = calculatedTypicalItemWidth;
+				} else {
+					lastWidth = cachedWidth;
+				}
+			} else {
+				positionX = item.get_x();
+				itemWidth = item.get_width();
+				if(this._useVirtualLayout) {
+					if(this._hasVariableItemDimensions) {
+						if(itemWidth != cachedWidth) {
+							this._virtualCache[i] = itemWidth;
+							this.dispatchEventWith("change");
+						}
+					} else if(calculatedTypicalItemWidth >= 0) {
+						itemWidth = calculatedTypicalItemWidth;
+					}
+				}
+				lastWidth = itemWidth;
+			}
+			if(x < positionX + lastWidth / 2) {
+				return i;
+			}
+			positionX += lastWidth + gap;
+		}
+		return totalItemCount;
+	}
+	,validateItems: function(items,explicitHeight,minHeight,maxHeight,explicitWidth,minWidth,maxWidth,distributedWidth) {
+		var needsWidth = explicitWidth != explicitWidth;
+		var needsHeight = explicitHeight != explicitHeight;
+		var containerWidth = explicitWidth;
+		if(needsWidth) {
+			containerWidth = minWidth;
+		}
+		var isJustified = this._verticalAlign == "justify";
+		var itemCount = items.length;
+		var itemWidth;
+		var measureItem;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = items[i];
+			if(item == null || js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+				continue;
+			}
+			if(this._distributeWidths) {
+				item.set_width(distributedWidth);
+			}
+			if(isJustified) {
+				item.set_height(explicitHeight);
+				if(js_Boot.__implements(item,feathers_core_IFeathersControl)) {
+					var feathersItem = item;
+					feathersItem.set_minHeight(minHeight);
+					feathersItem.set_maxHeight(maxHeight);
+				}
+			} else if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+				var layoutItem = item;
+				var layoutData = layoutItem.get_layoutData();
+				if(layoutData != null) {
+					var percentWidth = layoutData.get_percentWidth();
+					var percentHeight = layoutData.get_percentHeight();
+					if(percentWidth == percentWidth) {
+						if(percentWidth < 0) {
+							percentWidth = 0;
+						}
+						if(percentWidth > 100) {
+							percentWidth = 100;
+						}
+						itemWidth = containerWidth * percentWidth / 100;
+						measureItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+						var itemExplicitMinWidth = measureItem.get_explicitMinWidth();
+						if(measureItem.get_explicitMinWidth() == measureItem.get_explicitMinWidth() && itemWidth < itemExplicitMinWidth) {
+							itemWidth = itemExplicitMinWidth;
+						}
+						measureItem.set_maxWidth(itemWidth);
+						item.set_width(NaN);
+					}
+					if(percentHeight == percentHeight) {
+						if(percentHeight < 0) {
+							percentHeight = 0;
+						}
+						if(percentHeight > 100) {
+							percentHeight = 100;
+						}
+						var itemHeight = explicitHeight * percentHeight / 100;
+						measureItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+						var itemExplicitMinHeight = measureItem.get_explicitMinHeight();
+						if(measureItem.get_explicitMinHeight() == measureItem.get_explicitMinHeight() && itemHeight < itemExplicitMinHeight) {
+							itemHeight = itemExplicitMinHeight;
+						}
+						if(itemHeight > maxHeight) {
+							itemHeight = maxHeight;
+						}
+						item.set_height(itemHeight);
+						if(measureItem.get_explicitHeight() != measureItem.get_explicitHeight() && measureItem.get_maxHeight() > maxHeight) {
+							measureItem.set_maxHeight(maxHeight);
+						}
+					}
+				}
+			}
+			if(js_Boot.__implements(item,feathers_core_IValidating)) {
+				(js_Boot.__cast(item , feathers_core_IValidating)).validate();
+			}
+		}
+	}
+	,prepareTypicalItem: function(justifyHeight) {
+		if(this._typicalItem == null) {
+			return;
+		}
+		if(this._resetTypicalItemDimensionsOnMeasure) {
+			this._typicalItem.set_width(this._typicalItemWidth);
+		}
+		var hasSetHeight = false;
+		if(this._verticalAlign == "justify" && justifyHeight == justifyHeight) {
+			hasSetHeight = true;
+			this._typicalItem.set_height(justifyHeight);
+		} else if(js_Boot.__implements(this._typicalItem,feathers_layout_ILayoutDisplayObject)) {
+			var layoutItem = this._typicalItem;
+			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_VerticalLayoutData);
+			if(layoutData != null) {
+				var percentHeight = layoutData.get_percentHeight();
+				if(percentHeight == percentHeight) {
+					if(percentHeight < 0) {
+						percentHeight = 0;
+					}
+					if(percentHeight > 100) {
+						percentHeight = 100;
+					}
+					hasSetHeight = true;
+					this._typicalItem.set_height(justifyHeight * percentHeight / 100);
+				}
+			}
+		}
+		if(!hasSetHeight && this._resetTypicalItemDimensionsOnMeasure) {
+			this._typicalItem.set_height(this._typicalItemHeight);
+		}
+		if(js_Boot.__implements(this._typicalItem,feathers_core_IValidating)) {
+			(js_Boot.__cast(this._typicalItem , feathers_core_IValidating)).validate();
+		}
+	}
+	,calculateDistributedWidth: function(items,explicitWidth,minWidth,maxWidth,measureItems) {
+		var needsWidth = explicitWidth != explicitWidth;
+		var maxItemWidth = 0;
+		var includedItemCount = 0;
+		var itemCount = items.length;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = items[i];
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+				continue;
+			}
+			++includedItemCount;
+			var itemWidth = item.get_width();
+			if(itemWidth > maxItemWidth) {
+				maxItemWidth = itemWidth;
+			}
+		}
+		if(measureItems && needsWidth) {
+			explicitWidth = maxItemWidth * includedItemCount + this._paddingLeft + this._paddingRight + this._gap * (includedItemCount - 1);
+			var needsRecalculation = false;
+			if(explicitWidth > maxWidth) {
+				explicitWidth = maxWidth;
+				needsRecalculation = true;
+			} else if(explicitWidth < minWidth) {
+				explicitWidth = minWidth;
+				needsRecalculation = true;
+			}
+			if(!needsRecalculation) {
+				return maxItemWidth;
+			}
+		}
+		var availableSpace = explicitWidth;
+		if(needsWidth && maxWidth < Infinity) {
+			availableSpace = maxWidth;
+		}
+		availableSpace = availableSpace - this._paddingLeft - this._paddingRight - this._gap * (includedItemCount - 1);
+		if(includedItemCount > 1 && this._firstGap == this._firstGap) {
+			availableSpace += this._gap - this._firstGap;
+		}
+		if(includedItemCount > 2 && this._lastGap == this._lastGap) {
+			availableSpace += this._gap - this._lastGap;
+		}
+		return availableSpace / includedItemCount;
+	}
+	,applyPercentWidths: function(items,explicitWidth,minWidth,maxWidth) {
+		var remainingWidth = explicitWidth;
+		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		var totalExplicitWidth = 0;
+		var totalMinWidth = 0;
+		var totalPercentWidth = 0;
+		var itemCount = items.length;
+		var pushIndex = 0;
+		var layoutItem;
+		var item;
+		var percentWidth;
+		var layoutData;
+		var feathersItem;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			item = items[i];
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+				layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				if(!layoutItem.get_includeInLayout()) {
+					continue;
+				}
+				layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_HorizontalLayoutData);
+				if(layoutData != null) {
+					percentWidth = layoutData.get_percentWidth();
+					if(percentWidth == percentWidth) {
+						if(percentWidth < 0) {
+							percentWidth = 0;
+						}
+						if(js_Boot.__implements(layoutItem,feathers_core_IFeathersControl)) {
+							feathersItem = js_Boot.__cast(layoutItem , feathers_core_IFeathersControl);
+							totalMinWidth += feathersItem.get_minWidth();
+						}
+						totalPercentWidth += percentWidth;
+						totalExplicitWidth += this._gap;
+						this._discoveredItemsCache[pushIndex] = item;
+						++pushIndex;
+						continue;
+					}
+				}
+			}
+			totalExplicitWidth += item.get_width() + this._gap;
+		}
+		totalExplicitWidth -= this._gap;
+		if(this._firstGap == this._firstGap && itemCount > 1) {
+			totalExplicitWidth += this._firstGap - this._gap;
+		} else if(this._lastGap == this._lastGap && itemCount > 2) {
+			totalExplicitWidth += this._lastGap - this._gap;
+		}
+		totalExplicitWidth += this._paddingLeft + this._paddingRight;
+		if(totalPercentWidth < 100) {
+			totalPercentWidth = 100;
+		}
+		if(remainingWidth != remainingWidth) {
+			remainingWidth = totalExplicitWidth + totalMinWidth;
+			if(remainingWidth < minWidth) {
+				remainingWidth = minWidth;
+			} else if(remainingWidth > maxWidth) {
+				remainingWidth = maxWidth;
+			}
+		}
+		remainingWidth -= totalExplicitWidth;
+		if(remainingWidth < 0) {
+			remainingWidth = 0;
+		}
+		var needsAnotherPass = false;
+		while(true) {
+			var percentToPixels = remainingWidth / totalPercentWidth;
+			var _g = 0;
+			var _g1 = pushIndex;
+			while(_g < _g1) {
+				var i = _g++;
+				layoutItem = this._discoveredItemsCache[i];
+				if(layoutItem == null) {
+					continue;
+				}
+				layoutData = layoutItem.get_layoutData();
+				percentWidth = layoutData.get_percentWidth();
+				if(percentWidth < 0) {
+					percentWidth = 0;
+				}
+				var itemWidth = percentToPixels * percentWidth;
+				if(js_Boot.__implements(layoutItem,feathers_core_IFeathersControl)) {
+					feathersItem = layoutItem;
+					var itemMinWidth = feathersItem.get_explicitMinWidth();
+					if(itemMinWidth > remainingWidth) {
+						itemMinWidth = remainingWidth;
+					}
+					if(itemWidth < itemMinWidth) {
+						itemWidth = itemMinWidth;
+						remainingWidth -= itemWidth;
+						totalPercentWidth -= percentWidth;
+						this._discoveredItemsCache[i] = null;
+						needsAnotherPass = true;
+					}
+				}
+				layoutItem.set_width(itemWidth);
+				if(js_Boot.__implements(layoutItem,feathers_core_IValidating)) {
+					(js_Boot.__cast(layoutItem , feathers_core_IValidating)).validate();
+				}
+			}
+			if(!needsAnotherPass) {
+				break;
+			}
+		}
+		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+	}
+	,calculateMaxScrollXOfIndex: function(index,items,x,y,width,height) {
+		var calculatedTypicalItemWidth = NaN;
+		var calculatedTypicalItemHeight;
+		if(this._useVirtualLayout) {
+			this.prepareTypicalItem(height - this._paddingTop - this._paddingBottom);
+			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+			calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		}
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var positionX = x + this._paddingLeft;
+		var lastWidth = 0;
+		var gap = this._gap;
+		var startIndexOffset = 0;
+		var endIndexOffset = 0;
+		var itemCount = items.length;
+		var totalItemCount = itemCount;
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+			if(index < this._beforeVirtualizedItemCount) {
+				startIndexOffset = index + 1;
+				lastWidth = calculatedTypicalItemWidth;
+				gap = this._gap;
+			} else {
+				startIndexOffset = this._beforeVirtualizedItemCount;
+				endIndexOffset = index - items.length - this._beforeVirtualizedItemCount + 1;
+				if(endIndexOffset < 0) {
+					endIndexOffset = 0;
+				}
+				positionX += endIndexOffset * (calculatedTypicalItemWidth + this._gap);
+			}
+			positionX += startIndexOffset * (calculatedTypicalItemWidth + this._gap);
+		}
+		index -= startIndexOffset + endIndexOffset | 0;
+		var secondToLastIndex = totalItemCount - 2;
+		var item;
+		var iNormalized;
+		var cachedWidth = NaN;
+		var _g = 0;
+		var _g1 = index + 1;
+		while(_g < _g1) {
+			var i = _g++;
+			item = items[i];
+			iNormalized = i + startIndexOffset;
+			if(hasFirstGap && iNormalized == 0) {
+				gap = this._firstGap;
+			} else if(hasLastGap && iNormalized > 0 && iNormalized == secondToLastIndex) {
+				gap = this._lastGap;
+			} else {
+				gap = this._gap;
+			}
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				cachedWidth = this._virtualCache[iNormalized];
+			}
+			if(this._useVirtualLayout && item == null) {
+				if(!this._hasVariableItemDimensions || cachedWidth != cachedWidth) {
+					lastWidth = calculatedTypicalItemWidth;
+				} else {
+					lastWidth = cachedWidth;
+				}
+			} else {
+				var itemWidth = item.get_width();
+				if(this._useVirtualLayout) {
+					if(this._hasVariableItemDimensions) {
+						if(itemWidth != cachedWidth) {
+							this._virtualCache[iNormalized] = itemWidth;
+							this.dispatchEventWith("change");
+						}
+					} else if(calculatedTypicalItemWidth >= 0) {
+						itemWidth = calculatedTypicalItemWidth;
+						item.set_width(itemWidth);
+					}
+				}
+				lastWidth = itemWidth;
+			}
+			positionX += lastWidth + gap;
+		}
+		positionX -= lastWidth + gap;
+		return positionX;
+	}
+	,__class__: feathers_layout_HorizontalLayout
+	,__properties__: $extend(feathers_layout_BaseLinearLayout.prototype.__properties__,{set_scrollPositionHorizontalAlign:"set_scrollPositionHorizontalAlign",get_scrollPositionHorizontalAlign:"get_scrollPositionHorizontalAlign",set_maxColumnCount:"set_maxColumnCount",get_maxColumnCount:"get_maxColumnCount",set_requestedColumnCount:"set_requestedColumnCount",get_requestedColumnCount:"get_requestedColumnCount",set_distributeWidths:"set_distributeWidths",get_distributeWidths:"get_distributeWidths"})
+});
+var feathers_layout_IGroupedLayout = function() { };
+$hxClasses["feathers.layout.IGroupedLayout"] = feathers_layout_IGroupedLayout;
+feathers_layout_IGroupedLayout.__name__ = "feathers.layout.IGroupedLayout";
+feathers_layout_IGroupedLayout.__isInterface__ = true;
+feathers_layout_IGroupedLayout.__interfaces__ = [feathers_layout_ILayout];
+feathers_layout_IGroupedLayout.prototype = {
+	get_headerIndices: null
+	,set_headerIndices: null
+	,__class__: feathers_layout_IGroupedLayout
+	,__properties__: {set_headerIndices:"set_headerIndices",get_headerIndices:"get_headerIndices"}
+};
+var feathers_layout_VerticalLayout = function() {
+	this._headerScrollPositionVerticalAlign = "top";
+	this._scrollPositionVerticalAlign = "middle";
+	this._maxRowCount = 0;
+	this._requestedRowCount = 0;
+	this._distributeHeights = false;
+	this._stickyHeader = false;
+	feathers_layout_BaseLinearLayout.call(this);
+};
+$hxClasses["feathers.layout.VerticalLayout"] = feathers_layout_VerticalLayout;
+feathers_layout_VerticalLayout.__name__ = "feathers.layout.VerticalLayout";
+feathers_layout_VerticalLayout.__interfaces__ = [feathers_layout_IDragDropLayout,feathers_layout_IGroupedLayout,feathers_layout_ITrimmedVirtualLayout,feathers_layout_IVariableVirtualLayout];
+feathers_layout_VerticalLayout.__super__ = feathers_layout_BaseLinearLayout;
+feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLayout.prototype,{
+	get_horizontalAlign: function() {
+		return this._horizontalAlign;
+	}
+	,get_verticalAlign: function() {
+		return this._verticalAlign;
+	}
+	,_stickyHeader: null
+	,get_stickyHeader: function() {
+		return this._stickyHeader;
+	}
+	,set_stickyHeader: function(value) {
+		if(this._stickyHeader == value) {
+			return value;
+		}
+		this._stickyHeader = value;
+		this.dispatchEventWith("change");
+		return this._stickyHeader;
+	}
+	,_headerIndices: null
+	,get_headerIndices: function() {
+		return this._headerIndices;
+	}
+	,set_headerIndices: function(value) {
+		if(this._headerIndices == value) {
+			return value;
+		}
+		this._headerIndices = value;
+		this.dispatchEventWith("change");
+		return this._headerIndices;
+	}
+	,_distributeHeights: null
+	,get_distributeHeights: function() {
+		return this._distributeHeights;
+	}
+	,set_distributeHeights: function(value) {
+		if(this._distributeHeights == value) {
+			return value;
+		}
+		this._distributeHeights = value;
+		this.dispatchEventWith("change");
+		return this._distributeHeights;
+	}
+	,_requestedRowCount: null
+	,get_requestedRowCount: function() {
+		return this._requestedRowCount;
+	}
+	,set_requestedRowCount: function(value) {
+		if(value < 0) {
+			throw new openfl_errors_RangeError("requestedRowCount requires a value >= 0");
+		}
+		if(this._requestedRowCount == value) {
+			return value;
+		}
+		this._requestedRowCount = value;
+		this.dispatchEventWith("change");
+		return this._requestedRowCount;
+	}
+	,_maxRowCount: null
+	,get_maxRowCount: function() {
+		return this._maxRowCount;
+	}
+	,set_maxRowCount: function(value) {
+		if(value < 0) {
+			throw new openfl_errors_RangeError("maxRowCount requires a value >= 0");
+		}
+		if(this._maxRowCount == value) {
+			return value;
+		}
+		this._maxRowCount = value;
+		this.dispatchEventWith("change");
+		return this._maxRowCount;
+	}
+	,_scrollPositionVerticalAlign: null
+	,get_scrollPositionVerticalAlign: function() {
+		return this._scrollPositionVerticalAlign;
+	}
+	,set_scrollPositionVerticalAlign: function(value) {
+		return this._scrollPositionVerticalAlign = value;
+	}
+	,_headerScrollPositionVerticalAlign: null
+	,get_headerScrollPositionVerticalAlign: function() {
+		return this._headerScrollPositionVerticalAlign;
+	}
+	,set_headerScrollPositionVerticalAlign: function(value) {
+		return this._headerScrollPositionVerticalAlign = value;
+	}
+	,get_requiresLayoutOnScroll: function() {
+		if(!this._useVirtualLayout) {
+			if(this._headerIndices != null) {
+				return this._stickyHeader;
+			} else {
+				return false;
+			}
+		} else {
+			return true;
+		}
+	}
+	,layout: function(items,viewPortBounds,result) {
+		var scrollX = viewPortBounds != null ? viewPortBounds.scrollX : 0;
+		var scrollY = viewPortBounds != null ? viewPortBounds.scrollY : 0;
+		var boundsX = viewPortBounds != null ? viewPortBounds.x : 0;
+		var boundsY = viewPortBounds != null ? viewPortBounds.y : 0;
+		var minWidth = viewPortBounds != null ? viewPortBounds.minWidth : 0;
+		var minHeight = viewPortBounds != null ? viewPortBounds.minHeight : 0;
+		var maxWidth = viewPortBounds != null ? viewPortBounds.maxWidth : Infinity;
+		var maxHeight = viewPortBounds != null ? viewPortBounds.maxHeight : Infinity;
+		var explicitWidth = viewPortBounds != null ? viewPortBounds.explicitWidth : NaN;
+		var explicitHeight = viewPortBounds != null ? viewPortBounds.explicitHeight : NaN;
+		var calculatedTypicalItemWidth = NaN;
+		var calculatedTypicalItemHeight = NaN;
+		if(this._useVirtualLayout) {
+			this.prepareTypicalItem(explicitWidth - this._paddingLeft - this._paddingRight);
+			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+			calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		}
+		var needsExplicitWidth = explicitWidth != explicitWidth;
+		var needsExplicitHeight = explicitHeight != explicitHeight;
+		var distributedHeight = NaN;
+		if(!needsExplicitHeight && this._distributeHeights) {
+			distributedHeight = this.calculateDistributedHeight(items,explicitHeight,minHeight,maxHeight,false);
+			if(this._useVirtualLayout) {
+				calculatedTypicalItemHeight = distributedHeight;
+			}
+		}
+		if(!this._useVirtualLayout || this._hasVariableItemDimensions || this._distributeHeights || this._horizontalAlign != "justify" || needsExplicitWidth) {
+			this.validateItems(items,explicitWidth - this._paddingLeft - this._paddingRight,minWidth - this._paddingLeft - this._paddingRight,maxWidth - this._paddingLeft - this._paddingRight,explicitHeight - this._paddingTop - this._paddingBottom,minHeight - this._paddingTop - this._paddingBottom,maxHeight - this._paddingTop - this._paddingBottom,distributedHeight);
+		}
+		if(needsExplicitHeight && this._distributeHeights) {
+			distributedHeight = this.calculateDistributedHeight(items,explicitHeight,minHeight,maxHeight,true);
+		}
+		var hasDistributedHeight = distributedHeight == distributedHeight;
+		if(!this._useVirtualLayout) {
+			this.applyPercentHeights(items,explicitHeight,minHeight,maxHeight);
+		}
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var maxItemWidth = this._useVirtualLayout ? calculatedTypicalItemWidth : 0;
+		var startPositionY = boundsY + this._paddingTop;
+		var positionY = startPositionY;
+		var indexOffset = 0;
+		var itemCount = items.length;
+		var totalItemCount = itemCount;
+		var requestedRowAvailableHeight = 0;
+		var maxRowAvailableHeight = Infinity;
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+			indexOffset = this._beforeVirtualizedItemCount;
+			positionY += this._beforeVirtualizedItemCount * (calculatedTypicalItemHeight + this._gap);
+			if(hasFirstGap && this._beforeVirtualizedItemCount > 0) {
+				positionY = positionY - this._gap + this._firstGap;
+			}
+		}
+		var secondToLastIndex = totalItemCount - 2;
+		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		var discoveredItemsCacheLastIndex = 0;
+		var gap = 0;
+		var headerIndicesIndex = -1;
+		var nextHeaderIndex = -1;
+		var headerCount = 0;
+		var stickyHeaderMaxY = Infinity;
+		if(this._headerIndices != null && this._stickyHeader != null) {
+			headerCount = this._headerIndices.length;
+			if(headerCount > 0) {
+				headerIndicesIndex = 0;
+				nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+			}
+		}
+		var item;
+		var iNormalized;
+		var layoutItem;
+		var itemWidth;
+		var itemHeight;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			if(!this._useVirtualLayout) {
+				if(this._maxRowCount > 0 && this._maxRowCount == i) {
+					maxRowAvailableHeight = positionY;
+				}
+				if(this._requestedRowCount > 0 && this._requestedRowCount == i) {
+					requestedRowAvailableHeight = positionY;
+				}
+			}
+			item = items[i];
+			iNormalized = i + indexOffset;
+			if(nextHeaderIndex == iNormalized) {
+				if(positionY < scrollY) {
+					++headerIndicesIndex;
+					if(headerIndicesIndex < headerCount) {
+						nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+					}
+				} else {
+					--headerIndicesIndex;
+					if(headerIndicesIndex >= 0) {
+						nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+						stickyHeaderMaxY = positionY;
+					}
+				}
+			}
+			gap = this._gap;
+			if(hasFirstGap && iNormalized == 0) {
+				gap = this._firstGap;
+			} else if(hasLastGap && iNormalized > 0 && iNormalized == secondToLastIndex) {
+				gap = this._lastGap;
+			}
+			var cachedHeight = NaN;
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				cachedHeight = this._virtualCache[iNormalized];
+			}
+			if(this._useVirtualLayout && item == null) {
+				if(!this._hasVariableItemDimensions || cachedHeight != cachedHeight) {
+					positionY += calculatedTypicalItemHeight + gap;
+				} else {
+					positionY += cachedHeight + gap;
+				}
+			} else {
+				layoutItem = item;
+				if(layoutItem != null && !layoutItem.get_includeInLayout()) {
+					continue;
+				}
+				var pivotY = item.get_pivotY();
+				if(pivotY != 0) {
+					pivotY *= item.get_scaleY();
+				}
+				item.set_y(pivotY + positionY);
+				itemWidth = item.get_width();
+				if(hasDistributedHeight) {
+					itemHeight = distributedHeight;
+					item.set_height(itemHeight);
+				} else {
+					itemHeight = item.get_height();
+				}
+				if(this._useVirtualLayout) {
+					if(this._hasVariableItemDimensions) {
+						if(itemHeight != cachedHeight) {
+							this._virtualCache[iNormalized] = itemHeight;
+							if(positionY < scrollY && cachedHeight != cachedHeight && itemHeight != calculatedTypicalItemHeight) {
+								this.dispatchEventWith("scroll",false,new openfl_geom_Point(0,itemHeight - calculatedTypicalItemHeight));
+							}
+							this.dispatchEventWith("change");
+						}
+					} else if(calculatedTypicalItemHeight >= 0) {
+						itemHeight = calculatedTypicalItemHeight;
+						if(item != this._typicalItem || item.get_height() != itemHeight) {
+							item.set_height(itemHeight);
+						}
+					}
+				}
+				positionY += itemHeight + gap;
+				if(itemWidth > maxItemWidth) {
+					maxItemWidth = itemWidth;
+				}
+				if(this._useVirtualLayout) {
+					this._discoveredItemsCache[discoveredItemsCacheLastIndex] = item;
+					++discoveredItemsCacheLastIndex;
+				}
+			}
+		}
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			positionY += this._afterVirtualizedItemCount * (calculatedTypicalItemHeight + this._gap);
+			if(hasLastGap && this._afterVirtualizedItemCount > 0) {
+				positionY = positionY - this._gap + this._lastGap;
+			}
+		}
+		if(nextHeaderIndex >= 0) {
+			var header = items[nextHeaderIndex];
+			this.positionStickyHeader(header,scrollY,stickyHeaderMaxY);
+		}
+		if(!this._useVirtualLayout && this._requestedRowCount > itemCount) {
+			if(itemCount > 0) {
+				requestedRowAvailableHeight = this._requestedRowCount * positionY / itemCount;
+			} else {
+				requestedRowAvailableHeight = 0;
+			}
+		}
+		var discoveredItems = this._useVirtualLayout ? this._discoveredItemsCache : items;
+		var discoveredItemCount = discoveredItems.length;
+		var totalWidth = maxItemWidth + this._paddingLeft + this._paddingRight;
+		var availableWidth = explicitWidth;
+		if(availableWidth != availableWidth) {
+			availableWidth = totalWidth;
+			if(availableWidth < minWidth) {
+				availableWidth = minWidth;
+			} else if(availableWidth > maxWidth) {
+				availableWidth = maxWidth;
+			}
+		}
+		var totalHeight = positionY - gap + this._paddingBottom - boundsY;
+		var availableHeight = explicitHeight;
+		if(availableHeight != availableHeight) {
+			availableHeight = totalHeight;
+			if(this._requestedRowCount > 0) {
+				if(this._useVirtualLayout) {
+					availableHeight = this._requestedRowCount * (calculatedTypicalItemHeight + this._gap) - this._gap + this._paddingTop + this._paddingBottom;
+				} else {
+					availableHeight = requestedRowAvailableHeight;
+				}
+			} else {
+				availableHeight = totalHeight;
+				if(this._maxRowCount > 0) {
+					if(this._useVirtualLayout) {
+						maxRowAvailableHeight = this._maxRowCount * (calculatedTypicalItemHeight + this._gap) - this._gap + this._paddingTop + this._paddingBottom;
+					}
+					if(maxRowAvailableHeight < availableHeight) {
+						availableHeight = maxRowAvailableHeight;
+					}
+				}
+			}
+			if(availableHeight < minHeight) {
+				availableHeight = minHeight;
+			} else if(availableHeight > maxHeight) {
+				availableHeight = maxHeight;
+			}
+		}
+		if(totalHeight < availableHeight) {
+			var verticalAlignOffsetY = 0;
+			if(this._verticalAlign == "bottom") {
+				verticalAlignOffsetY = availableHeight - totalHeight;
+			} else if(this._verticalAlign == "middle") {
+				verticalAlignOffsetY = Math.round((availableHeight - totalHeight) / 2);
+			}
+			if(verticalAlignOffsetY != 0) {
+				var _g = 0;
+				var _g1 = discoveredItemCount;
+				while(_g < _g1) {
+					var i = _g++;
+					item = discoveredItems[i];
+					if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+						continue;
+					}
+					item.set_y(item.get_y() + verticalAlignOffsetY);
+				}
+			}
+		}
+		var availableWidthMinusPadding = availableWidth - this._paddingLeft - this._paddingRight;
+		var _g = 0;
+		var _g1 = discoveredItemCount;
+		_hx_loop3: while(_g < _g1) {
+			var i = _g++;
+			item = discoveredItems[i];
+			layoutItem = item;
+			if(layoutItem != null && !layoutItem.get_includeInLayout()) {
+				continue;
+			}
+			var pivotX = item.get_pivotX();
+			if(pivotX != 0) {
+				pivotX *= item.get_scaleX();
+			}
+			if(this._horizontalAlign == "justify") {
+				item.set_x(pivotX + boundsX + this._paddingLeft);
+				item.set_width(availableWidthMinusPadding);
+			} else {
+				if(layoutItem != null) {
+					var layoutData = layoutItem.get_layoutData();
+					if(layoutData != null) {
+						var percentWidth = layoutData.get_percentWidth();
+						if(percentWidth == percentWidth) {
+							if(percentWidth < 0) {
+								percentWidth = 0;
+							}
+							if(percentWidth > 100) {
+								percentWidth = 100;
+							}
+							itemWidth = percentWidth * availableWidthMinusPadding / 100;
+							if(js_Boot.__implements(item,feathers_core_IFeathersControl)) {
+								var feathersItem = item;
+								var itemMinWidth = feathersItem.get_explicitMinWidth();
+								if(itemMinWidth > availableWidthMinusPadding) {
+									itemMinWidth = availableWidthMinusPadding;
+								}
+								if(itemWidth < itemMinWidth) {
+									itemWidth = itemMinWidth;
+								} else {
+									var itemMaxWidth = feathersItem.get_explicitMaxWidth();
+									if(itemWidth > itemMaxWidth) {
+										itemWidth = itemMaxWidth;
+									}
+								}
+							}
+							item.set_width(itemWidth);
+						}
+					}
+				}
+				var horizontalAlignWidth = availableWidth;
+				if(totalWidth > horizontalAlignWidth) {
+					horizontalAlignWidth = totalWidth;
+				}
+				switch(this._horizontalAlign) {
+				case "center":
+					item.set_x(pivotX + boundsX + this._paddingLeft + Math.round((horizontalAlignWidth - this._paddingLeft - this._paddingRight - item.get_width()) / 2));
+					break _hx_loop3;
+				case "right":
+					item.set_x(pivotX + boundsX + horizontalAlignWidth - this._paddingRight - item.get_width());
+					break _hx_loop3;
+				default:
+					item.set_x(pivotX + boundsX + this._paddingLeft);
+				}
+			}
+		}
+		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		if(result == null) {
+			result = new feathers_layout_LayoutBoundsResult();
+		}
+		result.contentX = 0;
+		result.contentWidth = this._horizontalAlign == "justify" ? availableWidth : totalWidth;
+		result.contentY = 0;
+		result.contentHeight = totalHeight;
+		result.viewPortWidth = availableWidth;
+		result.viewPortHeight = availableHeight;
+		return result;
+	}
+	,measureViewPort: function(itemCount,viewPortBounds,result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		if(!this._useVirtualLayout) {
+			throw new openfl_errors_IllegalOperationError("measureViewPort() may be called only if useVirtualLayout is true.");
+		}
+		var explicitWidth = viewPortBounds != null ? viewPortBounds.explicitWidth : NaN;
+		var explicitHeight = viewPortBounds != null ? viewPortBounds.explicitHeight : NaN;
+		var needsWidth = explicitWidth != explicitWidth;
+		var needsHeight = explicitHeight != explicitHeight;
+		if(!needsWidth && !needsHeight) {
+			result.x = explicitWidth;
+			result.y = explicitHeight;
+			return result;
+		}
+		var minWidth = viewPortBounds != null ? viewPortBounds.minWidth : 0;
+		var minHeight = viewPortBounds != null ? viewPortBounds.minHeight : 0;
+		var maxWidth = viewPortBounds != null ? viewPortBounds.maxWidth : Infinity;
+		var maxHeight = viewPortBounds != null ? viewPortBounds.maxHeight : Infinity;
+		this.prepareTypicalItem(explicitWidth - this._paddingLeft - this._paddingRight);
+		var calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+		var calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var positionY;
+		var maxItemWidth = NaN;
+		if(this._distributeHeights) {
+			positionY = (calculatedTypicalItemHeight + this._gap) * itemCount;
+		} else {
+			positionY = 0;
+			maxItemWidth = calculatedTypicalItemWidth;
+			if(!this._hasVariableItemDimensions) {
+				positionY += (calculatedTypicalItemHeight + this._gap) * itemCount;
+			} else {
+				var _g = 0;
+				var _g1 = itemCount;
+				while(_g < _g1) {
+					var i = _g++;
+					var cachedHeight = this._virtualCache[i];
+					if(cachedHeight != cachedHeight) {
+						positionY += calculatedTypicalItemHeight + this._gap;
+					} else {
+						positionY += cachedHeight + this._gap;
+					}
+				}
+			}
+		}
+		positionY -= this._gap;
+		if(hasFirstGap && itemCount > 1) {
+			positionY = positionY - this._gap + this._firstGap;
+		}
+		if(hasLastGap && itemCount > 2) {
+			positionY = positionY - this._gap + this._lastGap;
+		}
+		var resultWidth;
+		if(needsWidth) {
+			resultWidth = maxItemWidth + this._paddingLeft + this._paddingRight;
+			if(resultWidth < minWidth) {
+				resultWidth = minWidth;
+			} else if(resultWidth > maxWidth) {
+				resultWidth = maxWidth;
+			}
+			result.x = resultWidth;
+		} else {
+			result.x = explicitWidth;
+		}
+		var resultHeight;
+		if(needsHeight) {
+			if(this._requestedRowCount > 0) {
+				resultHeight = (calculatedTypicalItemHeight + this._gap) * this._requestedRowCount - this._gap;
+			} else {
+				resultHeight = positionY;
+				if(this._maxRowCount > 0) {
+					var maxRowResultHeight = (calculatedTypicalItemHeight + this._gap) * this._maxRowCount - this._gap;
+					if(maxRowResultHeight < resultHeight) {
+						resultHeight = maxRowResultHeight;
+					}
+				}
+			}
+			resultHeight += this._paddingTop + this._paddingBottom;
+			if(resultHeight < minHeight) {
+				resultHeight = minHeight;
+			} else if(resultHeight > maxHeight) {
+				resultHeight = maxHeight;
+			}
+			result.y = resultHeight;
+		} else {
+			result.y = explicitHeight;
+		}
+		return result;
+	}
+	,getVisibleIndicesAtScrollPosition: function(scrollX,scrollY,width,height,itemCount,result) {
+		if(result != null) {
+			result.splice(0,result.length);
+		} else {
+			result = [];
+		}
+		if(!this._useVirtualLayout) {
+			throw new openfl_errors_IllegalOperationError("getVisibleIndicesAtScrollPosition() may be called only if useVirtualLayout is true.");
+		}
+		this.prepareTypicalItem(width - this._paddingLeft - this._paddingRight);
+		var calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+		var calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var resultLastIndex = 0;
+		var maxVisibleTypicalItemCount = Math.ceil(height / (calculatedTypicalItemHeight + this._gap)) + 1;
+		if(!this._hasVariableItemDimensions) {
+			var totalItemHeight = itemCount * (calculatedTypicalItemHeight + this._gap) - this._gap;
+			if(hasFirstGap && itemCount > 1) {
+				totalItemHeight = totalItemHeight - this._gap + this._firstGap;
+			}
+			if(hasLastGap && itemCount > 2) {
+				totalItemHeight = totalItemHeight - this._gap + this._lastGap;
+			}
+			var indexOffset = 0;
+			if(totalItemHeight < height) {
+				if(this._verticalAlign == "bottom") {
+					indexOffset = Math.ceil((height - totalItemHeight) / (calculatedTypicalItemHeight + this._gap));
+				} else if(this._verticalAlign == "middle") {
+					indexOffset = Math.ceil((height - totalItemHeight) / (calculatedTypicalItemHeight + this._gap) / 2);
+				}
+			}
+			var minimum = (scrollY - this._paddingTop) / (calculatedTypicalItemHeight + this._gap) | 0;
+			if(minimum < 0) {
+				minimum = 0;
+			}
+			minimum -= indexOffset;
+			var maximum = minimum + maxVisibleTypicalItemCount;
+			if(maximum >= itemCount) {
+				maximum = itemCount - 1;
+			}
+			minimum = maximum - maxVisibleTypicalItemCount;
+			if(minimum < 0) {
+				minimum = 0;
+			}
+			var _g = minimum;
+			var _g1 = maximum + 1;
+			while(_g < _g1) {
+				var i = _g++;
+				if(i >= 0 && i < itemCount) {
+					result[resultLastIndex] = i;
+				} else if(i < 0) {
+					result[resultLastIndex] = itemCount + i;
+				} else if(i >= itemCount) {
+					result[resultLastIndex] = i - itemCount;
+				}
+				++resultLastIndex;
+			}
+			return result;
+		}
+		var headerIndicesIndex = -1;
+		var nextHeaderIndex = -1;
+		var headerCount = 0;
+		if(this._headerIndices != null && this._stickyHeader) {
+			headerCount = this._headerIndices.length;
+			if(headerCount > 0) {
+				headerIndicesIndex = 0;
+				nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+			}
+		}
+		var secondToLastIndex = itemCount - 2;
+		var maxPositionY = scrollY + height;
+		var startPositionY = this._paddingTop;
+		var foundSticky = false;
+		var positionY = startPositionY;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			if(nextHeaderIndex == i) {
+				if(positionY < scrollY) {
+					++headerIndicesIndex;
+					if(headerIndicesIndex < headerCount) {
+						nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+					}
+				} else {
+					--headerIndicesIndex;
+					if(headerIndicesIndex >= 0) {
+						nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+						foundSticky = true;
+					}
+				}
+			}
+			var gap = this._gap;
+			if(hasFirstGap && i == 0) {
+				gap = this._firstGap;
+			} else if(hasLastGap && i > 0 && i == secondToLastIndex) {
+				gap = this._lastGap;
+			}
+			var cachedHeight = this._virtualCache[i];
+			var itemHeight;
+			if(cachedHeight != cachedHeight) {
+				itemHeight = calculatedTypicalItemHeight;
+			} else {
+				itemHeight = cachedHeight;
+			}
+			var oldPositionY = positionY;
+			positionY += itemHeight + gap;
+			if(positionY > scrollY && oldPositionY < maxPositionY) {
+				result[resultLastIndex] = i;
+				++resultLastIndex;
+			}
+			if(positionY >= maxPositionY) {
+				if(!foundSticky) {
+					--headerIndicesIndex;
+					if(headerIndicesIndex >= 0) {
+						nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+					}
+				}
+				break;
+			}
+		}
+		if(nextHeaderIndex >= 0 && result.indexOf(nextHeaderIndex) < 0) {
+			var addedStickyHeader = false;
+			var _g = 0;
+			var _g1 = resultLastIndex;
+			while(_g < _g1) {
+				var i = _g++;
+				if(nextHeaderIndex <= result[i]) {
+					result.splice(i,0,nextHeaderIndex);
+					addedStickyHeader = true;
+					break;
+				}
+			}
+			if(!addedStickyHeader) {
+				result[resultLastIndex] = nextHeaderIndex;
+			}
+			++resultLastIndex;
+		}
+		var resultLength = result.length;
+		var visibleItemCountDifference = maxVisibleTypicalItemCount - resultLength;
+		if(visibleItemCountDifference > 0 && resultLength > 0) {
+			var firstExistingIndex = result[0];
+			var lastIndexToAdd = firstExistingIndex - visibleItemCountDifference;
+			if(lastIndexToAdd < 0) {
+				lastIndexToAdd = 0;
+			}
+			var i = firstExistingIndex - 1;
+			while(i >= lastIndexToAdd) {
+				result.unshift(i);
+				--i;
+			}
+		}
+		resultLength = result.length;
+		visibleItemCountDifference = maxVisibleTypicalItemCount - resultLength;
+		resultLastIndex = resultLength;
+		if(visibleItemCountDifference > 0) {
+			var startIndex = resultLength > 0 ? result[resultLength - 1] + 1 : 0;
+			var endIndex = startIndex + visibleItemCountDifference;
+			if(endIndex > itemCount) {
+				endIndex = itemCount;
+			}
+			var _g = startIndex;
+			var _g1 = endIndex;
+			while(_g < _g1) {
+				var i = _g++;
+				if(i == nextHeaderIndex) {
+					continue;
+				}
+				result[resultLastIndex] = i;
+				++resultLastIndex;
+			}
+		}
+		return result;
+	}
+	,getNearestScrollPositionForIndex: function(index,scrollX,scrollY,items,x,y,width,height,result) {
+		var point = starling_utils_Pool.getPoint();
+		this.calculateScrollRangeOfIndex(index,items,x,y,width,height,point);
+		var minScrollY = point.x;
+		var maxScrollY = point.y;
+		var scrollRange = maxScrollY - minScrollY;
+		starling_utils_Pool.putPoint(point);
+		var itemHeight;
+		if(this._useVirtualLayout) {
+			if(this._hasVariableItemDimensions) {
+				itemHeight = this._virtualCache[index];
+				if(itemHeight != itemHeight) {
+					itemHeight = this._typicalItem.get_height();
+				}
+			} else {
+				itemHeight = this._typicalItem.get_height();
+			}
+		} else {
+			itemHeight = items[index].get_height();
+		}
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		result.x = 0;
+		var bottomPosition = maxScrollY - (scrollRange - itemHeight);
+		if(scrollY >= bottomPosition && scrollY <= maxScrollY) {
+			result.y = scrollY;
+		} else {
+			var topDifference = Math.abs(maxScrollY - scrollY);
+			var bottomDifference = Math.abs(bottomPosition - scrollY);
+			if(bottomDifference < topDifference) {
+				result.y = bottomPosition;
+			} else {
+				result.y = maxScrollY;
+			}
+		}
+		return result;
+	}
+	,calculateNavigationDestination: function(items,index,keyCode,bounds) {
+		var itemArrayCount = items.length;
+		var itemCount = itemArrayCount + this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+		var calculatedTypicalItemHeight = NaN;
+		if(this._useVirtualLayout) {
+			this.prepareTypicalItem(bounds.viewPortWidth - this._paddingLeft - this._paddingRight);
+			calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		}
+		var backwards = false;
+		var result = index;
+		var yPosition;
+		var indexOffset;
+		var iNormalized;
+		var cachedHeight = NaN;
+		var item;
+		if(keyCode == 36) {
+			backwards = true;
+			if(itemCount > 0) {
+				result = 0;
+			}
+		} else if(keyCode == 35) {
+			result = itemCount - 1;
+		} else if(keyCode == 33) {
+			backwards = true;
+			indexOffset = 0;
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				indexOffset = -this._beforeVirtualizedItemCount;
+			}
+			yPosition = 0;
+			var i = index;
+			while(i >= 0) {
+				iNormalized = i + indexOffset;
+				if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+					cachedHeight = this._virtualCache[i];
+				}
+				if(iNormalized < 0 || iNormalized >= itemArrayCount) {
+					if(cachedHeight == cachedHeight) {
+						yPosition += cachedHeight;
+					} else {
+						yPosition += calculatedTypicalItemHeight;
+					}
+				} else {
+					item = items[iNormalized];
+					if(item == null) {
+						if(cachedHeight == cachedHeight) {
+							yPosition += cachedHeight;
+						} else {
+							yPosition += calculatedTypicalItemHeight;
+						}
+					} else {
+						yPosition += item.get_height();
+					}
+				}
+				if(yPosition > bounds.viewPortHeight) {
+					break;
+				}
+				yPosition += this._gap;
+				result = i;
+				--i;
+			}
+		} else if(keyCode == 34) {
+			yPosition = 0;
+			indexOffset = 0;
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				indexOffset = -this._beforeVirtualizedItemCount;
+			}
+			var _g = index;
+			var _g1 = itemCount;
+			while(_g < _g1) {
+				var i = _g++;
+				iNormalized = i + indexOffset;
+				if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+					cachedHeight = this._virtualCache[i];
+				}
+				if(iNormalized < 0 || iNormalized >= itemArrayCount) {
+					if(cachedHeight == cachedHeight) {
+						yPosition += cachedHeight;
+					} else {
+						yPosition += calculatedTypicalItemHeight;
+					}
+				} else {
+					item = items[iNormalized];
+					if(item == null) {
+						if(cachedHeight == cachedHeight) {
+							yPosition += cachedHeight;
+						} else {
+							yPosition += calculatedTypicalItemHeight;
+						}
+					} else {
+						yPosition += item.get_height();
+					}
+				}
+				if(yPosition > bounds.viewPortHeight) {
+					break;
+				}
+				yPosition += this._gap;
+				result = i;
+			}
+		} else if(keyCode == 38) {
+			backwards = true;
+			--result;
+		} else if(keyCode == 40) {
+			++result;
+		}
+		if(result < 0) {
+			result = 0;
+		}
+		if(result >= itemCount) {
+			result = itemCount - 1;
+		}
+		while(this._headerIndices != null && this._headerIndices.indexOf(result) != -1) if(backwards) {
+			if(result == 0) {
+				backwards = false;
+				++result;
+			} else {
+				--result;
+			}
+		} else {
+			++result;
+		}
+		return result;
+	}
+	,getScrollPositionForIndex: function(index,items,x,y,width,height,result) {
+		var point = starling_utils_Pool.getPoint();
+		this.calculateScrollRangeOfIndex(index,items,x,y,width,height,point);
+		var minScrollY = point.x;
+		var maxScrollY = point.y;
+		var scrollRange = maxScrollY - minScrollY;
+		starling_utils_Pool.putPoint(point);
+		var itemHeight;
+		if(this._useVirtualLayout) {
+			if(this._hasVariableItemDimensions) {
+				itemHeight = this._virtualCache[index];
+				if(itemHeight != itemHeight) {
+					itemHeight = this._typicalItem.get_height();
+				}
+			} else {
+				itemHeight = this._typicalItem.get_height();
+			}
+		} else {
+			itemHeight = items[index].get_height();
+		}
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		result.x = 0;
+		var verticalAlign = this._scrollPositionVerticalAlign;
+		if(this._headerIndices != null && this._headerIndices.indexOf(index) != -1) {
+			verticalAlign = this._headerScrollPositionVerticalAlign;
+		}
+		if(verticalAlign == "middle") {
+			maxScrollY -= Math.round((scrollRange - itemHeight) / 2);
+		} else if(verticalAlign == "bottom") {
+			maxScrollY -= scrollRange - itemHeight;
+		}
+		result.y = maxScrollY;
+		return result;
+	}
+	,positionDropIndicator: function(dropIndicator,index,x,y,items,width,height) {
+		var indexOffset = 0;
+		var itemCount = items.length;
+		var totalItemCount = itemCount;
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+			indexOffset = this._beforeVirtualizedItemCount;
+		}
+		var indexMinusOffset = index - indexOffset;
+		if(js_Boot.__implements(dropIndicator,feathers_core_IValidating)) {
+			(js_Boot.__cast(dropIndicator , feathers_core_IValidating)).validate();
+		}
+		var yPosition = 0;
+		var item;
+		if(index < totalItemCount) {
+			item = items[indexMinusOffset];
+			yPosition = item.get_y() - dropIndicator.get_height() / 2;
+			dropIndicator.set_x(item.get_x());
+			dropIndicator.set_width(item.get_width());
+		} else {
+			item = items[indexMinusOffset - 1];
+			yPosition = item.get_y() + item.get_height() - dropIndicator.get_height();
+			dropIndicator.set_x(item.get_x());
+			dropIndicator.set_width(item.get_width());
+		}
+		if(yPosition < 0) {
+			yPosition = 0;
+		}
+		dropIndicator.set_y(yPosition);
+	}
+	,getDropIndex: function(x,y,items,boundsX,boundsY,width,height) {
+		var calculatedTypicalItemWidth = NaN;
+		var calculatedTypicalItemHeight = NaN;
+		if(this._useVirtualLayout) {
+			this.prepareTypicalItem(width - this._paddingLeft - this._paddingRight);
+			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+			calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		}
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var positionY = boundsY + this._paddingTop;
+		var lastHeight = 0;
+		var gap = this._gap;
+		var indexOffset = 0;
+		var itemCount = items.length;
+		var totalItemCount = itemCount;
+		var item = null;
+		var indexMinusOffset;
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+			indexOffset = this._beforeVirtualizedItemCount;
+		}
+		var secondToLastIndex = totalItemCount - 2;
+		var _g = 0;
+		var _g1 = totalItemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			indexMinusOffset = i - indexOffset;
+			if(indexMinusOffset >= 0 && indexMinusOffset < itemCount) {
+				item = items[indexMinusOffset];
+			}
+			if(hasFirstGap && i == 0) {
+				gap = this._firstGap;
+			} else if(hasLastGap && i > 0 && i == secondToLastIndex) {
+				gap = this._lastGap;
+			} else {
+				gap = this._gap;
+			}
+			var cachedHeight = NaN;
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				cachedHeight = this._virtualCache[i];
+			}
+			if(this._useVirtualLayout && item == null) {
+				if(!this._hasVariableItemDimensions || cachedHeight != cachedHeight) {
+					lastHeight = calculatedTypicalItemHeight;
+				} else {
+					lastHeight = cachedHeight;
+				}
+			} else {
+				positionY = item.get_y();
+				var itemHeight = item.get_height();
+				if(this._useVirtualLayout) {
+					if(this._hasVariableItemDimensions) {
+						if(itemHeight != cachedHeight) {
+							this._virtualCache[i] = itemHeight;
+							this.dispatchEventWith("change");
+						}
+					} else if(calculatedTypicalItemHeight >= 0) {
+						itemHeight = calculatedTypicalItemHeight;
+					}
+				}
+				lastHeight = itemHeight;
+			}
+			if(y < positionY + lastHeight / 2) {
+				return i;
+			}
+			positionY += lastHeight + gap;
+		}
+		return totalItemCount;
+	}
+	,validateItems: function(items,explicitWidth,minWidth,maxWidth,explicitHeight,minHeight,maxHeight,distributedHeight) {
+		var needsHeight = explicitHeight != explicitHeight;
+		var containerHeight = explicitHeight;
+		if(needsHeight) {
+			containerHeight = minHeight;
+		}
+		var isJustified = this._horizontalAlign == "justify";
+		var itemCount = items.length;
+		var item;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			item = items[i];
+			if(item == null || js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+				continue;
+			}
+			var itemWidth;
+			var measureItem;
+			var itemExplicitMinWidth;
+			if(isJustified) {
+				item.set_width(explicitWidth);
+				if(js_Boot.__implements(item,feathers_core_IFeathersControl)) {
+					var feathersItem = js_Boot.__cast(item , feathers_core_IFeathersControl);
+					feathersItem.set_minWidth(minWidth);
+					feathersItem.set_maxWidth(maxWidth);
+				}
+			} else if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+				var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				var layoutData = layoutItem.get_layoutData();
+				if(layoutData != null) {
+					var percentWidth = layoutData.get_percentWidth();
+					var percentHeight = layoutData.get_percentHeight();
+					if(percentWidth == percentWidth) {
+						if(percentWidth < 0) {
+							percentWidth = 0;
+						}
+						if(percentWidth > 100) {
+							percentWidth = 100;
+						}
+						itemWidth = explicitWidth * percentWidth / 100;
+						measureItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+						itemExplicitMinWidth = measureItem.get_explicitMinWidth();
+						if(measureItem.get_explicitMinWidth() == measureItem.get_explicitMinWidth() && itemWidth < itemExplicitMinWidth) {
+							itemWidth = itemExplicitMinWidth;
+						}
+						if(itemWidth > maxWidth) {
+							itemWidth = maxWidth;
+						}
+						item.set_width(itemWidth);
+						if(measureItem.get_explicitWidth() != measureItem.get_explicitWidth() && measureItem.get_maxWidth() > maxWidth) {
+							measureItem.set_maxWidth(maxWidth);
+						}
+					}
+					if(percentHeight == percentHeight) {
+						var itemHeight = containerHeight * percentHeight / 100;
+						measureItem = item;
+						var itemExplicitMinHeight = measureItem.get_explicitMinHeight();
+						if(measureItem.get_explicitMinHeight() == measureItem.get_explicitMinHeight() && itemHeight < itemExplicitMinHeight) {
+							itemHeight = itemExplicitMinHeight;
+						}
+						measureItem.set_maxHeight(itemHeight);
+						item.set_height(NaN);
+					}
+				}
+			}
+			if(this._distributeHeights) {
+				item.set_height(distributedHeight);
+			}
+			if(js_Boot.__implements(item,feathers_core_IValidating)) {
+				(js_Boot.__cast(item , feathers_core_IValidating)).validate();
+			}
+		}
+	}
+	,prepareTypicalItem: function(justifyWidth) {
+		if(this._typicalItem == null) {
+			return;
+		}
+		var hasSetWidth = false;
+		if(this._horizontalAlign == "justify" && justifyWidth == justifyWidth) {
+			hasSetWidth = true;
+			this._typicalItem.set_width(justifyWidth);
+		} else if(js_Boot.__implements(this._typicalItem,feathers_layout_ILayoutDisplayObject)) {
+			var layoutItem = this._typicalItem;
+			var layoutData = layoutItem.get_layoutData();
+			if(layoutData != null) {
+				var percentWidth = layoutData.get_percentWidth();
+				if(percentWidth == percentWidth) {
+					if(percentWidth < 0) {
+						percentWidth = 0;
+					}
+					if(percentWidth > 100) {
+						percentWidth = 100;
+					}
+					hasSetWidth = true;
+					this._typicalItem.set_width(justifyWidth * percentWidth / 100);
+				}
+			}
+		}
+		if(!hasSetWidth && this._resetTypicalItemDimensionsOnMeasure) {
+			this._typicalItem.set_width(this._typicalItemWidth);
+		}
+		if(this._resetTypicalItemDimensionsOnMeasure) {
+			this._typicalItem.set_height(this._typicalItemHeight);
+		}
+		if(js_Boot.__implements(this._typicalItem,feathers_core_IValidating)) {
+			(js_Boot.__cast(this._typicalItem , feathers_core_IValidating)).validate();
+		}
+	}
+	,calculateDistributedHeight: function(items,explicitHeight,minHeight,maxHeight,measureItems) {
+		var needsHeight = explicitHeight != explicitHeight;
+		var includedItemCount = 0;
+		var maxItemHeight = 0;
+		var itemCount = items.length;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = items[i];
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+				continue;
+			}
+			++includedItemCount;
+			var itemHeight = item.get_height();
+			if(itemHeight > maxItemHeight) {
+				maxItemHeight = itemHeight;
+			}
+		}
+		if(measureItems && needsHeight) {
+			explicitHeight = maxItemHeight * includedItemCount + this._paddingTop + this._paddingBottom + this._gap * (includedItemCount - 1);
+			var needsRecalculation = false;
+			if(explicitHeight > maxHeight) {
+				explicitHeight = maxHeight;
+				needsRecalculation = true;
+			} else if(explicitHeight < minHeight) {
+				explicitHeight = minHeight;
+				needsRecalculation = true;
+			}
+			if(!needsRecalculation) {
+				return maxItemHeight;
+			}
+		}
+		var availableSpace = explicitHeight;
+		if(needsHeight && maxHeight < Infinity) {
+			availableSpace = maxHeight;
+		}
+		availableSpace = availableSpace - this._paddingTop - this._paddingBottom - this._gap * (includedItemCount - 1);
+		if(includedItemCount > 1 && this._firstGap == this._firstGap) {
+			availableSpace += this._gap - this._firstGap;
+		}
+		if(includedItemCount > 2 && this._lastGap == this._lastGap) {
+			availableSpace += this._gap - this._lastGap;
+		}
+		return availableSpace / includedItemCount;
+	}
+	,applyPercentHeights: function(items,explicitHeight,minHeight,maxHeight) {
+		var remainingHeight = explicitHeight;
+		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		var totalExplicitHeight = 0;
+		var totalMinHeight = 0;
+		var totalPercentHeight = 0;
+		var itemCount = items.length;
+		var pushIndex = 0;
+		var layoutItem;
+		var layoutData;
+		var percentHeight;
+		var feathersItem;
+		var _g = 0;
+		var _g1 = itemCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var item = items[i];
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
+				layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				if(!layoutItem.get_includeInLayout()) {
+					continue;
+				}
+				layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_VerticalLayoutData);
+				if(layoutData != null) {
+					percentHeight = layoutData.get_percentHeight();
+					if(percentHeight == percentHeight) {
+						if(percentHeight < 0) {
+							percentHeight = 0;
+						}
+						if(js_Boot.__implements(layoutItem,feathers_core_IFeathersControl)) {
+							feathersItem = js_Boot.__cast(layoutItem , feathers_core_IFeathersControl);
+							totalMinHeight += feathersItem.get_minHeight();
+						}
+						totalPercentHeight += percentHeight;
+						totalExplicitHeight += this._gap;
+						this._discoveredItemsCache[pushIndex] = item;
+						++pushIndex;
+						continue;
+					}
+				}
+			}
+			totalExplicitHeight += item.get_height() + this._gap;
+		}
+		totalExplicitHeight -= this._gap;
+		if(this._firstGap == this._firstGap && itemCount > 1) {
+			totalExplicitHeight += this._firstGap - this._gap;
+		} else if(this._lastGap == this._lastGap && itemCount > 2) {
+			totalExplicitHeight += this._lastGap - this._gap;
+		}
+		totalExplicitHeight += this._paddingTop + this._paddingBottom;
+		if(totalPercentHeight < 100) {
+			totalPercentHeight = 100;
+		}
+		if(remainingHeight != remainingHeight) {
+			remainingHeight = totalExplicitHeight + totalMinHeight;
+			if(remainingHeight < minHeight) {
+				remainingHeight = minHeight;
+			} else if(remainingHeight > maxHeight) {
+				remainingHeight = maxHeight;
+			}
+		}
+		remainingHeight -= totalExplicitHeight;
+		if(remainingHeight < 0) {
+			remainingHeight = 0;
+		}
+		var needsAnotherPass = false;
+		while(true) {
+			var percentToPixels = remainingHeight / totalPercentHeight;
+			var _g = 0;
+			var _g1 = pushIndex;
+			while(_g < _g1) {
+				var i = _g++;
+				layoutItem = this._discoveredItemsCache[i];
+				if(layoutItem == null) {
+					continue;
+				}
+				layoutData = layoutItem.get_layoutData();
+				percentHeight = layoutData.get_percentHeight();
+				if(percentHeight < 0) {
+					percentHeight = 0;
+				}
+				var itemHeight = percentToPixels * percentHeight;
+				if(js_Boot.__implements(layoutItem,feathers_core_IFeathersControl)) {
+					feathersItem = layoutItem;
+					var itemMinHeight = feathersItem.get_explicitMinHeight();
+					if(itemMinHeight > remainingHeight) {
+						itemMinHeight = remainingHeight;
+					}
+					if(itemHeight < itemMinHeight) {
+						itemHeight = itemMinHeight;
+						remainingHeight -= itemHeight;
+						totalPercentHeight -= percentHeight;
+						this._discoveredItemsCache[i] = null;
+						needsAnotherPass = true;
+					}
+				}
+				layoutItem.set_height(itemHeight);
+				if(js_Boot.__implements(layoutItem,feathers_core_IValidating)) {
+					(js_Boot.__cast(layoutItem , feathers_core_IValidating)).validate();
+				}
+			}
+			if(!needsAnotherPass) {
+				break;
+			}
+		}
+		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+	}
+	,calculateScrollRangeOfIndex: function(index,items,x,y,width,height,result) {
+		var calculatedTypicalItemWidth = NaN;
+		var calculatedTypicalItemHeight = NaN;
+		if(this._useVirtualLayout) {
+			this.prepareTypicalItem(width - this._paddingLeft - this._paddingRight);
+			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
+			calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
+		}
+		var headerIndicesIndex = -1;
+		var nextHeaderIndex = -1;
+		var headerCount = 0;
+		var lastHeaderHeight = 0;
+		if(this._headerIndices != null && this._stickyHeader) {
+			headerCount = this._headerIndices.length;
+			if(headerCount > 0) {
+				headerIndicesIndex = 0;
+				nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+			}
+		}
+		var hasFirstGap = this._firstGap == this._firstGap;
+		var hasLastGap = this._lastGap == this._lastGap;
+		var positionY = y + this._paddingTop;
+		var lastHeight = 0;
+		var gap = this._gap;
+		var startIndexOffset = 0;
+		var endIndexOffset = 0;
+		var itemCount = items.length;
+		var totalItemCount = itemCount;
+		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
+			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
+			if(index < this._beforeVirtualizedItemCount) {
+				startIndexOffset = index + 1;
+				lastHeight = calculatedTypicalItemHeight;
+				gap = this._gap;
+			} else {
+				startIndexOffset = this._beforeVirtualizedItemCount;
+				endIndexOffset = index - items.length - this._beforeVirtualizedItemCount + 1;
+				if(endIndexOffset < 0) {
+					endIndexOffset = 0;
+				}
+				positionY += endIndexOffset * (calculatedTypicalItemHeight + this._gap);
+			}
+			positionY += startIndexOffset * (calculatedTypicalItemHeight + this._gap);
+		}
+		index -= startIndexOffset + endIndexOffset | 0;
+		var secondToLastIndex = totalItemCount - 2;
+		var item;
+		var iNormalized;
+		var cachedHeight = NaN;
+		var _g = 0;
+		var _g1 = index + 1;
+		while(_g < _g1) {
+			var i = _g++;
+			item = items[i];
+			iNormalized = i + startIndexOffset;
+			if(hasFirstGap && iNormalized == 0) {
+				gap = this._firstGap;
+			} else if(hasLastGap && iNormalized > 0 && iNormalized == secondToLastIndex) {
+				gap = this._lastGap;
+			} else {
+				gap = this._gap;
+			}
+			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
+				cachedHeight = this._virtualCache[iNormalized];
+			}
+			if(this._useVirtualLayout && item != null) {
+				if(!this._hasVariableItemDimensions || cachedHeight != cachedHeight) {
+					lastHeight = calculatedTypicalItemHeight;
+				} else {
+					lastHeight = cachedHeight;
+				}
+			} else {
+				var itemHeight = item.get_height();
+				if(this._useVirtualLayout) {
+					if(this._hasVariableItemDimensions) {
+						if(itemHeight != cachedHeight) {
+							this._virtualCache[iNormalized] = itemHeight;
+							this.dispatchEventWith("change");
+						}
+					} else if(calculatedTypicalItemHeight >= 0) {
+						itemHeight = calculatedTypicalItemHeight;
+						item.set_height(itemHeight);
+					}
+				}
+				lastHeight = itemHeight;
+			}
+			positionY += lastHeight + gap;
+			if(nextHeaderIndex == iNormalized) {
+				lastHeaderHeight = lastHeight;
+				++headerIndicesIndex;
+				if(headerIndicesIndex < headerCount) {
+					nextHeaderIndex = this._headerIndices[headerIndicesIndex];
+				}
+			}
+		}
+		positionY -= lastHeight + gap;
+		result.x = positionY - height;
+		if(this._stickyHeader && this._headerIndices != null && this._headerIndices.indexOf(index) == -1) {
+			positionY -= lastHeaderHeight;
+		}
+		result.y = positionY;
+	}
+	,positionStickyHeader: function(header,scrollY,maxY) {
+		if(header == null || header.get_y() >= scrollY) {
+			return;
+		}
+		if(js_Boot.__implements(header,feathers_core_IValidating)) {
+			(js_Boot.__cast(header , feathers_core_IValidating)).validate();
+		}
+		maxY -= header.get_height();
+		if(maxY > scrollY) {
+			maxY = scrollY;
+		}
+		header.set_y(maxY);
+		var headerParent = header.get_parent();
+		if(headerParent != null) {
+			headerParent.setChildIndex(header,headerParent.get_numChildren() - 1);
+		}
+	}
+	,__class__: feathers_layout_VerticalLayout
+	,__properties__: $extend(feathers_layout_BaseLinearLayout.prototype.__properties__,{set_headerScrollPositionVerticalAlign:"set_headerScrollPositionVerticalAlign",get_headerScrollPositionVerticalAlign:"get_headerScrollPositionVerticalAlign",set_scrollPositionVerticalAlign:"set_scrollPositionVerticalAlign",get_scrollPositionVerticalAlign:"get_scrollPositionVerticalAlign",set_maxRowCount:"set_maxRowCount",get_maxRowCount:"get_maxRowCount",set_requestedRowCount:"set_requestedRowCount",get_requestedRowCount:"get_requestedRowCount",set_distributeHeights:"set_distributeHeights",get_distributeHeights:"get_distributeHeights",set_headerIndices:"set_headerIndices",get_headerIndices:"get_headerIndices",set_stickyHeader:"set_stickyHeader",get_stickyHeader:"get_stickyHeader"})
+});
+var Game = function() {
+	starling_display_Sprite.call(this);
+};
+$hxClasses["Game"] = Game;
+Game.__name__ = "Game";
+Game.assetManager = null;
+Game.uiBuilder = null;
+Game.__super__ = starling_display_Sprite;
+Game.prototype = $extend(starling_display_Sprite.prototype,{
+	_assetMediator: null
+	,_sprite: null
+	,start: function() {
+		var _gthis = this;
+		Game.assetManager = new starling_utils_AssetManager();
+		this._assetMediator = new starlingbuilder_demo_AssetMediator(Game.assetManager);
+		Game.uiBuilder = new starlingbuilder_engine_UIBuilder(this._assetMediator);
+		var loader = new starlingbuilder_engine_LayoutLoader(ParsedLayouts);
+		Game.assetManager.enqueue([openfl_utils_Assets.getPath("assets/textures/atlas.png"),openfl_utils_Assets.getPath("assets/textures/atlas.xml")]);
+		Game.assetManager.loadQueue(function(ratio) {
+			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 53, className : "Game", methodName : "start"});
+			if(ratio == 1) {
+				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 55, className : "Game", methodName : "start"});
+				_gthis._sprite = new starling_display_Sprite();
+				_gthis._sprite = Game.uiBuilder.create(ParsedLayouts.game_ui,false,_gthis);
+				_gthis.addChild(_gthis._sprite);
+				_gthis.onResize(null);
+			}
+		});
+		starling_core_Starling.get_current().get_stage().addEventListener("resize",$bind(this,this.onResize));
+	}
+	,onResize: function(event) {
+		this.center(this._sprite);
+	}
+	,center: function(obj) {
+		obj.set_x((starling_core_Starling.get_current().get_stage().get_stageWidth() - obj.get_width()) * 0.5);
+		obj.set_y((starling_core_Starling.get_current().get_stage().get_stageHeight() - obj.get_height()) * 0.5);
+	}
+	,__class__: Game
+});
+var HxOverrides = function() { };
+$hxClasses["HxOverrides"] = HxOverrides;
+HxOverrides.__name__ = "HxOverrides";
+HxOverrides.strDate = function(s) {
+	switch(s.length) {
+	case 8:
+		var k = s.split(":");
+		var d = new Date();
+		d["setTime"](0);
+		d["setUTCHours"](k[0]);
+		d["setUTCMinutes"](k[1]);
+		d["setUTCSeconds"](k[2]);
+		return d;
+	case 10:
+		var k = s.split("-");
+		return new Date(k[0],k[1] - 1,k[2],0,0,0);
+	case 19:
+		var k = s.split(" ");
+		var y = k[0].split("-");
+		var t = k[1].split(":");
+		return new Date(y[0],y[1] - 1,y[2],t[0],t[1],t[2]);
+	default:
+		throw haxe_Exception.thrown("Invalid date format : " + s);
+	}
+};
+HxOverrides.cca = function(s,index) {
+	var x = s.charCodeAt(index);
+	if(x != x) {
+		return undefined;
+	}
+	return x;
+};
+HxOverrides.substr = function(s,pos,len) {
+	if(len == null) {
+		len = s.length;
+	} else if(len < 0) {
+		if(pos == 0) {
+			len = s.length + len;
+		} else {
+			return "";
+		}
+	}
+	return s.substr(pos,len);
+};
+HxOverrides.remove = function(a,obj) {
+	var i = a.indexOf(obj);
+	if(i == -1) {
+		return false;
+	}
+	a.splice(i,1);
+	return true;
+};
+HxOverrides.now = function() {
+	return Date.now();
+};
+var Lambda = function() { };
+$hxClasses["Lambda"] = Lambda;
+Lambda.__name__ = "Lambda";
+Lambda.array = function(it) {
+	var a = [];
+	var i = $getIterator(it);
+	while(i.hasNext()) {
+		var i1 = i.next();
+		a.push(i1);
+	}
+	return a;
+};
+Lambda.count = function(it,pred) {
+	var n = 0;
+	if(pred == null) {
+		var _ = $getIterator(it);
+		while(_.hasNext()) {
+			var _1 = _.next();
+			++n;
+		}
+	} else {
+		var x = $getIterator(it);
+		while(x.hasNext()) {
+			var x1 = x.next();
+			if(pred(x1)) {
+				++n;
+			}
+		}
+	}
+	return n;
+};
+var ManifestResources = function() { };
+$hxClasses["ManifestResources"] = ManifestResources;
+ManifestResources.__name__ = "ManifestResources";
+ManifestResources.preloadLibraries = null;
+ManifestResources.preloadLibraryNames = null;
+ManifestResources.rootPath = null;
+ManifestResources.init = function(config) {
+	ManifestResources.preloadLibraries = [];
+	ManifestResources.preloadLibraryNames = [];
+	ManifestResources.rootPath = null;
+	if(config != null && Object.prototype.hasOwnProperty.call(config,"rootPath")) {
+		ManifestResources.rootPath = Reflect.field(config,"rootPath");
+	}
+	if(ManifestResources.rootPath == null) {
+		ManifestResources.rootPath = "./";
+	}
+	var bundle;
+	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei4921y4:typey4:TEXTy2:idR1y7:preloadtgoR0y24:assets%2Fgame_ui_01.jsonR2i1394R3R4R5R7R6tgoR0y24:assets%2Fgame_ui_02.jsonR2i3559R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R9R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R10R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R11R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R12R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R13R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R14R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R15R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R16R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R17R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R19R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R22R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R20R5R23R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
+	var manifest = lime_utils_AssetManifest.parse(data,ManifestResources.rootPath);
+	var library = lime_utils_AssetLibrary.fromManifest(manifest);
+	lime_utils_Assets.registerLibrary("default",library);
+	library = lime_utils_Assets.getLibrary("default");
+	if(library != null) {
+		ManifestResources.preloadLibraries.push(library);
+	} else {
+		ManifestResources.preloadLibraryNames.push("default");
+	}
+};
+Math.__name__ = "Math";
+var ParsedLayouts = function() { };
+$hxClasses["ParsedLayouts"] = ParsedLayouts;
+ParsedLayouts.__name__ = "ParsedLayouts";
+ParsedLayouts.game_ui = null;
+var Reflect = function() { };
+$hxClasses["Reflect"] = Reflect;
+Reflect.__name__ = "Reflect";
+Reflect.field = function(o,field) {
+	try {
+		return o[field];
+	} catch( _g ) {
+		haxe_NativeStackTrace.lastError = _g;
+		return null;
+	}
+};
+Reflect.getProperty = function(o,field) {
+	var tmp;
+	if(o == null) {
+		return null;
+	} else {
+		var tmp1;
+		if(o.__properties__) {
+			tmp = o.__properties__["get_" + field];
+			tmp1 = tmp;
+		} else {
+			tmp1 = false;
+		}
+		if(tmp1) {
+			return o[tmp]();
+		} else {
+			return o[field];
+		}
+	}
+};
+Reflect.setProperty = function(o,field,value) {
+	var tmp;
+	var tmp1;
+	if(o.__properties__) {
+		tmp = o.__properties__["set_" + field];
+		tmp1 = tmp;
+	} else {
+		tmp1 = false;
+	}
+	if(tmp1) {
+		o[tmp](value);
+	} else {
+		o[field] = value;
+	}
+};
+Reflect.fields = function(o) {
+	var a = [];
+	if(o != null) {
+		var hasOwnProperty = Object.prototype.hasOwnProperty;
+		for( var f in o ) {
+		if(f != "__id__" && f != "hx__closures__" && hasOwnProperty.call(o,f)) {
+			a.push(f);
+		}
+		}
+	}
+	return a;
+};
+Reflect.isFunction = function(f) {
+	if(typeof(f) == "function") {
+		return !(f.__name__ || f.__ename__);
+	} else {
+		return false;
+	}
+};
+Reflect.compare = function(a,b) {
+	if(a == b) {
+		return 0;
+	} else if(a > b) {
+		return 1;
+	} else {
+		return -1;
+	}
+};
+Reflect.compareMethods = function(f1,f2) {
+	if(f1 == f2) {
+		return true;
+	}
+	if(!Reflect.isFunction(f1) || !Reflect.isFunction(f2)) {
+		return false;
+	}
+	if(f1.scope == f2.scope && f1.method == f2.method) {
+		return f1.method != null;
+	} else {
+		return false;
+	}
+};
+Reflect.isEnumValue = function(v) {
+	if(v != null) {
+		return v.__enum__ != null;
+	} else {
+		return false;
+	}
+};
+Reflect.deleteField = function(o,field) {
+	if(!Object.prototype.hasOwnProperty.call(o,field)) {
+		return false;
+	}
+	delete(o[field]);
+	return true;
+};
+Reflect.makeVarArgs = function(f) {
+	return function() {
+		var a = Array.prototype.slice;
+		var a1 = arguments;
+		var a2 = a.call(a1);
+		return f(a2);
+	};
+};
+var Std = function() { };
+$hxClasses["Std"] = Std;
+Std.__name__ = "Std";
+Std.string = function(s) {
+	return js_Boot.__string_rec(s,"");
+};
+Std.parseInt = function(x) {
+	if(x != null) {
+		var _g = 0;
+		var _g1 = x.length;
+		while(_g < _g1) {
+			var i = _g++;
+			var c = x.charCodeAt(i);
+			if(c <= 8 || c >= 14 && c != 32 && c != 45) {
+				var nc = x.charCodeAt(i + 1);
+				var v = parseInt(x,nc == 120 || nc == 88 ? 16 : 10);
+				if(isNaN(v)) {
+					return null;
+				} else {
+					return v;
+				}
+			}
+		}
+	}
+	return null;
+};
+var _$String_String_$Impl_$ = function() { };
+$hxClasses["_String.String_Impl_"] = _$String_String_$Impl_$;
+_$String_String_$Impl_$.__name__ = "_String.String_Impl_";
+_$String_String_$Impl_$.fromCharCode = function(code) {
+	return String.fromCodePoint(code);
+};
+var StringBuf = function() {
+	this.b = "";
+};
+$hxClasses["StringBuf"] = StringBuf;
+StringBuf.__name__ = "StringBuf";
+StringBuf.prototype = {
+	b: null
+	,__class__: StringBuf
+};
+var StringTools = function() { };
+$hxClasses["StringTools"] = StringTools;
+StringTools.__name__ = "StringTools";
+StringTools.htmlEscape = function(s,quotes) {
+	var buf_b = "";
+	var _g_offset = 0;
+	var _g_s = s;
+	while(_g_offset < _g_s.length) {
+		var s = _g_s;
+		var index = _g_offset++;
+		var c = s.charCodeAt(index);
+		if(c >= 55296 && c <= 56319) {
+			c = c - 55232 << 10 | s.charCodeAt(index + 1) & 1023;
+		}
+		var c1 = c;
+		if(c1 >= 65536) {
+			++_g_offset;
+		}
+		var code = c1;
+		switch(code) {
+		case 34:
+			if(quotes) {
+				buf_b += "&quot;";
+			} else {
+				buf_b += String.fromCodePoint(code);
+			}
+			break;
+		case 38:
+			buf_b += "&amp;";
+			break;
+		case 39:
+			if(quotes) {
+				buf_b += "&#039;";
+			} else {
+				buf_b += String.fromCodePoint(code);
+			}
+			break;
+		case 60:
+			buf_b += "&lt;";
+			break;
+		case 62:
+			buf_b += "&gt;";
+			break;
+		default:
+			buf_b += String.fromCodePoint(code);
+		}
+	}
+	return buf_b;
+};
+StringTools.htmlUnescape = function(s) {
+	return s.split("&gt;").join(">").split("&lt;").join("<").split("&quot;").join("\"").split("&#039;").join("'").split("&amp;").join("&");
+};
+StringTools.startsWith = function(s,start) {
+	if(s.length >= start.length) {
+		return s.lastIndexOf(start,0) == 0;
+	} else {
+		return false;
+	}
+};
+StringTools.endsWith = function(s,end) {
+	var elen = end.length;
+	var slen = s.length;
+	if(slen >= elen) {
+		return s.indexOf(end,slen - elen) == slen - elen;
+	} else {
+		return false;
+	}
+};
+StringTools.isSpace = function(s,pos) {
+	var c = HxOverrides.cca(s,pos);
+	if(!(c > 8 && c < 14)) {
+		return c == 32;
+	} else {
+		return true;
+	}
+};
+StringTools.ltrim = function(s) {
+	var l = s.length;
+	var r = 0;
+	while(r < l && StringTools.isSpace(s,r)) ++r;
+	if(r > 0) {
+		return HxOverrides.substr(s,r,l - r);
+	} else {
+		return s;
+	}
+};
+StringTools.rtrim = function(s) {
+	var l = s.length;
+	var r = 0;
+	while(r < l && StringTools.isSpace(s,l - r - 1)) ++r;
+	if(r > 0) {
+		return HxOverrides.substr(s,0,l - r);
+	} else {
+		return s;
+	}
+};
+StringTools.trim = function(s) {
+	return StringTools.ltrim(StringTools.rtrim(s));
+};
+StringTools.replace = function(s,sub,by) {
+	return s.split(sub).join(by);
+};
+StringTools.hex = function(n,digits) {
+	var s = "";
+	var hexChars = "0123456789ABCDEF";
+	while(true) {
+		s = hexChars.charAt(n & 15) + s;
+		n >>>= 4;
+		if(!(n > 0)) {
+			break;
+		}
+	}
+	if(digits != null) {
+		while(s.length < digits) s = "0" + s;
+	}
+	return s;
+};
+var ValueType = $hxEnums["ValueType"] = { __ename__:"ValueType",__constructs__:null
+	,TNull: {_hx_name:"TNull",_hx_index:0,__enum__:"ValueType",toString:$estr}
+	,TInt: {_hx_name:"TInt",_hx_index:1,__enum__:"ValueType",toString:$estr}
+	,TFloat: {_hx_name:"TFloat",_hx_index:2,__enum__:"ValueType",toString:$estr}
+	,TBool: {_hx_name:"TBool",_hx_index:3,__enum__:"ValueType",toString:$estr}
+	,TObject: {_hx_name:"TObject",_hx_index:4,__enum__:"ValueType",toString:$estr}
+	,TFunction: {_hx_name:"TFunction",_hx_index:5,__enum__:"ValueType",toString:$estr}
+	,TClass: ($_=function(c) { return {_hx_index:6,c:c,__enum__:"ValueType",toString:$estr}; },$_._hx_name="TClass",$_.__params__ = ["c"],$_)
+	,TEnum: ($_=function(e) { return {_hx_index:7,e:e,__enum__:"ValueType",toString:$estr}; },$_._hx_name="TEnum",$_.__params__ = ["e"],$_)
+	,TUnknown: {_hx_name:"TUnknown",_hx_index:8,__enum__:"ValueType",toString:$estr}
+};
+ValueType.__constructs__ = [ValueType.TNull,ValueType.TInt,ValueType.TFloat,ValueType.TBool,ValueType.TObject,ValueType.TFunction,ValueType.TClass,ValueType.TEnum,ValueType.TUnknown];
+var Type = function() { };
+$hxClasses["Type"] = Type;
+Type.__name__ = "Type";
+Type.createInstance = function(cl,args) {
+	var ctor = Function.prototype.bind.apply(cl,[null].concat(args));
+	return new (ctor);
+};
+Type.createEnum = function(e,constr,params) {
+	var f = Reflect.field(e,constr);
+	if(f == null) {
+		throw haxe_Exception.thrown("No such constructor " + constr);
+	}
+	if(Reflect.isFunction(f)) {
+		if(params == null) {
+			throw haxe_Exception.thrown("Constructor " + constr + " need parameters");
+		}
+		return f.apply(e,params);
+	}
+	if(params != null && params.length != 0) {
+		throw haxe_Exception.thrown("Constructor " + constr + " does not need parameters");
+	}
+	return f;
+};
+Type.getInstanceFields = function(c) {
+	var a = [];
+	for(var i in c.prototype) a.push(i);
+	HxOverrides.remove(a,"__class__");
+	HxOverrides.remove(a,"__properties__");
+	return a;
+};
+Type.getClassFields = function(c) {
+	var a = Reflect.fields(c);
+	HxOverrides.remove(a,"__name__");
+	HxOverrides.remove(a,"__interfaces__");
+	HxOverrides.remove(a,"__properties__");
+	HxOverrides.remove(a,"__super__");
+	HxOverrides.remove(a,"__meta__");
+	HxOverrides.remove(a,"prototype");
+	return a;
+};
+Type.typeof = function(v) {
+	switch(typeof(v)) {
+	case "boolean":
+		return ValueType.TBool;
+	case "function":
+		if(v.__name__ || v.__ename__) {
+			return ValueType.TObject;
+		}
+		return ValueType.TFunction;
+	case "number":
+		if(Math.ceil(v) == v % 2147483648.0) {
+			return ValueType.TInt;
+		}
+		return ValueType.TFloat;
+	case "object":
+		if(v == null) {
+			return ValueType.TNull;
+		}
+		var e = v.__enum__;
+		if(e != null) {
+			return ValueType.TEnum($hxEnums[e]);
+		}
+		var c = js_Boot.getClass(v);
+		if(c != null) {
+			return ValueType.TClass(c);
+		}
+		return ValueType.TObject;
+	case "string":
+		return ValueType.TClass(String);
+	case "undefined":
+		return ValueType.TNull;
+	default:
+		return ValueType.TUnknown;
+	}
+};
+Type.enumParameters = function(e) {
+	var enm = $hxEnums[e.__enum__];
+	var params = enm.__constructs__[e._hx_index].__params__;
+	if(params != null) {
+		var _g = [];
+		var _g1 = 0;
+		while(_g1 < params.length) {
+			var p = params[_g1];
+			++_g1;
+			_g.push(e[p]);
+		}
+		return _g;
+	} else {
+		return [];
+	}
+};
+var UInt = {};
+UInt.gt = function(a,b) {
+	var aNeg = a < 0;
+	var bNeg = b < 0;
+	if(aNeg != bNeg) {
+		return aNeg;
+	} else {
+		return a > b;
+	}
+};
+UInt.toFloat = function(this1) {
+	var int = this1;
+	if(int < 0) {
+		return 4294967296.0 + int;
+	} else {
+		return int + 0.0;
+	}
+};
+var XmlType = {};
+XmlType.toString = function(this1) {
+	switch(this1) {
+	case 0:
+		return "Element";
+	case 1:
+		return "PCData";
+	case 2:
+		return "CData";
+	case 3:
+		return "Comment";
+	case 4:
+		return "DocType";
+	case 5:
+		return "ProcessingInstruction";
+	case 6:
+		return "Document";
+	}
+};
+var Xml = function(nodeType) {
+	this.nodeType = nodeType;
+	this.children = [];
+	this.attributeMap = new haxe_ds_StringMap();
+};
+$hxClasses["Xml"] = Xml;
+Xml.__name__ = "Xml";
+Xml.parse = function(str) {
+	return haxe_xml_Parser.parse(str);
+};
+Xml.createElement = function(name) {
+	var xml = new Xml(Xml.Element);
+	if(xml.nodeType != Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, expected Element but found " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeName = name;
+	return xml;
+};
+Xml.createPCData = function(data) {
+	var xml = new Xml(Xml.PCData);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createCData = function(data) {
+	var xml = new Xml(Xml.CData);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createComment = function(data) {
+	var xml = new Xml(Xml.Comment);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createDocType = function(data) {
+	var xml = new Xml(Xml.DocType);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createProcessingInstruction = function(data) {
+	var xml = new Xml(Xml.ProcessingInstruction);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createDocument = function() {
+	return new Xml(Xml.Document);
+};
+Xml.prototype = {
+	nodeType: null
+	,nodeName: null
+	,nodeValue: null
+	,parent: null
+	,children: null
+	,attributeMap: null
+	,get: function(att) {
+		if(this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		return this.attributeMap.h[att];
+	}
+	,set: function(att,value) {
+		if(this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		this.attributeMap.h[att] = value;
+	}
+	,exists: function(att) {
+		if(this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		return Object.prototype.hasOwnProperty.call(this.attributeMap.h,att);
+	}
+	,attributes: function() {
+		if(this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		return new haxe_ds__$StringMap_StringMapKeyIterator(this.attributeMap.h);
+	}
+	,elementsNamed: function(name) {
+		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		var _g = [];
+		var _g1 = 0;
+		var _g2 = this.children;
+		while(_g1 < _g2.length) {
+			var child = _g2[_g1];
+			++_g1;
+			var tmp;
+			if(child.nodeType == Xml.Element) {
+				if(child.nodeType != Xml.Element) {
+					throw haxe_Exception.thrown("Bad node type, expected Element but found " + (child.nodeType == null ? "null" : XmlType.toString(child.nodeType)));
+				}
+				tmp = child.nodeName == name;
+			} else {
+				tmp = false;
+			}
+			if(tmp) {
+				_g.push(child);
+			}
+		}
+		var ret = _g;
+		return new haxe_iterators_ArrayIterator(ret);
+	}
+	,firstElement: function() {
+		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		var _g = 0;
+		var _g1 = this.children;
+		while(_g < _g1.length) {
+			var child = _g1[_g];
+			++_g;
+			if(child.nodeType == Xml.Element) {
+				return child;
+			}
+		}
+		return null;
+	}
+	,addChild: function(x) {
+		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		if(x.parent != null) {
+			x.parent.removeChild(x);
+		}
+		this.children.push(x);
+		x.parent = this;
+	}
+	,removeChild: function(x) {
+		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		if(HxOverrides.remove(this.children,x)) {
+			x.parent = null;
+			return true;
+		}
+		return false;
+	}
+	,toString: function() {
+		return haxe_xml_Printer.print(this);
+	}
+	,__class__: Xml
+};
+var feathers_controls_AutoSizeMode = function() { };
+$hxClasses["feathers.controls.AutoSizeMode"] = feathers_controls_AutoSizeMode;
+feathers_controls_AutoSizeMode.__name__ = "feathers.controls.AutoSizeMode";
 var feathers_core_IStateContext = function() { };
 $hxClasses["feathers.core.IStateContext"] = feathers_core_IStateContext;
 feathers_core_IStateContext.__name__ = "feathers.core.IStateContext";
@@ -10694,37 +18895,6 @@ feathers_core_ITextBaselineControl.prototype = {
 	get_baseline: null
 	,__class__: feathers_core_ITextBaselineControl
 	,__properties__: {get_baseline:"get_baseline"}
-};
-var feathers_core_IFocusDisplayObject = function() { };
-$hxClasses["feathers.core.IFocusDisplayObject"] = feathers_core_IFocusDisplayObject;
-feathers_core_IFocusDisplayObject.__name__ = "feathers.core.IFocusDisplayObject";
-feathers_core_IFocusDisplayObject.__isInterface__ = true;
-feathers_core_IFocusDisplayObject.__interfaces__ = [feathers_core_IFeathersDisplayObject];
-feathers_core_IFocusDisplayObject.prototype = {
-	get_focusManager: null
-	,set_focusManager: null
-	,get_isFocusEnabled: null
-	,set_isFocusEnabled: null
-	,get_nextTabFocus: null
-	,set_nextTabFocus: null
-	,get_previousTabFocus: null
-	,set_previousTabFocus: null
-	,get_nextUpFocus: null
-	,set_nextUpFocus: null
-	,get_nextRightFocus: null
-	,set_nextRightFocus: null
-	,get_nextDownFocus: null
-	,set_nextDownFocus: null
-	,get_nextLeftFocus: null
-	,set_nextLeftFocus: null
-	,get_focusOwner: null
-	,set_focusOwner: null
-	,get_isShowingFocus: null
-	,get_maintainTouchFocus: null
-	,showFocus: null
-	,hideFocus: null
-	,__class__: feathers_core_IFocusDisplayObject
-	,__properties__: {get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus",set_focusOwner:"set_focusOwner",get_focusOwner:"get_focusOwner",set_nextLeftFocus:"set_nextLeftFocus",get_nextLeftFocus:"get_nextLeftFocus",set_nextDownFocus:"set_nextDownFocus",get_nextDownFocus:"get_nextDownFocus",set_nextRightFocus:"set_nextRightFocus",get_nextRightFocus:"get_nextRightFocus",set_nextUpFocus:"set_nextUpFocus",get_nextUpFocus:"get_nextUpFocus",set_previousTabFocus:"set_previousTabFocus",get_previousTabFocus:"get_previousTabFocus",set_nextTabFocus:"set_nextTabFocus",get_nextTabFocus:"get_nextTabFocus",set_isFocusEnabled:"set_isFocusEnabled",get_isFocusEnabled:"get_isFocusEnabled",set_focusManager:"set_focusManager",get_focusManager:"get_focusManager"}
 };
 var feathers_controls_Button = function() {
 	this._ignoreIconResizes = false;
@@ -11860,738 +20030,810 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 	,__class__: feathers_controls_Button
 	,__properties__: $extend(feathers_controls_BasicButton.prototype.__properties__,{get_numLines:"get_numLines",get_baseline:"get_baseline",set_scaleWhenHovering:"set_scaleWhenHovering",get_scaleWhenHovering:"get_scaleWhenHovering",set_scaleWhenDown:"set_scaleWhenDown",get_scaleWhenDown:"get_scaleWhenDown",set_isLongPressEnabled:"set_isLongPressEnabled",get_isLongPressEnabled:"get_isLongPressEnabled",set_longPressDuration:"set_longPressDuration",get_longPressDuration:"get_longPressDuration",set_disabledIcon:"set_disabledIcon",get_disabledIcon:"get_disabledIcon",set_hoverIcon:"set_hoverIcon",get_hoverIcon:"get_hoverIcon",set_downIcon:"set_downIcon",get_downIcon:"get_downIcon",set_upIcon:"set_upIcon",get_upIcon:"get_upIcon",set_defaultIcon:"set_defaultIcon",get_defaultIcon:"get_defaultIcon",set_defaultLabelProperties:"set_defaultLabelProperties",get_defaultLabelProperties:"get_defaultLabelProperties",set_customLabelStyleName:"set_customLabelStyleName",get_customLabelStyleName:"get_customLabelStyleName",set_labelFactory:"set_labelFactory",get_labelFactory:"get_labelFactory",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_disabledFontStyles:"set_disabledFontStyles",get_disabledFontStyles:"get_disabledFontStyles",set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",set_iconOffsetY:"set_iconOffsetY",get_iconOffsetY:"get_iconOffsetY",set_iconOffsetX:"set_iconOffsetX",get_iconOffsetX:"get_iconOffsetX",set_labelOffsetY:"set_labelOffsetY",get_labelOffsetY:"get_labelOffsetY",set_labelOffsetX:"set_labelOffsetX",get_labelOffsetX:"get_labelOffsetX",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_verticalAlign:"set_verticalAlign",get_verticalAlign:"get_verticalAlign",set_horizontalAlign:"set_horizontalAlign",get_horizontalAlign:"get_horizontalAlign",set_minGap:"set_minGap",get_minGap:"get_minGap",set_gap:"set_gap",get_gap:"get_gap",set_iconPosition:"set_iconPosition",get_iconPosition:"get_iconPosition",set_hasLabelTextRenderer:"set_hasLabelTextRenderer",get_hasLabelTextRenderer:"get_hasLabelTextRenderer",set_label:"set_label",get_label:"get_label",get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus"})
 });
-var Game = function() {
-	starling_display_Sprite.call(this);
-};
-$hxClasses["Game"] = Game;
-Game.__name__ = "Game";
-Game.assetManager = null;
-Game.uiBuilder = null;
-Game.__super__ = starling_display_Sprite;
-Game.prototype = $extend(starling_display_Sprite.prototype,{
-	_assetMediator: null
-	,_sprite: null
-	,start: function() {
-		var _gthis = this;
-		Game.assetManager = new starling_utils_AssetManager();
-		this._assetMediator = new starlingbuilder_demo_AssetMediator(Game.assetManager);
-		Game.uiBuilder = new starlingbuilder_engine_UIBuilder(this._assetMediator);
-		var loader = new starlingbuilder_engine_LayoutLoader(ParsedLayouts);
-		Game.assetManager.enqueue([openfl_utils_Assets.getPath("assets/textures/atlas.png"),openfl_utils_Assets.getPath("assets/textures/atlas.xml")]);
-		Game.assetManager.loadQueue(function(ratio) {
-			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 43, className : "Game", methodName : "start"});
-			if(ratio == 1) {
-				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 45, className : "Game", methodName : "start"});
-				_gthis._sprite = new starling_display_Sprite();
-				_gthis._sprite = Game.uiBuilder.create(ParsedLayouts.game_ui,false,_gthis);
-				_gthis.addChild(_gthis._sprite);
-				_gthis.onResize(null);
-			}
-		});
-		starling_core_Starling.get_current().get_stage().addEventListener("resize",$bind(this,this.onResize));
-	}
-	,onResize: function(event) {
-		this.center(this._sprite);
-	}
-	,center: function(obj) {
-		obj.set_x((starling_core_Starling.get_current().get_stage().get_stageWidth() - obj.get_width()) * 0.5);
-		obj.set_y((starling_core_Starling.get_current().get_stage().get_stageHeight() - obj.get_height()) * 0.5);
-	}
-	,__class__: Game
-});
-var HxOverrides = function() { };
-$hxClasses["HxOverrides"] = HxOverrides;
-HxOverrides.__name__ = "HxOverrides";
-HxOverrides.strDate = function(s) {
-	switch(s.length) {
-	case 8:
-		var k = s.split(":");
-		var d = new Date();
-		d["setTime"](0);
-		d["setUTCHours"](k[0]);
-		d["setUTCMinutes"](k[1]);
-		d["setUTCSeconds"](k[2]);
-		return d;
-	case 10:
-		var k = s.split("-");
-		return new Date(k[0],k[1] - 1,k[2],0,0,0);
-	case 19:
-		var k = s.split(" ");
-		var y = k[0].split("-");
-		var t = k[1].split(":");
-		return new Date(y[0],y[1] - 1,y[2],t[0],t[1],t[2]);
-	default:
-		throw haxe_Exception.thrown("Invalid date format : " + s);
-	}
-};
-HxOverrides.cca = function(s,index) {
-	var x = s.charCodeAt(index);
-	if(x != x) {
-		return undefined;
-	}
-	return x;
-};
-HxOverrides.substr = function(s,pos,len) {
-	if(len == null) {
-		len = s.length;
-	} else if(len < 0) {
-		if(pos == 0) {
-			len = s.length + len;
-		} else {
-			return "";
-		}
-	}
-	return s.substr(pos,len);
-};
-HxOverrides.remove = function(a,obj) {
-	var i = a.indexOf(obj);
-	if(i == -1) {
-		return false;
-	}
-	a.splice(i,1);
-	return true;
-};
-HxOverrides.now = function() {
-	return Date.now();
-};
-var Lambda = function() { };
-$hxClasses["Lambda"] = Lambda;
-Lambda.__name__ = "Lambda";
-Lambda.array = function(it) {
-	var a = [];
-	var i = $getIterator(it);
-	while(i.hasNext()) {
-		var i1 = i.next();
-		a.push(i1);
-	}
-	return a;
-};
-Lambda.count = function(it,pred) {
-	var n = 0;
-	if(pred == null) {
-		var _ = $getIterator(it);
-		while(_.hasNext()) {
-			var _1 = _.next();
-			++n;
-		}
-	} else {
-		var x = $getIterator(it);
-		while(x.hasNext()) {
-			var x1 = x.next();
-			if(pred(x1)) {
-				++n;
-			}
-		}
-	}
-	return n;
-};
-var ManifestResources = function() { };
-$hxClasses["ManifestResources"] = ManifestResources;
-ManifestResources.__name__ = "ManifestResources";
-ManifestResources.preloadLibraries = null;
-ManifestResources.preloadLibraryNames = null;
-ManifestResources.rootPath = null;
-ManifestResources.init = function(config) {
-	ManifestResources.preloadLibraries = [];
-	ManifestResources.preloadLibraryNames = [];
-	ManifestResources.rootPath = null;
-	if(config != null && Object.prototype.hasOwnProperty.call(config,"rootPath")) {
-		ManifestResources.rootPath = Reflect.field(config,"rootPath");
-	}
-	if(ManifestResources.rootPath == null) {
-		ManifestResources.rootPath = "./";
-	}
-	var bundle;
-	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei3559y4:typey4:TEXTy2:idR1y7:preloadtgoR0y24:assets%2Fgame_ui_01.jsonR2i1394R3R4R5R7R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R9R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R10R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R11R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R12R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R13R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R14R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R15R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R16R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R17R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R20R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R19R5R22R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
-	var manifest = lime_utils_AssetManifest.parse(data,ManifestResources.rootPath);
-	var library = lime_utils_AssetLibrary.fromManifest(manifest);
-	lime_utils_Assets.registerLibrary("default",library);
-	library = lime_utils_Assets.getLibrary("default");
-	if(library != null) {
-		ManifestResources.preloadLibraries.push(library);
-	} else {
-		ManifestResources.preloadLibraryNames.push("default");
-	}
-};
-Math.__name__ = "Math";
-var ParsedLayouts = function() { };
-$hxClasses["ParsedLayouts"] = ParsedLayouts;
-ParsedLayouts.__name__ = "ParsedLayouts";
-ParsedLayouts.game_ui = null;
-var Reflect = function() { };
-$hxClasses["Reflect"] = Reflect;
-Reflect.__name__ = "Reflect";
-Reflect.field = function(o,field) {
-	try {
-		return o[field];
-	} catch( _g ) {
-		haxe_NativeStackTrace.lastError = _g;
-		return null;
-	}
-};
-Reflect.getProperty = function(o,field) {
-	var tmp;
-	if(o == null) {
-		return null;
-	} else {
-		var tmp1;
-		if(o.__properties__) {
-			tmp = o.__properties__["get_" + field];
-			tmp1 = tmp;
-		} else {
-			tmp1 = false;
-		}
-		if(tmp1) {
-			return o[tmp]();
-		} else {
-			return o[field];
-		}
-	}
-};
-Reflect.setProperty = function(o,field,value) {
-	var tmp;
-	var tmp1;
-	if(o.__properties__) {
-		tmp = o.__properties__["set_" + field];
-		tmp1 = tmp;
-	} else {
-		tmp1 = false;
-	}
-	if(tmp1) {
-		o[tmp](value);
-	} else {
-		o[field] = value;
-	}
-};
-Reflect.fields = function(o) {
-	var a = [];
-	if(o != null) {
-		var hasOwnProperty = Object.prototype.hasOwnProperty;
-		for( var f in o ) {
-		if(f != "__id__" && f != "hx__closures__" && hasOwnProperty.call(o,f)) {
-			a.push(f);
-		}
-		}
-	}
-	return a;
-};
-Reflect.isFunction = function(f) {
-	if(typeof(f) == "function") {
-		return !(f.__name__ || f.__ename__);
-	} else {
-		return false;
-	}
-};
-Reflect.compare = function(a,b) {
-	if(a == b) {
-		return 0;
-	} else if(a > b) {
-		return 1;
-	} else {
-		return -1;
-	}
-};
-Reflect.compareMethods = function(f1,f2) {
-	if(f1 == f2) {
-		return true;
-	}
-	if(!Reflect.isFunction(f1) || !Reflect.isFunction(f2)) {
-		return false;
-	}
-	if(f1.scope == f2.scope && f1.method == f2.method) {
-		return f1.method != null;
-	} else {
-		return false;
-	}
-};
-Reflect.isEnumValue = function(v) {
-	if(v != null) {
-		return v.__enum__ != null;
-	} else {
-		return false;
-	}
-};
-Reflect.deleteField = function(o,field) {
-	if(!Object.prototype.hasOwnProperty.call(o,field)) {
-		return false;
-	}
-	delete(o[field]);
-	return true;
-};
-Reflect.makeVarArgs = function(f) {
-	return function() {
-		var a = Array.prototype.slice;
-		var a1 = arguments;
-		var a2 = a.call(a1);
-		return f(a2);
-	};
-};
-var Std = function() { };
-$hxClasses["Std"] = Std;
-Std.__name__ = "Std";
-Std.string = function(s) {
-	return js_Boot.__string_rec(s,"");
-};
-Std.parseInt = function(x) {
-	if(x != null) {
-		var _g = 0;
-		var _g1 = x.length;
-		while(_g < _g1) {
-			var i = _g++;
-			var c = x.charCodeAt(i);
-			if(c <= 8 || c >= 14 && c != 32 && c != 45) {
-				var nc = x.charCodeAt(i + 1);
-				var v = parseInt(x,nc == 120 || nc == 88 ? 16 : 10);
-				if(isNaN(v)) {
-					return null;
-				} else {
-					return v;
-				}
-			}
-		}
-	}
-	return null;
-};
-var _$String_String_$Impl_$ = function() { };
-$hxClasses["_String.String_Impl_"] = _$String_String_$Impl_$;
-_$String_String_$Impl_$.__name__ = "_String.String_Impl_";
-_$String_String_$Impl_$.fromCharCode = function(code) {
-	return String.fromCodePoint(code);
-};
-var StringBuf = function() {
-	this.b = "";
-};
-$hxClasses["StringBuf"] = StringBuf;
-StringBuf.__name__ = "StringBuf";
-StringBuf.prototype = {
-	b: null
-	,__class__: StringBuf
-};
-var StringTools = function() { };
-$hxClasses["StringTools"] = StringTools;
-StringTools.__name__ = "StringTools";
-StringTools.htmlEscape = function(s,quotes) {
-	var buf_b = "";
-	var _g_offset = 0;
-	var _g_s = s;
-	while(_g_offset < _g_s.length) {
-		var s = _g_s;
-		var index = _g_offset++;
-		var c = s.charCodeAt(index);
-		if(c >= 55296 && c <= 56319) {
-			c = c - 55232 << 10 | s.charCodeAt(index + 1) & 1023;
-		}
-		var c1 = c;
-		if(c1 >= 65536) {
-			++_g_offset;
-		}
-		var code = c1;
-		switch(code) {
-		case 34:
-			if(quotes) {
-				buf_b += "&quot;";
-			} else {
-				buf_b += String.fromCodePoint(code);
-			}
-			break;
-		case 38:
-			buf_b += "&amp;";
-			break;
-		case 39:
-			if(quotes) {
-				buf_b += "&#039;";
-			} else {
-				buf_b += String.fromCodePoint(code);
-			}
-			break;
-		case 60:
-			buf_b += "&lt;";
-			break;
-		case 62:
-			buf_b += "&gt;";
-			break;
-		default:
-			buf_b += String.fromCodePoint(code);
-		}
-	}
-	return buf_b;
-};
-StringTools.htmlUnescape = function(s) {
-	return s.split("&gt;").join(">").split("&lt;").join("<").split("&quot;").join("\"").split("&#039;").join("'").split("&amp;").join("&");
-};
-StringTools.startsWith = function(s,start) {
-	if(s.length >= start.length) {
-		return s.lastIndexOf(start,0) == 0;
-	} else {
-		return false;
-	}
-};
-StringTools.endsWith = function(s,end) {
-	var elen = end.length;
-	var slen = s.length;
-	if(slen >= elen) {
-		return s.indexOf(end,slen - elen) == slen - elen;
-	} else {
-		return false;
-	}
-};
-StringTools.isSpace = function(s,pos) {
-	var c = HxOverrides.cca(s,pos);
-	if(!(c > 8 && c < 14)) {
-		return c == 32;
-	} else {
-		return true;
-	}
-};
-StringTools.ltrim = function(s) {
-	var l = s.length;
-	var r = 0;
-	while(r < l && StringTools.isSpace(s,r)) ++r;
-	if(r > 0) {
-		return HxOverrides.substr(s,r,l - r);
-	} else {
-		return s;
-	}
-};
-StringTools.rtrim = function(s) {
-	var l = s.length;
-	var r = 0;
-	while(r < l && StringTools.isSpace(s,l - r - 1)) ++r;
-	if(r > 0) {
-		return HxOverrides.substr(s,0,l - r);
-	} else {
-		return s;
-	}
-};
-StringTools.trim = function(s) {
-	return StringTools.ltrim(StringTools.rtrim(s));
-};
-StringTools.replace = function(s,sub,by) {
-	return s.split(sub).join(by);
-};
-StringTools.hex = function(n,digits) {
-	var s = "";
-	var hexChars = "0123456789ABCDEF";
-	while(true) {
-		s = hexChars.charAt(n & 15) + s;
-		n >>>= 4;
-		if(!(n > 0)) {
-			break;
-		}
-	}
-	if(digits != null) {
-		while(s.length < digits) s = "0" + s;
-	}
-	return s;
-};
-var ValueType = $hxEnums["ValueType"] = { __ename__:"ValueType",__constructs__:null
-	,TNull: {_hx_name:"TNull",_hx_index:0,__enum__:"ValueType",toString:$estr}
-	,TInt: {_hx_name:"TInt",_hx_index:1,__enum__:"ValueType",toString:$estr}
-	,TFloat: {_hx_name:"TFloat",_hx_index:2,__enum__:"ValueType",toString:$estr}
-	,TBool: {_hx_name:"TBool",_hx_index:3,__enum__:"ValueType",toString:$estr}
-	,TObject: {_hx_name:"TObject",_hx_index:4,__enum__:"ValueType",toString:$estr}
-	,TFunction: {_hx_name:"TFunction",_hx_index:5,__enum__:"ValueType",toString:$estr}
-	,TClass: ($_=function(c) { return {_hx_index:6,c:c,__enum__:"ValueType",toString:$estr}; },$_._hx_name="TClass",$_.__params__ = ["c"],$_)
-	,TEnum: ($_=function(e) { return {_hx_index:7,e:e,__enum__:"ValueType",toString:$estr}; },$_._hx_name="TEnum",$_.__params__ = ["e"],$_)
-	,TUnknown: {_hx_name:"TUnknown",_hx_index:8,__enum__:"ValueType",toString:$estr}
-};
-ValueType.__constructs__ = [ValueType.TNull,ValueType.TInt,ValueType.TFloat,ValueType.TBool,ValueType.TObject,ValueType.TFunction,ValueType.TClass,ValueType.TEnum,ValueType.TUnknown];
-var Type = function() { };
-$hxClasses["Type"] = Type;
-Type.__name__ = "Type";
-Type.createInstance = function(cl,args) {
-	var ctor = Function.prototype.bind.apply(cl,[null].concat(args));
-	return new (ctor);
-};
-Type.createEnum = function(e,constr,params) {
-	var f = Reflect.field(e,constr);
-	if(f == null) {
-		throw haxe_Exception.thrown("No such constructor " + constr);
-	}
-	if(Reflect.isFunction(f)) {
-		if(params == null) {
-			throw haxe_Exception.thrown("Constructor " + constr + " need parameters");
-		}
-		return f.apply(e,params);
-	}
-	if(params != null && params.length != 0) {
-		throw haxe_Exception.thrown("Constructor " + constr + " does not need parameters");
-	}
-	return f;
-};
-Type.getInstanceFields = function(c) {
-	var a = [];
-	for(var i in c.prototype) a.push(i);
-	HxOverrides.remove(a,"__class__");
-	HxOverrides.remove(a,"__properties__");
-	return a;
-};
-Type.getClassFields = function(c) {
-	var a = Reflect.fields(c);
-	HxOverrides.remove(a,"__name__");
-	HxOverrides.remove(a,"__interfaces__");
-	HxOverrides.remove(a,"__properties__");
-	HxOverrides.remove(a,"__super__");
-	HxOverrides.remove(a,"__meta__");
-	HxOverrides.remove(a,"prototype");
-	return a;
-};
-Type.typeof = function(v) {
-	switch(typeof(v)) {
-	case "boolean":
-		return ValueType.TBool;
-	case "function":
-		if(v.__name__ || v.__ename__) {
-			return ValueType.TObject;
-		}
-		return ValueType.TFunction;
-	case "number":
-		if(Math.ceil(v) == v % 2147483648.0) {
-			return ValueType.TInt;
-		}
-		return ValueType.TFloat;
-	case "object":
-		if(v == null) {
-			return ValueType.TNull;
-		}
-		var e = v.__enum__;
-		if(e != null) {
-			return ValueType.TEnum($hxEnums[e]);
-		}
-		var c = js_Boot.getClass(v);
-		if(c != null) {
-			return ValueType.TClass(c);
-		}
-		return ValueType.TObject;
-	case "string":
-		return ValueType.TClass(String);
-	case "undefined":
-		return ValueType.TNull;
-	default:
-		return ValueType.TUnknown;
-	}
-};
-Type.enumParameters = function(e) {
-	var enm = $hxEnums[e.__enum__];
-	var params = enm.__constructs__[e._hx_index].__params__;
-	if(params != null) {
-		var _g = [];
-		var _g1 = 0;
-		while(_g1 < params.length) {
-			var p = params[_g1];
-			++_g1;
-			_g.push(e[p]);
-		}
-		return _g;
-	} else {
-		return [];
-	}
-};
-var UInt = {};
-UInt.gt = function(a,b) {
-	var aNeg = a < 0;
-	var bNeg = b < 0;
-	if(aNeg != bNeg) {
-		return aNeg;
-	} else {
-		return a > b;
-	}
-};
-UInt.toFloat = function(this1) {
-	var int = this1;
-	if(int < 0) {
-		return 4294967296.0 + int;
-	} else {
-		return int + 0.0;
-	}
-};
-var XmlType = {};
-XmlType.toString = function(this1) {
-	switch(this1) {
-	case 0:
-		return "Element";
-	case 1:
-		return "PCData";
-	case 2:
-		return "CData";
-	case 3:
-		return "Comment";
-	case 4:
-		return "DocType";
-	case 5:
-		return "ProcessingInstruction";
-	case 6:
-		return "Document";
-	}
-};
-var Xml = function(nodeType) {
-	this.nodeType = nodeType;
-	this.children = [];
-	this.attributeMap = new haxe_ds_StringMap();
-};
-$hxClasses["Xml"] = Xml;
-Xml.__name__ = "Xml";
-Xml.parse = function(str) {
-	return haxe_xml_Parser.parse(str);
-};
-Xml.createElement = function(name) {
-	var xml = new Xml(Xml.Element);
-	if(xml.nodeType != Xml.Element) {
-		throw haxe_Exception.thrown("Bad node type, expected Element but found " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
-	}
-	xml.nodeName = name;
-	return xml;
-};
-Xml.createPCData = function(data) {
-	var xml = new Xml(Xml.PCData);
-	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
-		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
-	}
-	xml.nodeValue = data;
-	return xml;
-};
-Xml.createCData = function(data) {
-	var xml = new Xml(Xml.CData);
-	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
-		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
-	}
-	xml.nodeValue = data;
-	return xml;
-};
-Xml.createComment = function(data) {
-	var xml = new Xml(Xml.Comment);
-	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
-		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
-	}
-	xml.nodeValue = data;
-	return xml;
-};
-Xml.createDocType = function(data) {
-	var xml = new Xml(Xml.DocType);
-	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
-		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
-	}
-	xml.nodeValue = data;
-	return xml;
-};
-Xml.createProcessingInstruction = function(data) {
-	var xml = new Xml(Xml.ProcessingInstruction);
-	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
-		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
-	}
-	xml.nodeValue = data;
-	return xml;
-};
-Xml.createDocument = function() {
-	return new Xml(Xml.Document);
-};
-Xml.prototype = {
-	nodeType: null
-	,nodeName: null
-	,nodeValue: null
-	,parent: null
-	,children: null
-	,attributeMap: null
-	,get: function(att) {
-		if(this.nodeType != Xml.Element) {
-			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
-		}
-		return this.attributeMap.h[att];
-	}
-	,set: function(att,value) {
-		if(this.nodeType != Xml.Element) {
-			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
-		}
-		this.attributeMap.h[att] = value;
-	}
-	,exists: function(att) {
-		if(this.nodeType != Xml.Element) {
-			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
-		}
-		return Object.prototype.hasOwnProperty.call(this.attributeMap.h,att);
-	}
-	,attributes: function() {
-		if(this.nodeType != Xml.Element) {
-			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
-		}
-		return new haxe_ds__$StringMap_StringMapKeyIterator(this.attributeMap.h);
-	}
-	,elementsNamed: function(name) {
-		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
-			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
-		}
-		var _g = [];
-		var _g1 = 0;
-		var _g2 = this.children;
-		while(_g1 < _g2.length) {
-			var child = _g2[_g1];
-			++_g1;
-			var tmp;
-			if(child.nodeType == Xml.Element) {
-				if(child.nodeType != Xml.Element) {
-					throw haxe_Exception.thrown("Bad node type, expected Element but found " + (child.nodeType == null ? "null" : XmlType.toString(child.nodeType)));
-				}
-				tmp = child.nodeName == name;
-			} else {
-				tmp = false;
-			}
-			if(tmp) {
-				_g.push(child);
-			}
-		}
-		var ret = _g;
-		return new haxe_iterators_ArrayIterator(ret);
-	}
-	,firstElement: function() {
-		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
-			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
-		}
-		var _g = 0;
-		var _g1 = this.children;
-		while(_g < _g1.length) {
-			var child = _g1[_g];
-			++_g;
-			if(child.nodeType == Xml.Element) {
-				return child;
-			}
-		}
-		return null;
-	}
-	,addChild: function(x) {
-		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
-			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
-		}
-		if(x.parent != null) {
-			x.parent.removeChild(x);
-		}
-		this.children.push(x);
-		x.parent = this;
-	}
-	,removeChild: function(x) {
-		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
-			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
-		}
-		if(HxOverrides.remove(this.children,x)) {
-			x.parent = null;
-			return true;
-		}
-		return false;
-	}
-	,toString: function() {
-		return haxe_xml_Printer.print(this);
-	}
-	,__class__: Xml
-};
-var feathers_controls_AutoSizeMode = function() { };
-$hxClasses["feathers.controls.AutoSizeMode"] = feathers_controls_AutoSizeMode;
-feathers_controls_AutoSizeMode.__name__ = "feathers.controls.AutoSizeMode";
 var feathers_controls_ButtonState = function() { };
 $hxClasses["feathers.controls.ButtonState"] = feathers_controls_ButtonState;
 feathers_controls_ButtonState.__name__ = "feathers.controls.ButtonState";
+var feathers_controls_DecelerationRate = function() { };
+$hxClasses["feathers.controls.DecelerationRate"] = feathers_controls_DecelerationRate;
+feathers_controls_DecelerationRate.__name__ = "feathers.controls.DecelerationRate";
+var feathers_controls_IRange = function() { };
+$hxClasses["feathers.controls.IRange"] = feathers_controls_IRange;
+feathers_controls_IRange.__name__ = "feathers.controls.IRange";
+feathers_controls_IRange.__isInterface__ = true;
+feathers_controls_IRange.__interfaces__ = [feathers_core_IFeathersControl];
+feathers_controls_IRange.prototype = {
+	get_minimum: null
+	,set_minimum: null
+	,get_maximum: null
+	,set_maximum: null
+	,get_value: null
+	,set_value: null
+	,get_step: null
+	,set_step: null
+	,__class__: feathers_controls_IRange
+	,__properties__: {set_step:"set_step",get_step:"get_step",set_value:"set_value",get_value:"get_value",set_maximum:"set_maximum",get_maximum:"get_maximum",set_minimum:"set_minimum",get_minimum:"get_minimum"}
+};
+var feathers_controls_IScrollBar = function() { };
+$hxClasses["feathers.controls.IScrollBar"] = feathers_controls_IScrollBar;
+feathers_controls_IScrollBar.__name__ = "feathers.controls.IScrollBar";
+feathers_controls_IScrollBar.__isInterface__ = true;
+feathers_controls_IScrollBar.__interfaces__ = [feathers_controls_IRange];
+feathers_controls_IScrollBar.prototype = {
+	get_page: null
+	,set_page: null
+	,__class__: feathers_controls_IScrollBar
+	,__properties__: {set_page:"set_page",get_page:"get_page"}
+};
+var feathers_controls_IDirectionalScrollBar = function() { };
+$hxClasses["feathers.controls.IDirectionalScrollBar"] = feathers_controls_IDirectionalScrollBar;
+feathers_controls_IDirectionalScrollBar.__name__ = "feathers.controls.IDirectionalScrollBar";
+feathers_controls_IDirectionalScrollBar.__isInterface__ = true;
+feathers_controls_IDirectionalScrollBar.__interfaces__ = [feathers_controls_IScrollBar];
+feathers_controls_IDirectionalScrollBar.prototype = {
+	get_direction: null
+	,set_direction: null
+	,__class__: feathers_controls_IDirectionalScrollBar
+	,__properties__: {set_direction:"set_direction",get_direction:"get_direction"}
+};
+var feathers_controls_PullViewDisplayMode = function() { };
+$hxClasses["feathers.controls.PullViewDisplayMode"] = feathers_controls_PullViewDisplayMode;
+feathers_controls_PullViewDisplayMode.__name__ = "feathers.controls.PullViewDisplayMode";
+var feathers_controls_ScrollBarDisplayMode = function() { };
+$hxClasses["feathers.controls.ScrollBarDisplayMode"] = feathers_controls_ScrollBarDisplayMode;
+feathers_controls_ScrollBarDisplayMode.__name__ = "feathers.controls.ScrollBarDisplayMode";
+var feathers_controls_ScrollInteractionMode = function() { };
+$hxClasses["feathers.controls.ScrollInteractionMode"] = feathers_controls_ScrollInteractionMode;
+feathers_controls_ScrollInteractionMode.__name__ = "feathers.controls.ScrollInteractionMode";
+var feathers_controls_ScrollPolicy = function() { };
+$hxClasses["feathers.controls.ScrollPolicy"] = feathers_controls_ScrollPolicy;
+feathers_controls_ScrollPolicy.__name__ = "feathers.controls.ScrollPolicy";
+var feathers_controls_SimpleScrollBar = function() {
+	this._touchValue = NaN;
+	this._thumbStartY = NaN;
+	this._thumbStartX = NaN;
+	this._touchStartY = NaN;
+	this._touchStartX = NaN;
+	this._touchPointID = -1;
+	this.liveDragging = true;
+	this.isDragging = false;
+	this._repeatDelay = 0.05;
+	this._paddingLeft = 0;
+	this._paddingBottom = 0;
+	this._paddingRight = 0;
+	this._paddingTop = 0;
+	this._page = 0;
+	this._step = 0;
+	this._maximum = 0;
+	this._minimum = 0;
+	this._value = 0;
+	this.clampToRange = false;
+	this._fixedThumbSize = false;
+	this._direction = "horizontal";
+	this.thumbStyleName = "feathers-simple-scroll-bar-thumb";
+	feathers_core_FeathersControl.call(this);
+	this.addEventListener("removedFromStage",$bind(this,this.removedFromStageHandler));
+};
+$hxClasses["feathers.controls.SimpleScrollBar"] = feathers_controls_SimpleScrollBar;
+feathers_controls_SimpleScrollBar.__name__ = "feathers.controls.SimpleScrollBar";
+feathers_controls_SimpleScrollBar.__interfaces__ = [feathers_controls_IDirectionalScrollBar];
+feathers_controls_SimpleScrollBar.globalStyleProvider = null;
+feathers_controls_SimpleScrollBar.defaultThumbFactory = function() {
+	return new feathers_controls_Button();
+};
+feathers_controls_SimpleScrollBar.__super__ = feathers_core_FeathersControl;
+feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersControl.prototype,{
+	thumbStyleName: null
+	,_thumbExplicitWidth: null
+	,_thumbExplicitHeight: null
+	,_thumbExplicitMinWidth: null
+	,_thumbExplicitMinHeight: null
+	,thumb: null
+	,track: null
+	,get_defaultStyleProvider: function() {
+		return feathers_controls_SimpleScrollBar.globalStyleProvider;
+	}
+	,_direction: null
+	,get_direction: function() {
+		return this._direction;
+	}
+	,set_direction: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_direction))) {
+			return value;
+		}
+		if(this._direction == value) {
+			return value;
+		}
+		this._direction = value;
+		this.invalidate("data");
+		this.invalidate("thumbFactory");
+		return this._direction;
+	}
+	,_fixedThumbSize: null
+	,get_fixedThumbSize: function() {
+		return this._fixedThumbSize;
+	}
+	,set_fixedThumbSize: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_fixedThumbSize))) {
+			return value;
+		}
+		if(this._fixedThumbSize == value) {
+			return value;
+		}
+		this._fixedThumbSize = value;
+		this.invalidate("styles");
+		return this._fixedThumbSize;
+	}
+	,clampToRange: null
+	,_value: null
+	,get_value: function() {
+		return this._value;
+	}
+	,set_value: function(newValue) {
+		if(this.clampToRange) {
+			newValue = starling_utils_MathUtil.clamp(newValue,this._minimum,this._maximum);
+		}
+		if(this._value == newValue) {
+			return newValue;
+		}
+		this._value = newValue;
+		this.invalidate("data");
+		if(this.liveDragging || !this.isDragging) {
+			this.dispatchEventWith("change");
+		}
+		return this._value;
+	}
+	,_minimum: null
+	,get_minimum: function() {
+		return this._minimum;
+	}
+	,set_minimum: function(value) {
+		if(this._minimum == value) {
+			return value;
+		}
+		this._minimum = value;
+		this.invalidate("data");
+		return this._minimum;
+	}
+	,_maximum: null
+	,get_maximum: function() {
+		return this._maximum;
+	}
+	,set_maximum: function(value) {
+		if(this._maximum == value) {
+			return this._maximum;
+		}
+		this._maximum = value;
+		this.invalidate("data");
+		return this._maximum = value;
+	}
+	,_step: null
+	,get_step: function() {
+		return this._step;
+	}
+	,set_step: function(value) {
+		return this._step = value;
+	}
+	,_page: null
+	,get_page: function() {
+		return this._page;
+	}
+	,set_page: function(value) {
+		if(this._page == value) {
+			return this._page;
+		}
+		this._page = value;
+		this.invalidate("data");
+		return this._page;
+	}
+	,get_padding: function() {
+		return this._paddingTop;
+	}
+	,set_padding: function(value) {
+		this.set_paddingTop(value);
+		this.set_paddingRight(value);
+		this.set_paddingBottom(value);
+		return this.set_paddingLeft(value);
+	}
+	,_paddingTop: null
+	,get_paddingTop: function() {
+		return this._paddingTop;
+	}
+	,set_paddingTop: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingTop))) {
+			return value;
+		}
+		if(this._paddingTop == value) {
+			return value;
+		}
+		this._paddingTop = value;
+		this.invalidate("styles");
+		return this._paddingTop;
+	}
+	,_paddingRight: null
+	,get_paddingRight: function() {
+		return this._paddingRight;
+	}
+	,set_paddingRight: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingRight))) {
+			return value;
+		}
+		if(this._paddingRight == value) {
+			return value;
+		}
+		this._paddingRight = value;
+		this.invalidate("styles");
+		return this._paddingRight;
+	}
+	,_paddingBottom: null
+	,get_paddingBottom: function() {
+		return this._paddingBottom;
+	}
+	,set_paddingBottom: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingBottom))) {
+			return value;
+		}
+		if(this._paddingBottom == value) {
+			return value;
+		}
+		this._paddingBottom = value;
+		this.invalidate("styles");
+		return this._paddingBottom;
+	}
+	,_paddingLeft: null
+	,get_paddingLeft: function() {
+		return this._paddingLeft;
+	}
+	,set_paddingLeft: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_paddingLeft))) {
+			return value;
+		}
+		if(this._paddingLeft == value) {
+			return value;
+		}
+		this._paddingLeft = value;
+		this.invalidate("styles");
+		return this._paddingLeft;
+	}
+	,currentRepeatAction: null
+	,_repeatTimer: null
+	,_repeatDelay: null
+	,get_repeatDelay: function() {
+		return this._repeatDelay;
+	}
+	,set_repeatDelay: function(value) {
+		if(this._repeatDelay == value) {
+			return value;
+		}
+		this._repeatDelay = value;
+		this.invalidate("styles");
+		return this._repeatDelay;
+	}
+	,isDragging: null
+	,liveDragging: null
+	,_thumbFactory: null
+	,get_thumbFactory: function() {
+		return this._thumbFactory;
+	}
+	,set_thumbFactory: function(value) {
+		if(this._thumbFactory == value) {
+			return value;
+		}
+		this._thumbFactory = value;
+		this.invalidate("thumbFactory");
+		return this._thumbFactory;
+	}
+	,_customThumbStyleName: null
+	,get_customThumbStyleName: function() {
+		return this._customThumbStyleName;
+	}
+	,set_customThumbStyleName: function(value) {
+		if(this.processStyleRestriction($bind(this,this.set_customThumbStyleName))) {
+			return value;
+		}
+		if(this._customThumbStyleName == value) {
+			return value;
+		}
+		this._customThumbStyleName = value;
+		this.invalidate("thumbFactory");
+		return this._customThumbStyleName;
+	}
+	,_thumbProperties: null
+	,get_thumbProperties: function() {
+		if(this._thumbProperties == null) {
+			this._thumbProperties = new feathers_core_PropertyProxy($bind(this,this.thumbProperties_onChange));
+		}
+		return this._thumbProperties;
+	}
+	,set_thumbProperties: function(value) {
+		if(this._thumbProperties == value) {
+			return value;
+		}
+		if(value == null) {
+			value = new feathers_core_PropertyProxy();
+		}
+		if(!((value) instanceof feathers_core_PropertyProxy)) {
+			var newValue = feathers_core_PropertyProxy.fromObject(value);
+			value = newValue;
+		}
+		if(this._thumbProperties != null) {
+			this._thumbProperties.removeOnChangeCallback($bind(this,this.thumbProperties_onChange));
+		}
+		this._thumbProperties = js_Boot.__cast(value , feathers_core_PropertyProxy);
+		if(this._thumbProperties != null) {
+			this._thumbProperties.addOnChangeCallback($bind(this,this.thumbProperties_onChange));
+		}
+		this.invalidate("styles");
+		return this._thumbProperties;
+	}
+	,_touchPointID: null
+	,_touchStartX: null
+	,_touchStartY: null
+	,_thumbStartX: null
+	,_thumbStartY: null
+	,_touchValue: null
+	,_pageStartValue: null
+	,initialize: function() {
+		if(this.track == null) {
+			this.track = new starling_display_Quad(10,10,16711935);
+			this.track.set_alpha(0);
+			this.track.addEventListener("touch",$bind(this,this.track_touchHandler));
+			this.addChild(this.track);
+		}
+		if(this._value < this._minimum) {
+			this.set_value(this._minimum);
+		} else if(this._value > this._maximum) {
+			this.set_value(this._maximum);
+		}
+	}
+	,draw: function() {
+		var dataInvalid = this.isInvalid("data");
+		var stylesInvalid = this.isInvalid("styles");
+		var sizeInvalid = this.isInvalid("size");
+		var stateInvalid = this.isInvalid("state");
+		var thumbFactoryInvalid = this.isInvalid("thumbFactory");
+		if(thumbFactoryInvalid) {
+			this.createThumb();
+		}
+		if(thumbFactoryInvalid || stylesInvalid) {
+			this.refreshThumbStyles();
+		}
+		if(dataInvalid || thumbFactoryInvalid || stateInvalid) {
+			this.refreshEnabled();
+		}
+		if(this.autoSizeIfNeeded()) {
+			sizeInvalid = true;
+		}
+		this.layout();
+	}
+	,autoSizeIfNeeded: function() {
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
+		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
+		if(!needsWidth && !needsHeight && !needsMinWidth && !needsMinHeight) {
+			return false;
+		}
+		this.thumb.set_width(this._thumbExplicitWidth);
+		this.thumb.set_height(this._thumbExplicitHeight);
+		var measureThumb = null;
+		if(js_Boot.__implements(this.thumb,feathers_core_IMeasureDisplayObject)) {
+			measureThumb = this.thumb;
+			measureThumb.set_minWidth(this._thumbExplicitMinWidth);
+			measureThumb.set_minHeight(this._thumbExplicitMinHeight);
+		}
+		if(js_Boot.__implements(this.thumb,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.thumb , feathers_core_IValidating)).validate();
+		}
+		var range = this._maximum - this._minimum;
+		var adjustedPage = this._page;
+		if(adjustedPage == 0) {
+			adjustedPage = this._step;
+		}
+		if(adjustedPage > range) {
+			adjustedPage = range;
+		}
+		var newWidth = this._explicitWidth;
+		var newHeight = this._explicitHeight;
+		var newMinWidth = this._explicitMinWidth;
+		var newMinHeight = this._explicitMinHeight;
+		if(needsWidth) {
+			newWidth = this.thumb.get_width();
+			if(this._direction != "vertical" && adjustedPage != 0) {
+				newWidth *= range / adjustedPage;
+			}
+			newWidth += this._paddingLeft + this._paddingRight;
+		}
+		if(needsHeight) {
+			newHeight = this.thumb.get_height();
+			if(this._direction == "vertical" && adjustedPage != 0) {
+				newHeight *= range / adjustedPage;
+			}
+			newHeight += this._paddingTop + this._paddingBottom;
+		}
+		if(needsMinWidth) {
+			if(measureThumb != null) {
+				newMinWidth = measureThumb.get_minWidth();
+			} else {
+				newMinWidth = this.thumb.get_width();
+			}
+			if(this._direction != "vertical" && adjustedPage != 0) {
+				newMinWidth *= range / adjustedPage;
+			}
+			newMinWidth += this._paddingLeft + this._paddingRight;
+		}
+		if(needsMinHeight) {
+			if(measureThumb != null) {
+				newMinHeight = measureThumb.get_minHeight();
+			} else {
+				newMinHeight = this.thumb.get_height();
+			}
+			if(this._direction == "vertical" && adjustedPage != 0) {
+				newMinHeight *= range / adjustedPage;
+			}
+			newMinHeight += this._paddingTop + this._paddingBottom;
+		}
+		return this.saveMeasurements(newWidth,newHeight,newMinWidth,newMinHeight);
+	}
+	,createThumb: function() {
+		if(this.thumb != null) {
+			this.thumb.removeFromParent(true);
+			this.thumb = null;
+		}
+		var factory = this._thumbFactory != null ? this._thumbFactory : feathers_controls_SimpleScrollBar.defaultThumbFactory;
+		var thumbStyleName = this._customThumbStyleName != null ? this._customThumbStyleName : this.thumbStyleName;
+		var thumb = factory();
+		thumb.get_styleNameList().add(thumbStyleName);
+		if(js_Boot.__implements(thumb,feathers_core_IFocusDisplayObject)) {
+			thumb.set_isFocusEnabled(false);
+		}
+		thumb.set_keepDownStateOnRollOut(true);
+		thumb.addEventListener("touch",$bind(this,this.thumb_touchHandler));
+		this.addChild(thumb);
+		this.thumb = thumb;
+		if(js_Boot.__implements(this.thumb,feathers_core_IFeathersControl)) {
+			(js_Boot.__cast(this.thumb , feathers_core_IFeathersControl)).initializeNow();
+		}
+		if(js_Boot.__implements(this.thumb,feathers_core_IMeasureDisplayObject)) {
+			var measureThumb = this.thumb;
+			this._thumbExplicitWidth = measureThumb.get_explicitWidth();
+			this._thumbExplicitHeight = measureThumb.get_explicitHeight();
+			this._thumbExplicitMinWidth = measureThumb.get_explicitMinWidth();
+			this._thumbExplicitMinHeight = measureThumb.get_explicitMinHeight();
+		} else {
+			this._thumbExplicitWidth = this.thumb.get_width();
+			this._thumbExplicitHeight = this.thumb.get_height();
+			this._thumbExplicitMinWidth = this._thumbExplicitWidth;
+			this._thumbExplicitMinHeight = this._thumbExplicitHeight;
+		}
+	}
+	,refreshThumbStyles: function() {
+		var _g = this._thumbProperties.iterator();
+		while(_g.current < _g.array.length) {
+			var propertyName = _g.array[_g.current++];
+			var propertyValue = this._thumbProperties.getProperty(propertyName);
+			Reflect.setProperty(this.thumb,propertyName,propertyValue);
+		}
+	}
+	,refreshEnabled: function() {
+		if(js_Boot.__implements(this.thumb,feathers_core_IFeathersControl)) {
+			(js_Boot.__cast(this.thumb , feathers_core_IFeathersControl)).set_isEnabled(this._isEnabled && this._maximum > this._minimum);
+		}
+	}
+	,layout: function() {
+		this.track.set_width(this.actualWidth);
+		this.track.set_height(this.actualHeight);
+		var range = this._maximum - this._minimum;
+		this.thumb.set_visible(range > 0);
+		if(!this.thumb.get_visible()) {
+			return;
+		}
+		if(js_Boot.__implements(this.thumb,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.thumb , feathers_core_IValidating)).validate();
+		}
+		var contentWidth = this.actualWidth - this._paddingLeft - this._paddingRight;
+		var contentHeight = this.actualHeight - this._paddingTop - this._paddingBottom;
+		var adjustedPage = this._page;
+		if(this._page == 0) {
+			adjustedPage = this._step;
+		} else if(adjustedPage > range) {
+			adjustedPage = range;
+		}
+		var valueOffset = 0;
+		if(this._value < this._minimum) {
+			valueOffset = this._minimum - this._value;
+		}
+		if(this._value > this._maximum) {
+			valueOffset = this._value - this._maximum;
+		}
+		if(this._direction == "vertical") {
+			this.thumb.set_width(contentWidth);
+			var thumbMinHeight = this._thumbExplicitMinHeight;
+			if(js_Boot.__implements(this.thumb,feathers_core_IMeasureDisplayObject)) {
+				thumbMinHeight = (js_Boot.__cast(this.thumb , feathers_core_IMeasureDisplayObject)).get_minHeight();
+			}
+			if(this._fixedThumbSize) {
+				this.thumb.set_height(this._thumbExplicitHeight);
+			} else {
+				var thumbHeight = contentHeight * adjustedPage / range;
+				var heightOffset = contentHeight - thumbHeight;
+				if(heightOffset > thumbHeight) {
+					heightOffset = thumbHeight;
+				}
+				heightOffset *= valueOffset / (range * thumbHeight / contentHeight);
+				thumbHeight -= heightOffset;
+				if(thumbHeight < thumbMinHeight) {
+					thumbHeight = thumbMinHeight;
+				}
+				this.thumb.set_height(thumbHeight);
+			}
+			this.thumb.set_x(this._paddingLeft + (this.actualWidth - this._paddingLeft - this._paddingRight - this.thumb.get_width()) / 2);
+			var trackScrollableHeight = contentHeight - this.thumb.get_height();
+			var thumbY = trackScrollableHeight * (this._value - this._minimum) / range;
+			if(thumbY > trackScrollableHeight) {
+				thumbY = trackScrollableHeight;
+			} else if(thumbY < 0) {
+				thumbY = 0;
+			}
+			this.thumb.set_y(this._paddingTop + thumbY);
+		} else {
+			var thumbMinWidth = this._thumbExplicitMinWidth;
+			if(js_Boot.__implements(this.thumb,feathers_core_IMeasureDisplayObject)) {
+				thumbMinWidth = (js_Boot.__cast(this.thumb , feathers_core_IMeasureDisplayObject)).get_minWidth();
+			}
+			if(this._fixedThumbSize) {
+				this.thumb.set_width(this._thumbExplicitWidth);
+			} else {
+				var thumbWidth = contentWidth * adjustedPage / range;
+				var widthOffset = contentWidth - thumbWidth;
+				if(widthOffset > thumbWidth) {
+					widthOffset = thumbWidth;
+				}
+				widthOffset *= valueOffset / (range * thumbWidth / contentWidth);
+				thumbWidth -= widthOffset;
+				if(thumbWidth < thumbMinWidth) {
+					thumbWidth = thumbMinWidth;
+				}
+				this.thumb.set_width(thumbWidth);
+			}
+			this.thumb.set_height(contentHeight);
+			var trackScrollableWidth = contentWidth - this.thumb.get_width();
+			var thumbX = trackScrollableWidth * (this._value - this._minimum) / range;
+			if(thumbX > trackScrollableWidth) {
+				thumbX = trackScrollableWidth;
+			} else if(thumbX < 0) {
+				thumbX = 0;
+			}
+			this.thumb.set_x(this._paddingLeft + thumbX);
+			this.thumb.set_y(this._paddingTop + (this.actualHeight - this._paddingTop - this._paddingBottom - this.thumb.get_height()) / 2);
+		}
+		if(js_Boot.__implements(this.thumb,feathers_core_IValidating)) {
+			(js_Boot.__cast(this.thumb , feathers_core_IValidating)).validate();
+		}
+	}
+	,locationToValue: function(location) {
+		var percentage = 0;
+		if(this._direction == "vertical") {
+			var trackScrollableHeight = this.actualHeight - this.thumb.get_height() - this._paddingTop - this._paddingBottom;
+			if(trackScrollableHeight > 0) {
+				var yOffset = location.y - this._touchStartY - this._paddingTop;
+				var yPosition = Math.min(Math.max(0,this._thumbStartY + yOffset),trackScrollableHeight);
+				percentage = yPosition / trackScrollableHeight;
+			}
+		} else {
+			var trackScrollableWidth = this.actualWidth - this.thumb.get_width() - this._paddingLeft - this._paddingRight;
+			if(trackScrollableWidth > 0) {
+				var xOffset = location.x - this._touchStartX - this._paddingLeft;
+				var xPosition = Math.min(Math.max(0,this._thumbStartX + xOffset),trackScrollableWidth);
+				percentage = xPosition / trackScrollableWidth;
+			}
+		}
+		return this._minimum + percentage * (this._maximum - this._minimum);
+	}
+	,adjustPage: function() {
+		var range = this._maximum - this._minimum;
+		var adjustedPage = this._page;
+		var newValue;
+		if(adjustedPage == 0) {
+			adjustedPage = this._step;
+		}
+		if(adjustedPage > range) {
+			adjustedPage = range;
+		}
+		if(this._touchValue < this._pageStartValue) {
+			newValue = Math.max(this._touchValue,this._value - adjustedPage);
+			if(this._step != 0 && newValue != this._maximum && newValue != this._minimum) {
+				var nearest = this._step;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				if(nearest != 0) {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					newValue = Math.floor(Math.round(decimalPlaces * (newValue / nearest)) / decimalPlaces) * nearest;
+				}
+			}
+			var value = newValue;
+			var minimum = this._minimum;
+			var maximum = this._maximum;
+			if(minimum > maximum) {
+				throw new openfl_errors_ArgumentError("minimum should be smaller than maximum.");
+			}
+			if(value < minimum) {
+				value = minimum;
+			} else if(value > maximum) {
+				value = maximum;
+			}
+			newValue = value;
+			this.set_value(newValue);
+		} else if(this._touchValue > this._pageStartValue) {
+			newValue = Math.min(this._touchValue,this._value + adjustedPage);
+			if(this._step != 0 && newValue != this._maximum && newValue != this._minimum) {
+				var nearest = this._step;
+				if(nearest == null) {
+					nearest = 1;
+				}
+				if(nearest != 0) {
+					var precision = 10;
+					if(precision == null) {
+						precision = 0;
+					}
+					var decimalPlaces = Math.pow(10,precision);
+					newValue = Math.ceil(Math.round(decimalPlaces * (newValue / nearest)) / decimalPlaces) * nearest;
+				}
+			}
+			var value = newValue;
+			var minimum = this._minimum;
+			var maximum = this._maximum;
+			if(minimum > maximum) {
+				throw new openfl_errors_ArgumentError("minimum should be smaller than maximum.");
+			}
+			if(value < minimum) {
+				value = minimum;
+			} else if(value > maximum) {
+				value = maximum;
+			}
+			newValue = value;
+			this.set_value(newValue);
+		}
+	}
+	,startRepeatTimer: function(action) {
+		this.currentRepeatAction = action;
+		if(this._repeatDelay > 0) {
+			if(this._repeatTimer == null) {
+				this._repeatTimer = new openfl_utils_Timer(this._repeatDelay * 1000);
+				this._repeatTimer.addEventListener("timer",$bind(this,this.repeatTimer_timerHandler));
+			} else {
+				this._repeatTimer.reset();
+				this._repeatTimer.set_delay(this._repeatDelay * 1000);
+			}
+			this._repeatTimer.start();
+		}
+	}
+	,thumbProperties_onChange: function(proxy,name) {
+		this.invalidate("styles");
+	}
+	,removedFromStageHandler: function(event) {
+		this._touchPointID = -1;
+		if(this._repeatTimer != null) {
+			this._repeatTimer.stop();
+		}
+	}
+	,track_touchHandler: function(event) {
+		if(!this._isEnabled) {
+			this._touchPointID = -1;
+			return;
+		}
+		var touch;
+		var location;
+		if(this._touchPointID >= 0) {
+			touch = event.getTouch(this.track,null,this._touchPointID);
+			if(touch == null) {
+				return;
+			}
+			if(touch.get_phase() == "moved") {
+				location = touch.getLocation(this,starling_utils_Pool.getPoint());
+				this._touchValue = this.locationToValue(location);
+				starling_utils_Pool.putPoint(location);
+			} else if(touch.get_phase() == "ended") {
+				this._touchPointID = -1;
+				this._repeatTimer.stop();
+			}
+		} else {
+			touch = event.getTouch(this.track,"began");
+			if(touch == null) {
+				return;
+			}
+			this._touchPointID = touch.get_id();
+			location = touch.getLocation(this,starling_utils_Pool.getPoint());
+			this._touchStartX = location.x;
+			this._touchStartY = location.y;
+			this._thumbStartX = this._touchStartX;
+			this._thumbStartY = this._touchStartY;
+			this._touchValue = this.locationToValue(location);
+			starling_utils_Pool.putPoint(location);
+			this._pageStartValue = this._value;
+			this.adjustPage();
+			this.startRepeatTimer($bind(this,this.adjustPage));
+		}
+	}
+	,thumb_touchHandler: function(event) {
+		if(!this._isEnabled) {
+			return;
+		}
+		var touch;
+		var location;
+		var newValue;
+		if(this._touchPointID >= 0) {
+			touch = event.getTouch(this.thumb,null,this._touchPointID);
+			if(touch == null) {
+				return;
+			}
+			if(touch.get_phase() == "moved") {
+				location = touch.getLocation(this,starling_utils_Pool.getPoint());
+				newValue = this.locationToValue(location);
+				starling_utils_Pool.putPoint(location);
+				if(this._step != 0 && newValue != this._maximum && newValue != this._minimum) {
+					var nearest = this._step;
+					if(nearest == null) {
+						nearest = 1;
+					}
+					if(nearest != 0) {
+						var precision = 10;
+						if(precision == null) {
+							precision = 0;
+						}
+						var decimalPlaces = Math.pow(10,precision);
+						var roundedNumber = Math.round(Math.round(decimalPlaces * (newValue / nearest)) / decimalPlaces) * nearest;
+						var precision = 10;
+						if(precision == null) {
+							precision = 0;
+						}
+						var decimalPlaces = Math.pow(10,precision);
+						newValue = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+					}
+				}
+				this.set_value(newValue);
+			} else if(touch.get_phase() == "ended") {
+				this._touchPointID = -1;
+				this.isDragging = false;
+				if(!this.liveDragging) {
+					this.dispatchEventWith("change");
+				}
+				this.dispatchEventWith("endInteraction");
+			}
+		} else {
+			touch = event.getTouch(this.thumb,"began");
+			if(touch == null) {
+				return;
+			}
+			location = touch.getLocation(this,starling_utils_Pool.getPoint());
+			this._touchPointID = touch.get_id();
+			this._thumbStartX = this.thumb.get_x();
+			this._thumbStartY = this.thumb.get_y();
+			this._touchStartX = location.x;
+			this._touchStartY = location.y;
+			starling_utils_Pool.putPoint(location);
+			this.isDragging = true;
+			this.dispatchEventWith("beginInteraction");
+		}
+	}
+	,repeatTimer_timerHandler: function(event) {
+		if(this._repeatTimer.currentCount < 5) {
+			return;
+		}
+		this.currentRepeatAction();
+	}
+	,__class__: feathers_controls_SimpleScrollBar
+	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{set_thumbProperties:"set_thumbProperties",get_thumbProperties:"get_thumbProperties",set_customThumbStyleName:"set_customThumbStyleName",get_customThumbStyleName:"get_customThumbStyleName",set_thumbFactory:"set_thumbFactory",get_thumbFactory:"get_thumbFactory",set_repeatDelay:"set_repeatDelay",get_repeatDelay:"get_repeatDelay",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_page:"set_page",get_page:"get_page",set_step:"set_step",get_step:"get_step",set_maximum:"set_maximum",get_maximum:"get_maximum",set_minimum:"set_minimum",get_minimum:"get_minimum",set_value:"set_value",get_value:"get_value",set_fixedThumbSize:"set_fixedThumbSize",get_fixedThumbSize:"get_fixedThumbSize",set_direction:"set_direction",get_direction:"get_direction"})
+});
 var feathers_controls_supportClasses_IViewPort = function() { };
 $hxClasses["feathers.controls.supportClasses.IViewPort"] = feathers_controls_supportClasses_IViewPort;
 feathers_controls_supportClasses_IViewPort.__name__ = "feathers.controls.supportClasses.IViewPort";
 feathers_controls_supportClasses_IViewPort.__isInterface__ = true;
+feathers_controls_supportClasses_IViewPort.__interfaces__ = [feathers_core_IFeathersControl];
 feathers_controls_supportClasses_IViewPort.prototype = {
 	get_visibleWidth: null
 	,set_visibleWidth: null
@@ -16005,17 +24247,6 @@ feathers_core_IAdvancedNativeFocusOwner.prototype = {
 	,__class__: feathers_core_IAdvancedNativeFocusOwner
 	,__properties__: {get_hasFocus:"get_hasFocus"}
 };
-var feathers_core_IFocusContainer = function() { };
-$hxClasses["feathers.core.IFocusContainer"] = feathers_core_IFocusContainer;
-feathers_core_IFocusContainer.__name__ = "feathers.core.IFocusContainer";
-feathers_core_IFocusContainer.__isInterface__ = true;
-feathers_core_IFocusContainer.__interfaces__ = [feathers_core_IFocusDisplayObject];
-feathers_core_IFocusContainer.prototype = {
-	get_isChildFocusEnabled: null
-	,set_isChildFocusEnabled: null
-	,__class__: feathers_core_IFocusContainer
-	,__properties__: {set_isChildFocusEnabled:"set_isChildFocusEnabled",get_isChildFocusEnabled:"get_isChildFocusEnabled"}
-};
 var feathers_core_IFocusExtras = function() { };
 $hxClasses["feathers.core.IFocusExtras"] = feathers_core_IFocusExtras;
 feathers_core_IFocusExtras.__name__ = "feathers.core.IFocusExtras";
@@ -16339,6 +24570,97 @@ feathers_core_ValidationQueue.prototype = {
 	,__class__: feathers_core_ValidationQueue
 	,__properties__: {get_isValidating:"get_isValidating"}
 };
+var feathers_events_ExclusiveTouch = function(stage) {
+	this._claims = new haxe_ds_IntMap();
+	this._stageListenerCount = 0;
+	starling_events_EventDispatcher.call(this);
+	if(stage == null) {
+		throw new openfl_errors_ArgumentError("Stage cannot be null.");
+	}
+	this._stage = stage;
+};
+$hxClasses["feathers.events.ExclusiveTouch"] = feathers_events_ExclusiveTouch;
+feathers_events_ExclusiveTouch.__name__ = "feathers.events.ExclusiveTouch";
+feathers_events_ExclusiveTouch.forStage = function(stage) {
+	if(stage == null) {
+		throw new openfl_errors_ArgumentError("Stage cannot be null.");
+	}
+	var object = feathers_events_ExclusiveTouch.stageToObject.h[stage.__id__];
+	if(object != null) {
+		return object;
+	}
+	object = new feathers_events_ExclusiveTouch(stage);
+	feathers_events_ExclusiveTouch.stageToObject.set(stage,object);
+	return object;
+};
+feathers_events_ExclusiveTouch.disposeForStage = function(stage) {
+	feathers_events_ExclusiveTouch.stageToObject.remove(stage);
+};
+feathers_events_ExclusiveTouch.__super__ = starling_events_EventDispatcher;
+feathers_events_ExclusiveTouch.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_stageListenerCount: null
+	,_stage: null
+	,_claims: null
+	,claimTouch: function(touchID,target) {
+		if(target == null) {
+			throw new openfl_errors_ArgumentError("Target cannot be null.");
+		}
+		if(target.get_stage() != this._stage) {
+			throw new openfl_errors_ArgumentError("Target cannot claim a touch on the selected stage because it appears on a different stage.");
+		}
+		if(touchID < 0) {
+			throw new openfl_errors_ArgumentError("Invalid touch. Touch ID must be >= 0.");
+		}
+		var existingTarget = this._claims.h[touchID];
+		if(existingTarget != null) {
+			return false;
+		}
+		this._claims.h[touchID] = target;
+		if(this._stageListenerCount == 0) {
+			this._stage.addEventListener("touch",$bind(this,this.stage_touchHandler));
+		}
+		this._stageListenerCount++;
+		this.dispatchEventWith("change",false,touchID);
+		return true;
+	}
+	,removeClaim: function(touchID) {
+		var existingTarget = this._claims.h[touchID];
+		if(existingTarget == null) {
+			return;
+		}
+		this._claims.remove(touchID);
+		this.dispatchEventWith("change",false,touchID);
+	}
+	,getClaim: function(touchID) {
+		if(touchID < 0) {
+			throw new openfl_errors_ArgumentError("Invalid touch. Touch ID must be >= 0.");
+		}
+		return this._claims.h[touchID];
+	}
+	,stage_touchHandler: function(event) {
+		var touchIDsToDelete = [];
+		var touchID = this._claims.keys();
+		while(touchID.hasNext()) {
+			var touchID1 = touchID.next();
+			var touch = event.getTouch(this._stage,"ended",touchID1);
+			if(touch == null) {
+				continue;
+			}
+			touchIDsToDelete.push(touchID1);
+			this._stageListenerCount--;
+		}
+		var _g = 0;
+		while(_g < touchIDsToDelete.length) {
+			var touchID = touchIDsToDelete[_g];
+			++_g;
+			this._claims.remove(touchID);
+		}
+		if(this._stageListenerCount == 0) {
+			this._stage.removeEventListener("touch",$bind(this,this.stage_touchHandler));
+		}
+	}
+	,__class__: feathers_events_ExclusiveTouch
+});
 var feathers_events_FeathersEventType = function() { };
 $hxClasses["feathers.events.FeathersEventType"] = feathers_events_FeathersEventType;
 feathers_events_FeathersEventType.__name__ = "feathers.events.FeathersEventType";
@@ -16558,24 +24880,49 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	,__class__: feathers_layout_AnchorLayoutData
 	,__properties__: {set_verticalCenter:"set_verticalCenter",get_verticalCenter:"get_verticalCenter",set_verticalCenterAnchorDisplayObject:"set_verticalCenterAnchorDisplayObject",get_verticalCenterAnchorDisplayObject:"get_verticalCenterAnchorDisplayObject",set_horizontalCenter:"set_horizontalCenter",get_horizontalCenter:"get_horizontalCenter",set_horizontalCenterAnchorDisplayObject:"set_horizontalCenterAnchorDisplayObject",get_horizontalCenterAnchorDisplayObject:"get_horizontalCenterAnchorDisplayObject",set_left:"set_left",get_left:"get_left",set_leftAnchorDisplayObject:"set_leftAnchorDisplayObject",get_leftAnchorDisplayObject:"get_leftAnchorDisplayObject",set_bottom:"set_bottom",get_bottom:"get_bottom",set_bottomAnchorDisplayObject:"set_bottomAnchorDisplayObject",get_bottomAnchorDisplayObject:"get_bottomAnchorDisplayObject",set_right:"set_right",get_right:"get_right",set_rightAnchorDisplayObject:"set_rightAnchorDisplayObject",get_rightAnchorDisplayObject:"get_rightAnchorDisplayObject",set_top:"set_top",get_top:"get_top",set_topAnchorDisplayObject:"set_topAnchorDisplayObject",get_topAnchorDisplayObject:"get_topAnchorDisplayObject",set_percentHeight:"set_percentHeight",get_percentHeight:"get_percentHeight",set_percentWidth:"set_percentWidth",get_percentWidth:"get_percentWidth"}
 });
+var feathers_layout_Direction = function() { };
+$hxClasses["feathers.layout.Direction"] = feathers_layout_Direction;
+feathers_layout_Direction.__name__ = "feathers.layout.Direction";
 var feathers_layout_HorizontalAlign = function() { };
 $hxClasses["feathers.layout.HorizontalAlign"] = feathers_layout_HorizontalAlign;
 feathers_layout_HorizontalAlign.__name__ = "feathers.layout.HorizontalAlign";
-var feathers_layout_IVirtualLayout = function() { };
-$hxClasses["feathers.layout.IVirtualLayout"] = feathers_layout_IVirtualLayout;
-feathers_layout_IVirtualLayout.__name__ = "feathers.layout.IVirtualLayout";
-feathers_layout_IVirtualLayout.__isInterface__ = true;
-feathers_layout_IVirtualLayout.__interfaces__ = [feathers_layout_ILayout];
-feathers_layout_IVirtualLayout.prototype = {
-	get_useVirtualLayout: null
-	,set_useVirtualLayout: null
-	,get_typicalItem: null
-	,set_typicalItem: null
-	,measureViewPort: null
-	,getVisibleIndicesAtScrollPosition: null
-	,__class__: feathers_layout_IVirtualLayout
-	,__properties__: {set_typicalItem:"set_typicalItem",get_typicalItem:"get_typicalItem",set_useVirtualLayout:"set_useVirtualLayout",get_useVirtualLayout:"get_useVirtualLayout"}
+var feathers_layout_HorizontalLayoutData = function(percentWidth,percentHeight) {
+	starling_events_EventDispatcher.call(this);
+	this._percentWidth = percentWidth != null ? percentWidth : NaN;
+	this._percentHeight = percentHeight != null ? percentHeight : NaN;
 };
+$hxClasses["feathers.layout.HorizontalLayoutData"] = feathers_layout_HorizontalLayoutData;
+feathers_layout_HorizontalLayoutData.__name__ = "feathers.layout.HorizontalLayoutData";
+feathers_layout_HorizontalLayoutData.__interfaces__ = [feathers_layout_ILayoutData];
+feathers_layout_HorizontalLayoutData.__super__ = starling_events_EventDispatcher;
+feathers_layout_HorizontalLayoutData.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_percentWidth: null
+	,get_percentWidth: function() {
+		return this._percentWidth;
+	}
+	,set_percentWidth: function(value) {
+		if(this._percentWidth == value) {
+			return value;
+		}
+		this._percentWidth = value;
+		this.dispatchEventWith("change");
+		return this._percentWidth;
+	}
+	,_percentHeight: null
+	,get_percentHeight: function() {
+		return this._percentHeight;
+	}
+	,set_percentHeight: function(value) {
+		if(this._percentHeight == value) {
+			return value;
+		}
+		this._percentHeight = value;
+		this.dispatchEventWith("change");
+		return this._percentHeight;
+	}
+	,__class__: feathers_layout_HorizontalLayoutData
+	,__properties__: {set_percentHeight:"set_percentHeight",get_percentHeight:"get_percentHeight",set_percentWidth:"set_percentWidth",get_percentWidth:"get_percentWidth"}
+});
 var feathers_layout_LayoutBoundsResult = function() {
 	this.contentY = 0;
 	this.contentX = 0;
@@ -16597,6 +24944,43 @@ feathers_layout_RelativePosition.__name__ = "feathers.layout.RelativePosition";
 var feathers_layout_VerticalAlign = function() { };
 $hxClasses["feathers.layout.VerticalAlign"] = feathers_layout_VerticalAlign;
 feathers_layout_VerticalAlign.__name__ = "feathers.layout.VerticalAlign";
+var feathers_layout_VerticalLayoutData = function(percentWidth,percentHeight) {
+	starling_events_EventDispatcher.call(this);
+	this._percentWidth = percentWidth != null ? percentWidth : NaN;
+	this._percentHeight = percentHeight != null ? percentHeight : NaN;
+};
+$hxClasses["feathers.layout.VerticalLayoutData"] = feathers_layout_VerticalLayoutData;
+feathers_layout_VerticalLayoutData.__name__ = "feathers.layout.VerticalLayoutData";
+feathers_layout_VerticalLayoutData.__interfaces__ = [feathers_layout_ILayoutData];
+feathers_layout_VerticalLayoutData.__super__ = starling_events_EventDispatcher;
+feathers_layout_VerticalLayoutData.prototype = $extend(starling_events_EventDispatcher.prototype,{
+	_percentWidth: null
+	,get_percentWidth: function() {
+		return this._percentWidth;
+	}
+	,set_percentWidth: function(value) {
+		if(this._percentWidth == value) {
+			return value;
+		}
+		this._percentWidth = value;
+		this.dispatchEventWith("change");
+		return this._percentWidth;
+	}
+	,_percentHeight: null
+	,get_percentHeight: function() {
+		return this._percentHeight;
+	}
+	,set_percentHeight: function(value) {
+		if(this._percentHeight == value) {
+			return value;
+		}
+		this._percentHeight = value;
+		this.dispatchEventWith("change");
+		return this._percentHeight;
+	}
+	,__class__: feathers_layout_VerticalLayoutData
+	,__properties__: {set_percentHeight:"set_percentHeight",get_percentHeight:"get_percentHeight",set_percentWidth:"set_percentWidth",get_percentWidth:"get_percentWidth"}
+});
 var feathers_layout_ViewPortBounds = function() {
 	this.maxHeight = Infinity;
 	this.maxWidth = Infinity;
@@ -42022,7 +50406,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 429300;
+	this.version = 932464;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -82692,6 +91076,33 @@ openfl_events_SecurityErrorEvent.prototype = $extend(openfl_events_ErrorEvent.pr
 	}
 	,__class__: openfl_events_SecurityErrorEvent
 });
+var openfl_events_TimerEvent = function(type,bubbles,cancelable) {
+	if(cancelable == null) {
+		cancelable = false;
+	}
+	if(bubbles == null) {
+		bubbles = false;
+	}
+	openfl_events_Event.call(this,type,bubbles,cancelable);
+};
+$hxClasses["openfl.events.TimerEvent"] = openfl_events_TimerEvent;
+openfl_events_TimerEvent.__name__ = "openfl.events.TimerEvent";
+openfl_events_TimerEvent.__super__ = openfl_events_Event;
+openfl_events_TimerEvent.prototype = $extend(openfl_events_Event.prototype,{
+	clone: function() {
+		var event = new openfl_events_TimerEvent(this.type,this.bubbles,this.cancelable);
+		event.target = this.target;
+		event.currentTarget = this.currentTarget;
+		event.eventPhase = this.eventPhase;
+		return event;
+	}
+	,toString: function() {
+		return this.__formatToString("TimerEvent",["type","bubbles","cancelable"]);
+	}
+	,updateAfterEvent: function() {
+	}
+	,__class__: openfl_events_TimerEvent
+});
 var openfl_events_TouchEvent = function(type,bubbles,cancelable,touchPointID,isPrimaryTouchPoint,localX,localY,sizeX,sizeY,pressure,relatedObject,ctrlKey,altKey,shiftKey,commandKey,controlKey,timestamp,touchIntent,samples,isTouchPointCanceled) {
 	if(isTouchPointCanceled == null) {
 		isTouchPointCanceled = false;
@@ -82867,9 +91278,6 @@ openfl_events_UncaughtErrorEvents.prototype = $extend(openfl_events_EventDispatc
 			useCapture = false;
 		}
 		openfl_events_EventDispatcher.prototype.addEventListener.call(this,type,listener,useCapture,priority,useWeakReference);
-		if(Object.prototype.hasOwnProperty.call(this.__eventMap.h,"uncaughtError")) {
-			this.__enabled = true;
-		}
 	}
 	,removeEventListener: function(type,listener,useCapture) {
 		if(useCapture == null) {
@@ -92873,6 +101281,81 @@ haxe_lang_Iterable.prototype = {
 	iterator: null
 	,__class__: haxe_lang_Iterable
 };
+var openfl_utils_Timer = function(delay,repeatCount) {
+	if(repeatCount == null) {
+		repeatCount = 0;
+	}
+	if(isNaN(delay) || delay < 0) {
+		throw new openfl_errors_Error("The delay specified is negative or not a finite number");
+	}
+	openfl_events_EventDispatcher.call(this);
+	this.__delay = delay;
+	this.__repeatCount = repeatCount;
+	this.running = false;
+	this.currentCount = 0;
+};
+$hxClasses["openfl.utils.Timer"] = openfl_utils_Timer;
+openfl_utils_Timer.__name__ = "openfl.utils.Timer";
+openfl_utils_Timer.__super__ = openfl_events_EventDispatcher;
+openfl_utils_Timer.prototype = $extend(openfl_events_EventDispatcher.prototype,{
+	currentCount: null
+	,running: null
+	,__delay: null
+	,__repeatCount: null
+	,__timer: null
+	,__timerID: null
+	,reset: function() {
+		if(this.running) {
+			this.stop();
+		}
+		this.currentCount = 0;
+	}
+	,start: function() {
+		if(!this.running) {
+			this.running = true;
+			this.__timerID = window.setInterval($bind(this,this.timer_onTimer),this.__delay | 0);
+		}
+	}
+	,stop: function() {
+		this.running = false;
+		if(this.__timerID != null) {
+			window.clearInterval(this.__timerID);
+			this.__timerID = null;
+		}
+	}
+	,get_delay: function() {
+		return this.__delay;
+	}
+	,set_delay: function(value) {
+		this.__delay = value;
+		if(this.running) {
+			this.stop();
+			this.start();
+		}
+		return this.__delay;
+	}
+	,get_repeatCount: function() {
+		return this.__repeatCount;
+	}
+	,set_repeatCount: function(v) {
+		if(this.running && v != 0 && v <= this.currentCount) {
+			this.stop();
+		}
+		return this.__repeatCount = v;
+	}
+	,timer_onTimer: function() {
+		this.currentCount++;
+		if(this.__repeatCount > 0 && this.currentCount >= this.__repeatCount) {
+			this.stop();
+			this.dispatchEvent(new openfl_events_TimerEvent("timer"));
+			this.dispatchEvent(new openfl_events_TimerEvent("timerComplete"));
+		} else {
+			this.dispatchEvent(new openfl_events_TimerEvent("timer"));
+		}
+	}
+	,__class__: openfl_utils_Timer
+	,__properties__: {set_repeatCount:"set_repeatCount",get_repeatCount:"get_repeatCount",set_delay:"set_delay",get_delay:"get_delay"}
+});
 var openfl_utils__$internal_TouchData = function() {
 	this.rollOutStack = [];
 };
@@ -107870,7 +116353,7 @@ while(_g < _g1) {
 }
 lime_system_CFFI.available = false;
 lime_system_CFFI.enabled = false;
-lime_utils_Log.level = 3;
+lime_utils_Log.level = 4;
 if(typeof console == "undefined") {
 	console = {}
 }
@@ -107953,15 +116436,20 @@ feathers_core_FeathersControl.ABSTRACT_CLASS_ERROR = "FeathersControl is an abst
 feathers_controls_LayoutGroup.INVALIDATION_FLAG_CLIPPING = "clipping";
 feathers_controls_LayoutGroup.ALTERNATE_STYLE_NAME_TOOLBAR = "feathers-toolbar-layout-group";
 feathers_layout_AnchorLayout.CIRCULAR_REFERENCE_ERROR = "It is impossible to create this layout due to a circular reference in the AnchorLayoutData.";
-feathers_controls_BasicButton.HELPER_POINT = new openfl_geom_Point();
-feathers_controls_Button.HELPER_POINT = new openfl_geom_Point();
-feathers_controls_Button.DEFAULT_CHILD_STYLE_NAME_LABEL = "feathers-button-label";
-feathers_controls_Button.ALTERNATE_STYLE_NAME_CALL_TO_ACTION_BUTTON = "feathers-call-to-action-button";
-feathers_controls_Button.ALTERNATE_STYLE_NAME_QUIET_BUTTON = "feathers-quiet-button";
-feathers_controls_Button.ALTERNATE_STYLE_NAME_DANGER_BUTTON = "feathers-danger-button";
-feathers_controls_Button.ALTERNATE_STYLE_NAME_BACK_BUTTON = "feathers-back-button";
-feathers_controls_Button.ALTERNATE_STYLE_NAME_FORWARD_BUTTON = "feathers-forward-button";
-Game.linkers = [starling_display_Button,feathers_controls_LayoutGroup,feathers_layout_AnchorLayout,feathers_controls_Button];
+feathers_controls_Scroller.INVALIDATION_FLAG_SCROLL_BAR_RENDERER = "scrollBarRenderer";
+feathers_controls_Scroller.INVALIDATION_FLAG_PENDING_SCROLL = "pendingScroll";
+feathers_controls_Scroller.INVALIDATION_FLAG_PENDING_REVEAL_SCROLL_BARS = "pendingRevealScrollBars";
+feathers_controls_Scroller.INVALIDATION_FLAG_PENDING_PULL_VIEW = "pendingPullView";
+feathers_controls_Scroller.INVALIDATION_FLAG_CLIPPING = "clipping";
+feathers_controls_Scroller.MINIMUM_VELOCITY = 0.02;
+feathers_controls_Scroller.CURRENT_VELOCITY_WEIGHT = 2.33;
+feathers_controls_Scroller.VELOCITY_WEIGHTS = [1,1.33,1.66,2];
+feathers_controls_Scroller.MAXIMUM_SAVED_VELOCITY_COUNT = 4;
+feathers_controls_Scroller.DEFAULT_CHILD_STYLE_NAME_HORIZONTAL_SCROLL_BAR = "feathers-scroller-horizontal-scroll-bar";
+feathers_controls_Scroller.DEFAULT_CHILD_STYLE_NAME_VERTICAL_SCROLL_BAR = "feathers-scroller-vertical-scroll-bar";
+feathers_controls_Scroller.PAGE_INDEX_EPSILON = 0.01;
+feathers_controls_ScrollContainer.ALTERNATE_STYLE_NAME_TOOLBAR = "feathers-toolbar-scroll-container";
+Game.linkers = [starling_display_Button,feathers_controls_LayoutGroup,feathers_layout_AnchorLayout,feathers_controls_ScrollContainer,feathers_layout_HorizontalLayout,feathers_layout_VerticalLayout];
 Xml.Element = 0;
 Xml.PCData = 1;
 Xml.CData = 2;
@@ -107971,6 +116459,14 @@ Xml.ProcessingInstruction = 5;
 Xml.Document = 6;
 feathers_controls_AutoSizeMode.STAGE = "stage";
 feathers_controls_AutoSizeMode.CONTENT = "content";
+feathers_controls_BasicButton.HELPER_POINT = new openfl_geom_Point();
+feathers_controls_Button.HELPER_POINT = new openfl_geom_Point();
+feathers_controls_Button.DEFAULT_CHILD_STYLE_NAME_LABEL = "feathers-button-label";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_CALL_TO_ACTION_BUTTON = "feathers-call-to-action-button";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_QUIET_BUTTON = "feathers-quiet-button";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_DANGER_BUTTON = "feathers-danger-button";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_BACK_BUTTON = "feathers-back-button";
+feathers_controls_Button.ALTERNATE_STYLE_NAME_FORWARD_BUTTON = "feathers-forward-button";
 feathers_controls_ButtonState.UP = "up";
 feathers_controls_ButtonState.DOWN = "down";
 feathers_controls_ButtonState.HOVER = "hover";
@@ -107980,6 +116476,22 @@ feathers_controls_ButtonState.DOWN_AND_SELECTED = "downAndSelected";
 feathers_controls_ButtonState.HOVER_AND_SELECTED = "hoverAndSelected";
 feathers_controls_ButtonState.DISABLED_AND_SELECTED = "disabledAndSelected";
 feathers_controls_ButtonState.FOCUSED_AND_SELECTED = "focusedAndSelected";
+feathers_controls_DecelerationRate.NORMAL = 0.998;
+feathers_controls_DecelerationRate.FAST = 0.99;
+feathers_controls_PullViewDisplayMode.FIXED = "fixed";
+feathers_controls_PullViewDisplayMode.DRAG = "drag";
+feathers_controls_ScrollBarDisplayMode.FLOAT = "float";
+feathers_controls_ScrollBarDisplayMode.FIXED = "fixed";
+feathers_controls_ScrollBarDisplayMode.FIXED_FLOAT = "fixedFloat";
+feathers_controls_ScrollBarDisplayMode.NONE = "none";
+feathers_controls_ScrollInteractionMode.TOUCH = "touch";
+feathers_controls_ScrollInteractionMode.MOUSE = "mouse";
+feathers_controls_ScrollInteractionMode.TOUCH_AND_SCROLL_BARS = "touchAndScrollBars";
+feathers_controls_ScrollPolicy.AUTO = "auto";
+feathers_controls_ScrollPolicy.ON = "on";
+feathers_controls_ScrollPolicy.OFF = "off";
+feathers_controls_SimpleScrollBar.INVALIDATION_FLAG_THUMB_FACTORY = "thumbFactory";
+feathers_controls_SimpleScrollBar.DEFAULT_CHILD_STYLE_NAME_THUMB = "feathers-simple-scroll-bar-thumb";
 feathers_controls_text_BitmapFontTextRenderer.HELPER_RESULT = new feathers_controls_text_MeasureTextResult();
 feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_SPACE = 32;
 feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_TAB = 9;
@@ -107990,6 +116502,7 @@ feathers_controls_text_StageTextTextEditor.MIN_VIEW_PORT_POSITION = -8192;
 feathers_controls_text_StageTextTextEditor.MAX_VIEW_PORT_POSITION = 8191;
 feathers_core_DefaultFocusManager.NATIVE_STAGE_TO_FOCUS_TARGET = new haxe_ds_ObjectMap();
 feathers_core_ValidationQueue.STARLING_TO_VALIDATION_QUEUE = new haxe_ds_ObjectMap();
+feathers_events_ExclusiveTouch.stageToObject = new haxe_ds_ObjectMap();
 feathers_events_FeathersEventType.INITIALIZE = "initialize";
 feathers_events_FeathersEventType.CREATION_COMPLETE = "creationComplete";
 feathers_events_FeathersEventType.RESIZE = "resize";
@@ -108021,6 +116534,9 @@ feathers_events_FeathersEventType.LOCATION_CHANGE = "locationChange";
 feathers_events_FeathersEventType.LOCATION_CHANGING = "locationChanging";
 feathers_events_FeathersEventType.STATE_CHANGE = "stateChange";
 feathers_events_FeathersEventType.PULLING = "pulling";
+feathers_layout_Direction.VERTICAL = "vertical";
+feathers_layout_Direction.HORIZONTAL = "horizontal";
+feathers_layout_Direction.NONE = "none";
 feathers_layout_HorizontalAlign.LEFT = "left";
 feathers_layout_HorizontalAlign.CENTER = "center";
 feathers_layout_HorizontalAlign.RIGHT = "right";
@@ -108050,7 +116566,7 @@ openfl_system_Capabilities.hasStreamingAudio = false;
 openfl_system_Capabilities.hasStreamingVideo = false;
 openfl_system_Capabilities.hasTLS = true;
 openfl_system_Capabilities.hasVideoEncoder = true;
-openfl_system_Capabilities.isDebugger = false;
+openfl_system_Capabilities.isDebugger = true;
 openfl_system_Capabilities.isEmbeddedInAcrobat = false;
 openfl_system_Capabilities.localFileReadDisable = true;
 openfl_system_Capabilities.maxLevelIDC = 0;
@@ -109816,6 +118332,8 @@ openfl_events_RenderEvent.RENDER_CANVAS = "renderCanvas";
 openfl_events_RenderEvent.RENDER_DOM = "renderDOM";
 openfl_events_RenderEvent.RENDER_OPENGL = "renderOpenGL";
 openfl_events_SecurityErrorEvent.SECURITY_ERROR = "securityError";
+openfl_events_TimerEvent.TIMER = "timer";
+openfl_events_TimerEvent.TIMER_COMPLETE = "timerComplete";
 openfl_events_TouchEvent.__meta__ = { fields : { delta : { SuppressWarnings : ["checkstyle:FieldDocComment"]}}};
 openfl_events_TouchEvent.TOUCH_BEGIN = "touchBegin";
 openfl_events_TouchEvent.TOUCH_END = "touchEnd";
@@ -110603,6 +119121,7 @@ starlingbuilder_engine_UIElementFactory.PARAMS = { x : 1, y : 1, width : 2, heig
 ApplicationMain.main();
 })(typeof exports != "undefined" ? exports : typeof window != "undefined" ? window : typeof self != "undefined" ? self : this, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
+//# sourceMappingURL=StarlingProject.js.map
 });
 $hx_exports.lime = $hx_exports.lime || {};
 $hx_exports.lime.$scripts = $hx_exports.lime.$scripts || {};

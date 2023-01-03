@@ -114,11 +114,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 
 	private var _keepDownStateOnRollOut:Bool = false;
 
-	private function get_keepDownStateOnRollOut():Bool {
+	public function get_keepDownStateOnRollOut():Bool {
 		return this._keepDownStateOnRollOut;
 	}
 
-	private function set_keepDownStateOnRollOut(value:Bool):Bool {
+	public function set_keepDownStateOnRollOut(value:Bool):Bool {
 		if (this.processStyleRestriction(this.set_keepDownStateOnRollOut)) {
 			return value;
 		}
@@ -132,11 +132,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 
 	private var _defaultSkin:DisplayObject;
 
-	private function get_defaultSkin():DisplayObject {
+	public function get_defaultSkin():DisplayObject {
 		return this._defaultSkin;
 	}
 
-	private function set_defaultSkin(value:DisplayObject):DisplayObject {
+	public function set_defaultSkin(value:DisplayObject):DisplayObject {
 		if (this.processStyleRestriction(this.set_defaultSkin)) {
 			if (value != null) {
 				value.dispose();
@@ -162,11 +162,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 	 */
 	public var upSkin(get, set):DisplayObject;
 
-	private function get_upSkin():DisplayObject {
+	public function get_upSkin():DisplayObject {
 		return this.getSkinForState(ButtonState.UP);
 	}
 
-	private function set_upSkin(value:DisplayObject):DisplayObject {
+	public function set_upSkin(value:DisplayObject):DisplayObject {
 		this.setSkinForState(ButtonState.UP, value);
 		return value;
 	}
@@ -176,11 +176,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 	 */
 	public var downSkin(get, set):DisplayObject;
 
-	private function get_downSkin():DisplayObject {
+	public function get_downSkin():DisplayObject {
 		return this.getSkinForState(ButtonState.DOWN);
 	}
 
-	private function set_downSkin(value:DisplayObject):DisplayObject {
+	public function set_downSkin(value:DisplayObject):DisplayObject {
 		this.setSkinForState(ButtonState.DOWN, value);
 		return value;
 	}
@@ -190,11 +190,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 	 */
 	public var hoverSkin(get, set):DisplayObject;
 
-	private function get_hoverSkin():DisplayObject {
+	public function get_hoverSkin():DisplayObject {
 		return this.getSkinForState(ButtonState.HOVER);
 	}
 
-	private function set_hoverSkin(value:DisplayObject):DisplayObject {
+	public function set_hoverSkin(value:DisplayObject):DisplayObject {
 		this.setSkinForState(ButtonState.HOVER, value);
 		return value;
 	}
@@ -204,11 +204,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 	 */
 	public var disabledSkin(get, set):DisplayObject;
 
-	private function get_disabledSkin():DisplayObject {
+	public function get_disabledSkin():DisplayObject {
 		return this.getSkinForState(ButtonState.DISABLED);
 	}
 
-	private function set_disabledSkin(value:DisplayObject):DisplayObject {
+	public function set_disabledSkin(value:DisplayObject):DisplayObject {
 		this.setSkinForState(ButtonState.DISABLED, value);
 		return value;
 	}

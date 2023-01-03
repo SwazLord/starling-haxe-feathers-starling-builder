@@ -321,11 +321,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _label:String = null;
 
-	private function get_label():String {
+	public function get_label():String {
 		return this._label;
 	}
 
-	private function set_label(value:String):String {
+	public function set_label(value:String):String {
 		if (this._label == value) {
 			return this._label;
 		}
@@ -341,11 +341,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _hasLabelTextRenderer:Bool = true;
 
-	private function get_hasLabelTextRenderer():Bool {
+	public function get_hasLabelTextRenderer():Bool {
 		return this._hasLabelTextRenderer;
 	}
 
-	private function set_hasLabelTextRenderer(value:Bool):Bool {
+	public function set_hasLabelTextRenderer(value:Bool):Bool {
 		if (this.processStyleRestriction(this.set_hasLabelTextRenderer)) {
 			return value;
 		}
@@ -364,11 +364,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _iconPosition:String = RelativePosition.LEFT;
 
-	private function get_iconPosition():String {
+	public function get_iconPosition():String {
 		return this._iconPosition;
 	}
 
-	private function set_iconPosition(value:String):String {
+	public function set_iconPosition(value:String):String {
 		if (this.processStyleRestriction(this.set_iconPosition)) {
 			return this._iconPosition;
 		}
@@ -387,11 +387,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _gap:Float = 0;
 
-	private function get_gap():Float {
+	public function get_gap():Float {
 		return this._gap;
 	}
 
-	private function set_gap(value:Float):Float {
+	public function set_gap(value:Float):Float {
 		if (this.processStyleRestriction(this.set_gap)) {
 			return value;
 		}
@@ -410,11 +410,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _minGap:Float = 0;
 
-	private function get_minGap():Float {
+	public function get_minGap():Float {
 		return this._minGap;
 	}
 
-	private function set_minGap(value:Float):Float {
+	public function set_minGap(value:Float):Float {
 		if (this.processStyleRestriction(this.set_minGap)) {
 			return value;
 		}
@@ -433,11 +433,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _horizontalAlign:String = HorizontalAlign.CENTER;
 
-	private function get_horizontalAlign():String {
+	public function get_horizontalAlign():String {
 		return this._horizontalAlign;
 	}
 
-	private function set_horizontalAlign(value:String):String {
+	public function set_horizontalAlign(value:String):String {
 		if (this.processStyleRestriction(this.set_horizontalAlign)) {
 			return value;
 		}
@@ -456,11 +456,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _verticalAlign:String = VerticalAlign.MIDDLE;
 
-	private function get_verticalAlign():String {
+	public function get_verticalAlign():String {
 		return this._verticalAlign;
 	}
 
-	private function set_verticalAlign(value:String):String {
+	public function set_verticalAlign(value:String):String {
 		if (this.processStyleRestriction(this.set_verticalAlign)) {
 			return value;
 		}
@@ -477,11 +477,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var padding(get, set):Float;
 
-	private function get_padding():Float {
+	public function get_padding():Float {
 		return this._paddingTop;
 	}
 
-	private function set_padding(value:Float):Float {
+	public function set_padding(value:Float):Float {
 		this.paddingTop = value;
 		this.paddingRight = value;
 		this.paddingBottom = value;
@@ -495,11 +495,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _paddingTop:Float = 0;
 
-	private function get_paddingTop():Float {
+	public function get_paddingTop():Float {
 		return this._paddingTop;
 	}
 
-	private function set_paddingTop(value:Float):Float {
+	public function set_paddingTop(value:Float):Float {
 		if (this.processStyleRestriction(this.set_paddingTop)) {
 			return value;
 		}
@@ -518,11 +518,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _paddingRight:Float = 0;
 
-	private function get_paddingRight():Float {
+	public function get_paddingRight():Float {
 		return this._paddingRight;
 	}
 
-	private function set_paddingRight(value:Float):Float {
+	public function set_paddingRight(value:Float):Float {
 		if (this.processStyleRestriction(this.set_paddingRight)) {
 			return value;
 		}
@@ -541,11 +541,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _paddingBottom:Float = 0;
 
-	private function get_paddingBottom():Float {
+	public function get_paddingBottom():Float {
 		return this._paddingBottom;
 	}
 
-	private function set_paddingBottom(value:Float):Float {
+	public function set_paddingBottom(value:Float):Float {
 		if (this.processStyleRestriction(this.set_paddingBottom)) {
 			return value;
 		}
@@ -564,11 +564,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _paddingLeft:Float = 0;
 
-	private function get_paddingLeft():Float {
+	public function get_paddingLeft():Float {
 		return this._paddingLeft;
 	}
 
-	private function set_paddingLeft(value:Float):Float {
+	public function set_paddingLeft(value:Float):Float {
 		if (this.processStyleRestriction(this.set_paddingLeft)) {
 			return value;
 		}
@@ -587,11 +587,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _labelOffsetX:Float = 0;
 
-	private function get_labelOffsetX():Float {
+	public function get_labelOffsetX():Float {
 		return this._labelOffsetX;
 	}
 
-	private function set_labelOffsetX(value:Float):Float {
+	public function set_labelOffsetX(value:Float):Float {
 		if (this.processStyleRestriction(this.set_labelOffsetX)) {
 			return value;
 		}
@@ -610,11 +610,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _labelOffsetY:Float = 0;
 
-	private function get_labelOffsetY():Float {
+	public function get_labelOffsetY():Float {
 		return this._labelOffsetY;
 	}
 
-	private function set_labelOffsetY(value:Float):Float {
+	public function set_labelOffsetY(value:Float):Float {
 		if (this.processStyleRestriction(this.set_labelOffsetY)) {
 			return value;
 		}
@@ -633,11 +633,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _iconOffsetX:Float = 0;
 
-	private function get_iconOffsetX():Float {
+	public function get_iconOffsetX():Float {
 		return this._iconOffsetX;
 	}
 
-	private function set_iconOffsetX(value:Float):Float {
+	public function set_iconOffsetX(value:Float):Float {
 		if (this.processStyleRestriction(this.set_iconOffsetX)) {
 			return value;
 		}
@@ -656,11 +656,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _iconOffsetY:Float = 0;
 
-	private function get_iconOffsetY():Float {
+	public function get_iconOffsetY():Float {
 		return this._iconOffsetY;
 	}
 
-	private function set_iconOffsetY(value:Float):Float {
+	public function set_iconOffsetY(value:Float):Float {
 		if (this.processStyleRestriction(this.set_iconOffsetY)) {
 			return value;
 		}
@@ -682,11 +682,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var fontStyles(get, set):TextFormat;
 
-	private function get_fontStyles():TextFormat {
+	public function get_fontStyles():TextFormat {
 		return this._fontStylesSet.format;
 	}
 
-	private function set_fontStyles(value:TextFormat):TextFormat {
+	public function set_fontStyles(value:TextFormat):TextFormat {
 		if (this.processStyleRestriction(this.set_fontStyles)) {
 			return value;
 		}
@@ -709,11 +709,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var disabledFontStyles(get, set):TextFormat;
 
-	private function get_disabledFontStyles():TextFormat {
+	public function get_disabledFontStyles():TextFormat {
 		return this._fontStylesSet.disabledFormat;
 	}
 
-	private function set_disabledFontStyles(value:TextFormat):TextFormat {
+	public function set_disabledFontStyles(value:TextFormat):TextFormat {
 		if (this.processStyleRestriction(this.set_disabledFontStyles)) {
 			return value;
 		}
@@ -738,11 +738,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _wordWrap:Bool = false;
 
-	private function get_wordWrap():Bool {
+	public function get_wordWrap():Bool {
 		return this._wordWrap;
 	}
 
-	private function set_wordWrap(value:Bool):Bool {
+	public function set_wordWrap(value:Bool):Bool {
 		if (this.processStyleRestriction(this.set_wordWrap)) {
 			return value;
 		}
@@ -782,11 +782,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _labelFactory:Void->ITextRenderer;
 
-	private function get_labelFactory():Void->ITextRenderer {
+	public function get_labelFactory():Void->ITextRenderer {
 		return this._labelFactory;
 	}
 
-	private function set_labelFactory(value:Void->ITextRenderer):Void->ITextRenderer {
+	public function set_labelFactory(value:Void->ITextRenderer):Void->ITextRenderer {
 		if (this._labelFactory == value) {
 			return value;
 		}
@@ -802,11 +802,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _customLabelStyleName:String;
 
-	private function get_customLabelStyleName():String {
+	public function get_customLabelStyleName():String {
 		return this._customLabelStyleName;
 	}
 
-	private function set_customLabelStyleName(value:String):String {
+	public function set_customLabelStyleName(value:String):String {
 		if (this.processStyleRestriction(this.set_customLabelStyleName)) {
 			return value;
 		}
@@ -846,14 +846,14 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	public var defaultLabelProperties(get, set):Dynamic;
 
-	private function get_defaultLabelProperties():PropertyProxy {
+	public function get_defaultLabelProperties():PropertyProxy {
 		if (this._defaultLabelProperties == null) {
 			this._defaultLabelProperties = new PropertyProxy(childProperties_onChange);
 		}
 		return this._defaultLabelProperties;
 	}
 
-	private function set_defaultLabelProperties(value:Dynamic):Dynamic {
+	public function set_defaultLabelProperties(value:Dynamic):Dynamic {
 		if (!Std.isOfType(value, PropertyProxy)) {
 			value = PropertyProxy.fromObject(value);
 		}
@@ -875,11 +875,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _defaultIcon:DisplayObject;
 
-	private function get_defaultIcon():DisplayObject {
+	public function get_defaultIcon():DisplayObject {
 		return this._defaultIcon;
 	}
 
-	private function set_defaultIcon(value:DisplayObject):DisplayObject {
+	public function set_defaultIcon(value:DisplayObject):DisplayObject {
 		if (this.processStyleRestriction(this.set_defaultIcon)) {
 			if (value != null) {
 				value.dispose();
@@ -910,11 +910,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var upIcon(get, set):DisplayObject;
 
-	private function get_upIcon():DisplayObject {
+	public function get_upIcon():DisplayObject {
 		return this.getIconForState(ButtonState.UP);
 	}
 
-	private function set_upIcon(value:DisplayObject):DisplayObject {
+	public function set_upIcon(value:DisplayObject):DisplayObject {
 		this.setIconForState(ButtonState.UP, value);
 		return value;
 	}
@@ -924,11 +924,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var downIcon(get, set):DisplayObject;
 
-	private function get_downIcon():DisplayObject {
+	public function get_downIcon():DisplayObject {
 		return this.getIconForState(ButtonState.DOWN);
 	}
 
-	private function set_downIcon(value:DisplayObject):DisplayObject {
+	public function set_downIcon(value:DisplayObject):DisplayObject {
 		this.setIconForState(ButtonState.DOWN, value);
 		return value;
 	}
@@ -938,11 +938,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var hoverIcon(get, set):DisplayObject;
 
-	private function get_hoverIcon():DisplayObject {
+	public function get_hoverIcon():DisplayObject {
 		return this.getIconForState(ButtonState.HOVER);
 	}
 
-	private function set_hoverIcon(value:DisplayObject):DisplayObject {
+	public function set_hoverIcon(value:DisplayObject):DisplayObject {
 		this.setIconForState(ButtonState.HOVER, value);
 		return value;
 	}
@@ -952,11 +952,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var disabledIcon(get, set):DisplayObject;
 
-	private function get_disabledIcon():DisplayObject {
+	public function get_disabledIcon():DisplayObject {
 		return this.getIconForState(ButtonState.DISABLED);
 	}
 
-	private function set_disabledIcon(value:DisplayObject):DisplayObject {
+	public function set_disabledIcon(value:DisplayObject):DisplayObject {
 		this.setIconForState(ButtonState.DISABLED, value);
 		return value;
 	}
@@ -978,11 +978,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _longPressDuration:Float = 0.5;
 
-	private function get_longPressDuration():Float {
+	public function get_longPressDuration():Float {
 		return this._longPressDuration;
 	}
 
-	private function set_longPressDuration(value:Float):Float {
+	public function set_longPressDuration(value:Float):Float {
 		if (this._longPressDuration == value) {
 			return this._longPressDuration;
 		}
@@ -1013,11 +1013,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 
 	private var _isLongPressEnabled:Bool = false;
 
-	private function get_isLongPressEnabled():Bool {
+	public function get_isLongPressEnabled():Bool {
 		return this._isLongPressEnabled;
 	}
 
-	private function set_isLongPressEnabled(value:Bool):Bool {
+	public function set_isLongPressEnabled(value:Bool):Bool {
 		if (this._isLongPressEnabled == value) {
 			return this._isLongPressEnabled;
 		}
@@ -1036,11 +1036,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var scaleWhenDown(get, set):Float;
 
-	private function get_scaleWhenDown():Float {
+	public function get_scaleWhenDown():Float {
 		return this.getScaleForState(ButtonState.DOWN);
 	}
 
-	private function set_scaleWhenDown(value:Float):Float {
+	public function set_scaleWhenDown(value:Float):Float {
 		this.setScaleForState(ButtonState.DOWN, value);
 		return value;
 	}
@@ -1050,11 +1050,11 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var scaleWhenHovering(get, set):Float;
 
-	private function get_scaleWhenHovering():Float {
+	public function get_scaleWhenHovering():Float {
 		return this.getScaleForState(ButtonState.HOVER);
 	}
 
-	private function set_scaleWhenHovering(value:Float):Float {
+	public function set_scaleWhenHovering(value:Float):Float {
 		this.setScaleForState(ButtonState.HOVER, value);
 		return value;
 	}
@@ -1080,7 +1080,7 @@ class Button extends BasicButton implements IFocusDisplayObject implements IText
 	 */
 	public var numLines(get, never):Int;
 
-	private function get_numLines():Int {
+	public function get_numLines():Int {
 		if (this.labelTextRenderer == null) {
 			return 0;
 		}

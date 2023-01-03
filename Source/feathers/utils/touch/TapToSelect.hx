@@ -64,11 +64,11 @@ class TapToSelect {
 
 	private var _target:IToggle;
 
-	private function get_target():IToggle {
+	public function get_target():IToggle {
 		return this._target;
 	}
 
-	private function set_target(value:IToggle):IToggle {
+	public function set_target(value:IToggle):IToggle {
 		if (this._target == value) {
 			return value;
 		}
@@ -98,11 +98,11 @@ class TapToSelect {
 
 	private var _isEnabled:Bool = true;
 
-	private function get_isEnabled():Bool {
+	public function get_isEnabled():Bool {
 		return this._isEnabled;
 	}
 
-	private function set_isEnabled(value:Bool):Bool {
+	public function set_isEnabled(value:Bool):Bool {
 		if (this._isEnabled == value) {
 			return value;
 		}
@@ -120,11 +120,11 @@ class TapToSelect {
 
 	private var _tapToDeselect:Bool;
 
-	private function get_tapToDeselect():Bool {
+	public function get_tapToDeselect():Bool {
 		return this._tapToDeselect;
 	}
 
-	private function set_tapToDeselect(value:Bool):Bool {
+	public function set_tapToDeselect(value:Bool):Bool {
 		return this._tapToDeselect = value;
 	}
 
@@ -144,11 +144,11 @@ class TapToSelect {
 
 	private var _customHitTest:Point->Bool;
 
-	private function get_customHitTest():Point->Bool {
+	public function get_customHitTest():Point->Bool {
 		return this._customHitTest;
 	}
 
-	private function set_customHitTest(value:Point->Bool):Point->Bool {
+	public function set_customHitTest(value:Point->Bool):Point->Bool {
 		return this._customHitTest = value;
 	}
 

@@ -98,11 +98,11 @@ class TextureCache {
 
 	private var _maxUnretainedTextures:Int;
 
-	private function get_maxUnretainedTextures():Int {
+	public function get_maxUnretainedTextures():Int {
 		return this._maxUnretainedTextures;
 	}
 
-	private function set_maxUnretainedTextures(value:Int):Int {
+	public function set_maxUnretainedTextures(value:Int):Int {
 		if (this._maxUnretainedTextures == value) {
 			return value;
 		}

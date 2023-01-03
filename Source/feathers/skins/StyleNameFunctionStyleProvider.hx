@@ -85,11 +85,11 @@ class StyleNameFunctionStyleProvider implements IStyleProvider {
 
 	private var _defaultStyleFunction:IFeathersControl->Void;
 
-	private function get_defaultStyleFunction():IFeathersControl->Void {
+	public function get_defaultStyleFunction():IFeathersControl->Void {
 		return this._defaultStyleFunction;
 	}
 
-	private function set_defaultStyleFunction(value:IFeathersControl->Void):IFeathersControl->Void {
+	public function set_defaultStyleFunction(value:IFeathersControl->Void):IFeathersControl->Void {
 		return this._defaultStyleFunction = value;
 	}
 

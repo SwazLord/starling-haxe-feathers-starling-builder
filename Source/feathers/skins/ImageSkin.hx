@@ -91,11 +91,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _defaultTexture:Texture;
 
-	private function get_defaultTexture():Texture {
+	public function get_defaultTexture():Texture {
 		return this._defaultTexture;
 	}
 
-	private function set_defaultTexture(value:Texture):Texture {
+	public function set_defaultTexture(value:Texture):Texture {
 		if (this._defaultTexture == value) {
 			return value;
 		}
@@ -132,11 +132,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _disabledTexture:Texture;
 
-	private function get_disabledTexture():Texture {
+	public function get_disabledTexture():Texture {
 		return this._disabledTexture;
 	}
 
-	private function set_disabledTexture(value:Texture):Texture {
+	public function set_disabledTexture(value:Texture):Texture {
 		if (this._disabledTexture == value) {
 			return value;
 		}
@@ -173,11 +173,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _selectedTexture:Texture;
 
-	private function get_selectedTexture():Texture {
+	public function get_selectedTexture():Texture {
 		return this._selectedTexture;
 	}
 
-	private function set_selectedTexture(value:Texture):Texture {
+	public function set_selectedTexture(value:Texture):Texture {
 		if (this._selectedTexture == value) {
 			return value;
 		}
@@ -202,7 +202,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 */
 	public var scolor(never, set):UInt;
 
-	private function set_scolor(value:UInt):UInt {
+	public function set_scolor(value:UInt):UInt {
 		return super.color = value;
 	}
 
@@ -239,11 +239,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _defaultColor:UInt = 0xffffff;
 
-	private function get_defaultColor():UInt {
+	public function get_defaultColor():UInt {
 		return this._defaultColor;
 	}
 
-	private function set_defaultColor(value:UInt):UInt {
+	public function set_defaultColor(value:UInt):UInt {
 		if (this._defaultColor == value) {
 			return value;
 		}
@@ -284,11 +284,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _disabledColor:UInt = MathUtils.INT_MAX;
 
-	private function get_disabledColor():UInt {
+	public function get_disabledColor():UInt {
 		return this._disabledColor;
 	}
 
-	private function set_disabledColor(value:UInt):UInt {
+	public function set_disabledColor(value:UInt):UInt {
 		if (this._disabledColor == value) {
 			return value;
 		}
@@ -325,11 +325,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _selectedColor:UInt = MathUtils.INT_MAX;
 
-	private function get_selectedColor():UInt {
+	public function get_selectedColor():UInt {
 		return this._selectedColor;
 	}
 
-	private function set_selectedColor(value:UInt):UInt {
+	public function set_selectedColor(value:UInt):UInt {
 		if (this._selectedColor == value) {
 			return value;
 		}
@@ -353,11 +353,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _stateContext:IStateContext;
 
-	private function get_stateContext():IStateContext {
+	public function get_stateContext():IStateContext {
 		return this._stateContext;
 	}
 
-	private function set_stateContext(value:IStateContext):IStateContext {
+	public function set_stateContext(value:IStateContext):IStateContext {
 		if (this._stateContext == value) {
 			return value;
 		}
@@ -474,7 +474,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 */
 	public var minWidth(get, set):Float;
 
-	private function get_minWidth():Float {
+	public function get_minWidth():Float {
 		if (this._explicitMinWidth == this._explicitMinWidth) // !isNaN
 		{
 			return this._explicitMinWidth;
@@ -482,7 +482,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 		return 0;
 	}
 
-	private function set_minWidth(value:Float):Float {
+	public function set_minWidth(value:Float):Float {
 		if (this._explicitMinWidth == value) {
 			return value;
 		}
@@ -519,7 +519,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 		return this._explicitMaxWidth;
 	}
 
-	private function set_maxWidth(value:Float):Float {
+	public function set_maxWidth(value:Float):Float {
 		if (this._explicitMaxWidth == value) {
 			return value;
 		}
@@ -552,7 +552,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 */
 	public var minHeight(get, set):Float;
 
-	private function get_minHeight():Float {
+	public function get_minHeight():Float {
 		if (this._explicitMinHeight == this._explicitMinHeight) // !isNaN
 		{
 			return this._explicitMinHeight;
@@ -560,7 +560,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 		return 0;
 	}
 
-	private function set_minHeight(value:Float):Float {
+	public function set_minHeight(value:Float):Float {
 		if (this._explicitMinHeight == value) {
 			return value;
 		}
@@ -593,11 +593,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 */
 	public var maxHeight(get, set):Float;
 
-	private function get_maxHeight():Float {
+	public function get_maxHeight():Float {
 		return this._explicitMaxHeight;
 	}
 
-	private function set_maxHeight(value:Float):Float {
+	public function set_maxHeight(value:Float):Float {
 		if (this._explicitMaxHeight == value) {
 			return value;
 		}
@@ -625,11 +625,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _minTouchWidth:Float = 0;
 
-	private function get_minTouchWidth():Float {
+	public function get_minTouchWidth():Float {
 		return this._minTouchWidth;
 	}
 
-	private function set_minTouchWidth(value:Float):Float {
+	public function set_minTouchWidth(value:Float):Float {
 		return this._minTouchWidth = value;
 	}
 
@@ -648,11 +648,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 
 	private var _minTouchHeight:Float = 0;
 
-	private function get_minTouchHeight():Float {
+	public function get_minTouchHeight():Float {
 		return this._minTouchHeight;
 	}
 
-	private function set_minTouchHeight(value:Float):Float {
+	public function set_minTouchHeight(value:Float):Float {
 		return this._minTouchHeight = value;
 	}
 

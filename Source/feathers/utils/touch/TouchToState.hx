@@ -47,11 +47,11 @@ class TouchToState {
 
 	private var _target:DisplayObject;
 
-	private function get_target():DisplayObject {
+	public function get_target():DisplayObject {
 		return this._target;
 	}
 
-	private function set_target(value:DisplayObject):DisplayObject {
+	public function set_target(value:DisplayObject):DisplayObject {
 		if (this._target == value) {
 			return this._target;
 		}
@@ -83,11 +83,11 @@ class TouchToState {
 
 	private var _callback:String->Void;
 
-	private function get_callback():String->Void {
+	public function get_callback():String->Void {
 		return this._callback;
 	}
 
-	private function set_callback(value:String->Void):String->Void {
+	public function set_callback(value:String->Void):String->Void {
 		if (this._callback == value) {
 			return this._callback;
 		}
@@ -106,7 +106,7 @@ class TouchToState {
 
 	private var _currentState:String = ButtonState.UP;
 
-	private function get_currentState():String {
+	public function get_currentState():String {
 		return this._currentState;
 	}
 
@@ -119,11 +119,11 @@ class TouchToState {
 
 	private var _upState:String = ButtonState.UP;
 
-	private function get_upState():String {
+	public function get_upState():String {
 		return this._upState;
 	}
 
-	private function set_upState(value:String):String {
+	public function set_upState(value:String):String {
 		return this._upState = value;
 	}
 
@@ -136,11 +136,11 @@ class TouchToState {
 
 	private var _downState:String = ButtonState.DOWN;
 
-	private function get_downState():String {
+	public function get_downState():String {
 		return this._downState;
 	}
 
-	private function set_downState(value:String):String {
+	public function set_downState(value:String):String {
 		return this._downState = value;
 	}
 
@@ -153,11 +153,11 @@ class TouchToState {
 
 	private var _hoverState:String = ButtonState.HOVER;
 
-	private function get_hoverState():String {
+	public function get_hoverState():String {
 		return this._hoverState;
 	}
 
-	private function set_hoverState(value:String):String {
+	public function set_hoverState(value:String):String {
 		return this._hoverState = value;
 	}
 
@@ -174,11 +174,11 @@ class TouchToState {
 
 	private var _isEnabled:Bool = true;
 
-	private function get_isEnabled():Bool {
+	public function get_isEnabled():Bool {
 		return this._isEnabled;
 	}
 
-	private function set_isEnabled(value:Bool):Bool {
+	public function set_isEnabled(value:Bool):Bool {
 		if (this._isEnabled == value) {
 			return value;
 		}
@@ -205,11 +205,11 @@ class TouchToState {
 
 	private var _customHitTest:Point->Bool;
 
-	private function get_customHitTest():Point->Bool {
+	public function get_customHitTest():Point->Bool {
 		return this._customHitTest;
 	}
 
-	private function set_customHitTest(value:Point->Bool):Point->Bool {
+	public function set_customHitTest(value:Point->Bool):Point->Bool {
 		return this._customHitTest = value;
 	}
 
@@ -231,11 +231,11 @@ class TouchToState {
 
 	private var _keepDownStateOnRollOut:Bool = false;
 
-	private function get_keepDownStateOnRollOut():Bool {
+	public function get_keepDownStateOnRollOut():Bool {
 		return this._keepDownStateOnRollOut;
 	}
 
-	private function set_keepDownStateOnRollOut(value:Bool):Bool {
+	public function set_keepDownStateOnRollOut(value:Bool):Bool {
 		return this._keepDownStateOnRollOut = value;
 	}
 

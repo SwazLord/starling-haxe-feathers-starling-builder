@@ -33,11 +33,11 @@ class ConditionalStyleProvider implements IStyleProvider {
 
 	private var _trueStyleProvider:IStyleProvider;
 
-	private function get_trueStyleProvider():IStyleProvider {
+	public function get_trueStyleProvider():IStyleProvider {
 		return this._trueStyleProvider;
 	}
 
-	private function set_trueStyleProvider(value:IStyleProvider):IStyleProvider {
+	public function set_trueStyleProvider(value:IStyleProvider):IStyleProvider {
 		return this._trueStyleProvider = value;
 	}
 
@@ -49,11 +49,11 @@ class ConditionalStyleProvider implements IStyleProvider {
 
 	private var _falseStyleProvider:IStyleProvider;
 
-	private function get_falseStyleProvider():IStyleProvider {
+	public function get_falseStyleProvider():IStyleProvider {
 		return this._falseStyleProvider;
 	}
 
-	private function set_falseStyleProvider(value:IStyleProvider):IStyleProvider {
+	public function set_falseStyleProvider(value:IStyleProvider):IStyleProvider {
 		return this._falseStyleProvider = value;
 	}
 
@@ -67,11 +67,11 @@ class ConditionalStyleProvider implements IStyleProvider {
 
 	private var _conditionalFunction:IFeathersControl->Bool;
 
-	private function get_conditionalFunction():IFeathersControl->Bool {
+	public function get_conditionalFunction():IFeathersControl->Bool {
 		return this._conditionalFunction;
 	}
 
-	private function set_conditionalFunction(value:IFeathersControl->Bool):IFeathersControl->Bool {
+	public function set_conditionalFunction(value:IFeathersControl->Bool):IFeathersControl->Bool {
 		return this._conditionalFunction = value;
 	}
 

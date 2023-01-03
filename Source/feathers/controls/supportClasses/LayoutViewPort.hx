@@ -32,7 +32,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	public var minVisibleWidth(get, set):Float;
 
-	private function get_minVisibleWidth():Float {
+	public function get_minVisibleWidth():Float {
 		if (this._explicitMinVisibleWidth != this._explicitMinVisibleWidth) // isNaN
 		{
 			return this._actualMinVisibleWidth;
@@ -40,7 +40,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 		return this._explicitMinVisibleWidth;
 	}
 
-	private function set_minVisibleWidth(value:Float):Float {
+	public function set_minVisibleWidth(value:Float):Float {
 		if (this._explicitMinVisibleWidth == value) {
 			return value;
 		}
@@ -70,11 +70,11 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	private var _maxVisibleWidth:Float = Math.POSITIVE_INFINITY;
 
-	private function get_maxVisibleWidth():Float {
+	public function get_maxVisibleWidth():Float {
 		return this._maxVisibleWidth;
 	}
 
-	private function set_maxVisibleWidth(value:Float):Float {
+	public function set_maxVisibleWidth(value:Float):Float {
 		if (this._maxVisibleWidth == value) {
 			return this._maxVisibleWidth;
 		}
@@ -98,7 +98,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	public var visibleWidth(get, set):Float;
 
-	private function get_visibleWidth():Float {
+	public function get_visibleWidth():Float {
 		if (this._explicitVisibleWidth != this._explicitVisibleWidth) // isNaN
 		{
 			return this._actualVisibleWidth;
@@ -106,7 +106,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 		return this._explicitVisibleWidth;
 	}
 
-	private function set_visibleWidth(value:Float):Float {
+	public function set_visibleWidth(value:Float):Float {
 		if (this._explicitVisibleWidth == value || (value != value && this._explicitVisibleWidth != this._explicitVisibleWidth)) // isNaN
 		{
 			return value;
@@ -124,7 +124,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	public var minVisibleHeight(get, set):Float;
 
-	private function get_minVisibleHeight():Float {
+	public function get_minVisibleHeight():Float {
 		if (this._explicitMinVisibleHeight != this._explicitMinVisibleHeight) // isNaN
 		{
 			return this._actualMinVisibleHeight;
@@ -132,7 +132,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 		return this._explicitMinVisibleHeight;
 	}
 
-	private function set_minVisibleHeight(value:Float):Float {
+	public function set_minVisibleHeight(value:Float):Float {
 		if (this._explicitMinVisibleHeight == value) {
 			return value;
 		}
@@ -161,11 +161,11 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	private var _maxVisibleHeight:Float = Math.POSITIVE_INFINITY;
 
-	private function get_maxVisibleHeight():Float {
+	public function get_maxVisibleHeight():Float {
 		return this._maxVisibleHeight;
 	}
 
-	private function set_maxVisibleHeight(value:Float):Float {
+	public function set_maxVisibleHeight(value:Float):Float {
 		if (this._maxVisibleHeight == value) {
 			return value;
 		}
@@ -189,7 +189,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	public var visibleHeight(get, set):Float;
 
-	private function get_visibleHeight():Float {
+	public function get_visibleHeight():Float {
 		if (this._explicitVisibleHeight != this._explicitVisibleHeight) // isNaN
 		{
 			return this._actualVisibleHeight;
@@ -197,7 +197,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 		return this._explicitVisibleHeight;
 	}
 
-	private function set_visibleHeight(value:Float):Float {
+	public function set_visibleHeight(value:Float):Float {
 		if (this._explicitVisibleHeight == value
 			|| (value != value && this._explicitVisibleHeight != this._explicitVisibleHeight)) // isNaN
 		{
@@ -215,7 +215,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	private var _contentX:Float = 0;
 
-	private function get_contentX():Float {
+	public function get_contentX():Float {
 		return this._contentX;
 	}
 
@@ -223,13 +223,13 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	private var _contentY:Float = 0;
 
-	private function get_contentY():Float {
+	public function get_contentY():Float {
 		return this._contentY;
 	}
 
 	public var horizontalScrollStep(get, never):Float;
 
-	private function get_horizontalScrollStep():Float {
+	public function get_horizontalScrollStep():Float {
 		if (this.actualWidth < this.actualHeight) {
 			return this.actualWidth / 10;
 		}
@@ -238,7 +238,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	public var verticalScrollStep(get, never):Float;
 
-	private function get_verticalScrollStep():Float {
+	public function get_verticalScrollStep():Float {
 		if (this.actualWidth < this.actualHeight) {
 			return this.actualWidth / 10;
 		}
@@ -249,11 +249,11 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	private var _horizontalScrollPosition:Float = 0;
 
-	private function get_horizontalScrollPosition():Float {
+	public function get_horizontalScrollPosition():Float {
 		return this._horizontalScrollPosition;
 	}
 
-	private function set_horizontalScrollPosition(value:Float):Float {
+	public function set_horizontalScrollPosition(value:Float):Float {
 		if (this._horizontalScrollPosition == value) {
 			return value;
 		}
@@ -266,11 +266,11 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	private var _verticalScrollPosition:Float = 0;
 
-	private function get_verticalScrollPosition():Float {
+	public function get_verticalScrollPosition():Float {
 		return this._verticalScrollPosition;
 	}
 
-	private function set_verticalScrollPosition(value:Float):Float {
+	public function set_verticalScrollPosition(value:Float):Float {
 		if (this._verticalScrollPosition == value) {
 			return value;
 		}
@@ -281,7 +281,7 @@ class LayoutViewPort extends LayoutGroup implements IViewPort {
 
 	public var requiresMeasurementOnScroll(get, never):Bool;
 
-	private function get_requiresMeasurementOnScroll():Bool {
+	public function get_requiresMeasurementOnScroll():Bool {
 		return this._layout != null
 			&& this._layout.requiresLayoutOnScroll
 			&& (this._explicitVisibleWidth != this._explicitVisibleWidth || // isNaN

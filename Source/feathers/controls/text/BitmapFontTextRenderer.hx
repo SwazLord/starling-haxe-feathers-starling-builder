@@ -179,7 +179,7 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	/**
 	 * @private
 	 */
-	override private function get_defaultStyleProvider():IStyleProvider {
+	override public function get_defaultStyleProvider():IStyleProvider {
 		return BitmapFontTextRenderer.globalStyleProvider;
 	}
 
@@ -453,7 +453,7 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 */
 	public var breakLongWords(get, set):Bool;
 
-	private function get_breakLongWords():Bool {
+	public function get_breakLongWords():Bool {
 		return _breakLongWords;
 	}
 

@@ -596,7 +596,7 @@ class ImageLoader extends FeathersControl {
 	/**
 	 * @private
 	 */
-	override private function get_defaultStyleProvider():IStyleProvider {
+	override public function get_defaultStyleProvider():IStyleProvider {
 		return ImageLoader.globalStyleProvider;
 	}
 

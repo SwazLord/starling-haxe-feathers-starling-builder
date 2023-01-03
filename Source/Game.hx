@@ -1,6 +1,9 @@
 package;
 
 // import feathers.themes.MetalWorksDesktopTheme;
+import feathers.layout.VerticalLayout;
+import feathers.layout.HorizontalLayout;
+import feathers.controls.ScrollContainer;
 import feathers.layout.AnchorLayout;
 import feathers.controls.LayoutGroup;
 import starlingbuilder.engine.UIBuilder;
@@ -23,7 +26,14 @@ class Game extends Sprite {
 	private var _sprite:Sprite;
 
 	public static var uiBuilder:IUIBuilder;
-	public static var linkers:Array<Dynamic> = [Button, LayoutGroup, AnchorLayout, feathers.controls.Button];
+	public static var linkers:Array<Dynamic> = [
+		Button,
+		LayoutGroup,
+		AnchorLayout,
+		ScrollContainer,
+		HorizontalLayout,
+		VerticalLayout
+	];
 
 	public function new() {
 		super();

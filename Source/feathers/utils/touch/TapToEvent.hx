@@ -60,11 +60,11 @@ class TapToEvent {
 
 	private var _target:DisplayObject;
 
-	private function get_target():DisplayObject {
+	public function get_target():DisplayObject {
 		return this._target;
 	}
 
-	private function set_target(value:DisplayObject):DisplayObject {
+	public function set_target(value:DisplayObject):DisplayObject {
 		if (this._target == value) {
 			return value;
 		}
@@ -88,11 +88,11 @@ class TapToEvent {
 
 	private var _eventType:String = null;
 
-	private function get_eventType():String {
+	public function get_eventType():String {
 		return this._eventType;
 	}
 
-	private function set_eventType(value:String):String {
+	public function set_eventType(value:String):String {
 		return this._eventType = value;
 	}
 
@@ -109,11 +109,11 @@ class TapToEvent {
 
 	private var _isEnabled:Bool = true;
 
-	private function get_isEnabled():Bool {
+	public function get_isEnabled():Bool {
 		return this._isEnabled;
 	}
 
-	private function set_isEnabled(value:Bool):Bool {
+	public function set_isEnabled(value:Bool):Bool {
 		if (this._isEnabled == value) {
 			return value;
 		}
@@ -132,11 +132,11 @@ class TapToEvent {
 
 	private var _tapCount:Int = -1;
 
-	private function get_tapCount():Int {
+	public function get_tapCount():Int {
 		return this._tapCount;
 	}
 
-	private function set_tapCount(value:Int):Int {
+	public function set_tapCount(value:Int):Int {
 		return this._tapCount = value;
 	}
 
@@ -156,11 +156,11 @@ class TapToEvent {
 
 	private var _customHitTest:Point->Bool;
 
-	private function get_customHitTest():Point->Bool {
+	public function get_customHitTest():Point->Bool {
 		return this._customHitTest;
 	}
 
-	private function set_customHitTest(value:Point->Bool):Point->Bool {
+	public function set_customHitTest(value:Point->Bool):Point->Bool {
 		return this._customHitTest = value;
 	}
 

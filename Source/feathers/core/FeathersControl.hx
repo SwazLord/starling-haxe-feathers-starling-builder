@@ -675,7 +675,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * this function, and its implementation looks like this:</p>
 	 *
 	 * <listing version="3.0">
-	 * override private function get_defaultStyleProvider():IStyleProvider
+	 * override public function get_defaultStyleProvider():IStyleProvider
 	 * {
 	 *     return Button.globalStyleProvider;
 	 * }</listing>
@@ -684,7 +684,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	private var defaultStyleProvider(get, never):IStyleProvider;
 
-	private function get_defaultStyleProvider():IStyleProvider {
+	public function get_defaultStyleProvider():IStyleProvider {
 		return null;
 	}
 

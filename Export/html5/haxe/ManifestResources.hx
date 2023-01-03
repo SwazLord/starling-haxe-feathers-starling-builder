@@ -77,7 +77,7 @@ import sys.FileSystem;
 
 		#else
 
-		data = '{"name":null,"assets":"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei3559y4:typey4:TEXTy2:idR1y7:preloadtgoR0y24:assets%2Fgame_ui_01.jsonR2i1394R3R4R5R7R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R9R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R10R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R11R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R12R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R13R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R14R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R15R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R16R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R17R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R20R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R19R5R22R6tgh","rootPath":null,"version":2,"libraryArgs":[],"libraryType":null}';
+		data = '{"name":null,"assets":"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei4921y4:typey4:TEXTy2:idR1y7:preloadtgoR0y24:assets%2Fgame_ui_01.jsonR2i1394R3R4R5R7R6tgoR0y24:assets%2Fgame_ui_02.jsonR2i3559R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R9R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R10R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R11R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R12R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R13R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R14R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R15R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R16R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R17R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R19R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R22R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R20R5R23R6tgh","rootPath":null,"version":2,"libraryArgs":[],"libraryType":null}';
 		manifest = AssetManifest.parse (data, rootPath);
 		library = AssetLibrary.fromManifest (manifest);
 		Assets.registerLibrary ("default", library);
@@ -107,6 +107,7 @@ null
 
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_game_ui_json extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_game_ui_01_json extends null { }
+@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_game_ui_02_json extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_layouts_card_json extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_layouts_game_json extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_layouts_game_ui_json extends null { }
@@ -128,6 +129,7 @@ null
 
 @:keep @:file("Assets/game_ui.json") @:noCompletion #if display private #end class __ASSET__assets_game_ui_json extends haxe.io.Bytes {}
 @:keep @:file("Assets/game_ui_01.json") @:noCompletion #if display private #end class __ASSET__assets_game_ui_01_json extends haxe.io.Bytes {}
+@:keep @:file("Assets/game_ui_02.json") @:noCompletion #if display private #end class __ASSET__assets_game_ui_02_json extends haxe.io.Bytes {}
 @:keep @:file("Assets/layouts/card.json") @:noCompletion #if display private #end class __ASSET__assets_layouts_card_json extends haxe.io.Bytes {}
 @:keep @:file("Assets/layouts/game.json") @:noCompletion #if display private #end class __ASSET__assets_layouts_game_json extends haxe.io.Bytes {}
 @:keep @:file("Assets/layouts/game_ui.json") @:noCompletion #if display private #end class __ASSET__assets_layouts_game_ui_json extends haxe.io.Bytes {}

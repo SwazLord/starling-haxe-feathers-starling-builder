@@ -66,11 +66,11 @@ class KeyToEvent {
 
 	private var _target:IFocusDisplayObject;
 
-	private function get_target():IFocusDisplayObject {
+	public function get_target():IFocusDisplayObject {
 		return this._target;
 	}
 
-	private function set_target(value:IFocusDisplayObject):IFocusDisplayObject {
+	public function set_target(value:IFocusDisplayObject):IFocusDisplayObject {
 		if (this._target == value) {
 			return value;
 		}
@@ -104,11 +104,11 @@ class KeyToEvent {
 
 	private var _keyCode:Int = Keyboard.SPACE;
 
-	private function get_keyCode():Int {
+	public function get_keyCode():Int {
 		return this._keyCode;
 	}
 
-	private function set_keyCode(value:Int):Int {
+	public function set_keyCode(value:Int):Int {
 		return this._keyCode = value;
 	}
 
@@ -121,11 +121,11 @@ class KeyToEvent {
 
 	private var _cancelKeyCode:Int = Keyboard.ESCAPE;
 
-	private function get_cancelKeyCode():Int {
+	public function get_cancelKeyCode():Int {
 		return this._cancelKeyCode;
 	}
 
-	private function set_cancelKeyCode(value:Int):Int {
+	public function set_cancelKeyCode(value:Int):Int {
 		return this._cancelKeyCode = value;
 	}
 
@@ -141,11 +141,11 @@ class KeyToEvent {
 
 	private var _keyLocation:Int = MathUtils.INT_MAX;
 
-	private function get_keyLocation():Int {
+	public function get_keyLocation():Int {
 		return this._keyLocation;
 	}
 
-	private function set_keyLocation(value:Int):Int {
+	public function set_keyLocation(value:Int):Int {
 		return this._keyLocation = value;
 	}
 
@@ -156,11 +156,11 @@ class KeyToEvent {
 
 	private var _eventType:String = null;
 
-	private function get_eventType():String {
+	public function get_eventType():String {
 		return this._eventType;
 	}
 
-	private function set_eventType(value:String):String {
+	public function set_eventType(value:String):String {
 		return this._eventType = value;
 	}
 
@@ -172,11 +172,11 @@ class KeyToEvent {
 
 	private var _isEnabled:Bool = true;
 
-	private function get_isEnabled():Bool {
+	public function get_isEnabled():Bool {
 		return this._isEnabled;
 	}
 
-	private function set_isEnabled(value:Bool):Bool {
+	public function set_isEnabled(value:Bool):Bool {
 		return this._isEnabled = value;
 	}
 

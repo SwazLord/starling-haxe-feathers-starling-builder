@@ -70,11 +70,11 @@ class LongPress {
 
 	private var _target:DisplayObject;
 
-	private function get_target():DisplayObject {
+	public function get_target():DisplayObject {
 		return this._target;
 	}
 
-	private function set_target(value:DisplayObject):DisplayObject {
+	public function set_target(value:DisplayObject):DisplayObject {
 		if (this._target == value) {
 			return this._target;
 		}
@@ -106,11 +106,11 @@ class LongPress {
 
 	private var _longPressDuration:Float = 0.5;
 
-	private function get_longPressDuration():Float {
+	public function get_longPressDuration():Float {
 		return this._longPressDuration;
 	}
 
-	private function set_longPressDuration(value:Float):Float {
+	public function set_longPressDuration(value:Float):Float {
 		return this._longPressDuration = value;
 	}
 
@@ -137,11 +137,11 @@ class LongPress {
 
 	private var _isEnabled:Bool = true;
 
-	private function get_isEnabled():Bool {
+	public function get_isEnabled():Bool {
 		return this._isEnabled;
 	}
 
-	private function set_isEnabled(value:Bool):Bool {
+	public function set_isEnabled(value:Bool):Bool {
 		if (this._isEnabled == value) {
 			return this._isEnabled;
 		}
@@ -160,11 +160,11 @@ class LongPress {
 
 	private var _tapToTrigger:TapToTrigger;
 
-	private function get_tapToTrigger():TapToTrigger {
+	public function get_tapToTrigger():TapToTrigger {
 		return this._tapToTrigger;
 	}
 
-	private function set_tapToTrigger(value:TapToTrigger):TapToTrigger {
+	public function set_tapToTrigger(value:TapToTrigger):TapToTrigger {
 		return this._tapToTrigger;
 	}
 
@@ -177,11 +177,11 @@ class LongPress {
 
 	private var _tapToSelect:TapToSelect;
 
-	private function get_tapToSelect():TapToSelect {
+	public function get_tapToSelect():TapToSelect {
 		return this._tapToSelect;
 	}
 
-	private function set_tapToSelect(value:TapToSelect):TapToSelect {
+	public function set_tapToSelect(value:TapToSelect):TapToSelect {
 		return this._tapToSelect = value;
 	}
 
@@ -202,11 +202,11 @@ class LongPress {
 
 	private var _customHitTest:Point->Bool;
 
-	private function get_customHitTest():Point->Bool {
+	public function get_customHitTest():Point->Bool {
 		return this._customHitTest;
 	}
 
-	private function set_customHitTest(value:Point->Bool):Point->Bool {
+	public function set_customHitTest(value:Point->Bool):Point->Bool {
 		return this._customHitTest = value;
 	}
 

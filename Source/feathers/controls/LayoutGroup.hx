@@ -178,7 +178,7 @@ class LayoutGroup extends FeathersControl {
 	/**
 	 * @private
 	 */
-	override private function get_defaultStyleProvider():IStyleProvider {
+	override public function get_defaultStyleProvider():IStyleProvider {
 		return LayoutGroup.globalStyleProvider;
 	}
 

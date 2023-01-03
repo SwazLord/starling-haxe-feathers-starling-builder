@@ -74,7 +74,7 @@ class BaseTextEditor extends FeathersControl implements IStateObserver {
 	 */
 	public var stateContext(get, set):IStateContext;
 
-	private function get_stateContext():IStateContext {
+	public function get_stateContext():IStateContext {
 		return this._stateContext;
 	}
 

@@ -2,33 +2,7 @@
   "layout":{
     "children":[
       {
-        "children":[
-          {
-            "cls":"starling.display.Button",
-            "constructorParams":[
-              {
-                "cls":"starling.textures.Texture",
-                "textureName":"play_btn"
-              }
-            ],
-            "customParams":{},
-            "params":{
-              "height":138,
-              "name":"play_btn",
-              "pivotX":179,
-              "pivotY":69,
-              "textFormat":{
-                "cls":"starling.text.TextFormat",
-                "constructorParams":[],
-                "customParams":{},
-                "params":{}
-              },
-              "width":358,
-              "x":179,
-              "y":69
-            }
-          }
-        ],
+        "children":[],
         "cls":"feathers.controls.LayoutGroup",
         "customParams":{},
         "params":{
@@ -41,8 +15,8 @@
             }
           },
           "name":"center_layoutGroup",
-          "x":461,
-          "y":291
+          "x":640,
+          "y":360
         }
       },
       {
@@ -115,6 +89,85 @@
           "name":"bottom_layoutGroup",
           "x":490,
           "y":570
+        }
+      },
+      {
+        "children":[
+          {
+            "cls":"starling.display.Image",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"new_opponent"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "name":"new_opponent",
+              "pivotX":150,
+              "pivotY":75,
+              "x":150,
+              "y":75
+            }
+          },
+          {
+            "cls":"starling.display.Image",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"new_opponent"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "name":"new_opponent",
+              "pivotX":150,
+              "pivotY":75,
+              "x":450,
+              "y":75
+            }
+          },
+          {
+            "cls":"starling.display.Image",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"new_opponent"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "name":"new_opponent",
+              "pivotX":150,
+              "pivotY":75,
+              "x":750,
+              "y":75
+            }
+          }
+        ],
+        "cls":"feathers.controls.ScrollContainer",
+        "customParams":{},
+        "params":{
+          "layout":{
+            "cls":"feathers.layout.HorizontalLayout",
+            "customParams":{},
+            "params":{
+              "horizontalAlign":"center",
+              "verticalAlign":"middle"
+            }
+          },
+          "layoutData":{
+            "cls":"feathers.layout.AnchorLayoutData",
+            "customParams":{},
+            "params":{
+              "horizontalCenter":0,
+              "verticalCenter":0
+            }
+          },
+          "name":"scrollContainer",
+          "width":640,
+          "x":320,
+          "y":279
         }
       }
     ],

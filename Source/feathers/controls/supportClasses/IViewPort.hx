@@ -8,6 +8,8 @@
 
 package feathers.controls.supportClasses;
 
+import feathers.core.IFeathersControl;
+
 /**
  * Interface used for the view port of scrolling containers.
  *
@@ -15,21 +17,21 @@ package feathers.controls.supportClasses;
  *
  * @productversion Feathers 1.0.0
  */
-interface IViewPort {
-	public var visibleWidth(get, set):Float;
-	public var minVisibleWidth(get, set):Float;
-	public var maxVisibleWidth(get, set):Float;
-	public var visibleHeight(get, set):Float;
-	public var minVisibleHeight(get, set):Float;
-	public var maxVisibleHeight(get, set):Float;
+interface IViewPort extends IFeathersControl {
+	var visibleWidth(get, set):Float;
+	var minVisibleWidth(get, set):Float;
+	var maxVisibleWidth(get, set):Float;
+	var visibleHeight(get, set):Float;
+	var minVisibleHeight(get, set):Float;
+	var maxVisibleHeight(get, set):Float;
 
-	public var contentX(get, never):Float;
-	public var contentY(get, never):Float;
+	var contentX(get, never):Float;
+	var contentY(get, never):Float;
 
-	public var horizontalScrollPosition(get, set):Float;
-	public var verticalScrollPosition(get, set):Float;
-	public var horizontalScrollStep(get, never):Float;
-	public var verticalScrollStep(get, never):Float;
+	var horizontalScrollPosition(get, set):Float;
+	var verticalScrollPosition(get, set):Float;
+	var horizontalScrollStep(get, never):Float;
+	var verticalScrollStep(get, never):Float;
 
-	public var requiresMeasurementOnScroll(get, never):Bool;
+	var requiresMeasurementOnScroll(get, never):Bool;
 }

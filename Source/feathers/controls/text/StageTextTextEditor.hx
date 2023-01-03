@@ -279,7 +279,7 @@ class StageTextTextEditor extends BaseTextEditor implements IMultilineTextEditor
 	/**
 	 * @private
 	 */
-	override private function get_defaultStyleProvider():IStyleProvider {
+	override public function get_defaultStyleProvider():IStyleProvider {
 		return globalStyleProvider;
 	}
 
