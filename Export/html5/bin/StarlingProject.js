@@ -7,9 +7,6 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
-var ASCompat = function() { };
-$hxClasses["ASCompat"] = ASCompat;
-ASCompat.__name__ = "ASCompat";
 var lime_app_IModule = function() { };
 $hxClasses["lime.app.IModule"] = lime_app_IModule;
 lime_app_IModule.__name__ = "lime.app.IModule";
@@ -918,7 +915,7 @@ ApplicationMain.main = function() {
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
-	app.meta.h["build"] = "9";
+	app.meta.h["build"] = "10";
 	app.meta.h["company"] = "Company Name";
 	app.meta.h["file"] = "StarlingProject";
 	app.meta.h["name"] = "StarlingProject";
@@ -1430,7 +1427,6 @@ lime_utils_ObjectPool.prototype = {
 		if(!this.__pool.exists(object)) {
 			this.__pool.set(object,false);
 			this.clean(object);
-			this.__pool.set(object,false);
 			if(this.__inactiveObject0 == null) {
 				this.__inactiveObject0 = object;
 			} else if(this.__inactiveObject1 == null) {
@@ -1473,7 +1469,6 @@ lime_utils_ObjectPool.prototype = {
 					this.__inactiveObject1 = this.__inactiveObjectList.pop();
 				}
 			}
-			this.__pool.set(object1,true);
 			this.inactiveObjects--;
 			this.activeObjects++;
 			object = object1;
@@ -1487,15 +1482,9 @@ lime_utils_ObjectPool.prototype = {
 		return object;
 	}
 	,release: function(object) {
-		if(!this.__pool.exists(object)) {
-			lime_utils_Log.error("Object is not a member of the pool",{ fileName : "lime/utils/ObjectPool.hx", lineNumber : 102, className : "lime.utils.ObjectPool", methodName : "release"});
-		} else if(!this.__pool.get(object)) {
-			lime_utils_Log.error("Object has already been released",{ fileName : "lime/utils/ObjectPool.hx", lineNumber : 106, className : "lime.utils.ObjectPool", methodName : "release"});
-		}
 		this.activeObjects--;
 		if(this.__size == null || this.activeObjects + this.inactiveObjects < this.__size) {
 			this.clean(object);
-			this.__pool.set(object,false);
 			if(this.__inactiveObject0 == null) {
 				this.__inactiveObject0 = object;
 			} else if(this.__inactiveObject1 == null) {
@@ -1525,7 +1514,6 @@ lime_utils_ObjectPool.prototype = {
 		}
 	}
 	,__addInactive: function(object) {
-		this.__pool.set(object,false);
 		if(this.__inactiveObject0 == null) {
 			this.__inactiveObject0 = object;
 		} else if(this.__inactiveObject1 == null) {
@@ -1552,7 +1540,6 @@ lime_utils_ObjectPool.prototype = {
 				this.__inactiveObject1 = this.__inactiveObjectList.pop();
 			}
 		}
-		this.__pool.set(object,true);
 		this.inactiveObjects--;
 		this.activeObjects++;
 		return object;
@@ -5994,6 +5981,8 @@ starling_display_DisplayObject.prototype = $extend(starling_events_EventDispatch
 		var scaleX = viewPort.width / stageWidth;
 		var scaleY = viewPort.height / stageHeight;
 		var backBufferScale = painter.get_backBufferScaleFactor();
+		var totalScaleX = scaleX * backBufferScale;
+		var totalScaleY = scaleY * backBufferScale;
 		var projectionX;
 		var projectionY;
 		var bounds;
@@ -6001,38 +5990,59 @@ starling_display_DisplayObject.prototype = $extend(starling_events_EventDispatch
 			projectionX = viewPort.x < 0 ? -viewPort.x / scaleX : 0.0;
 			projectionY = viewPort.y < 0 ? -viewPort.y / scaleY : 0.0;
 			if(out == null) {
-				out = new openfl_display_BitmapData(painter.get_backBufferWidth() * backBufferScale | 0,painter.get_backBufferHeight() * backBufferScale | 0);
+				out = new openfl_display_BitmapData(Math.ceil(painter.get_backBufferWidth() * backBufferScale),Math.ceil(painter.get_backBufferHeight() * backBufferScale));
 			}
 		} else {
 			bounds = this.getBounds(this.__parent,starling_display_DisplayObject.sHelperRect);
 			projectionX = bounds.x;
 			projectionY = bounds.y;
 			if(out == null) {
-				out = new openfl_display_BitmapData(Math.ceil(bounds.width * scaleX * backBufferScale),Math.ceil(bounds.height * scaleY * backBufferScale));
+				out = new openfl_display_BitmapData(Math.ceil(bounds.width * totalScaleX),Math.ceil(bounds.height * totalScaleY));
 			}
 		}
 		color = starling_utils_Color.multiply(color,alpha);
-		painter.clear(color,alpha);
 		painter.pushState();
 		painter.setupContextDefaults();
 		painter.get_state().set_renderTarget(null);
 		painter.get_state().setModelviewMatricesToIdentity();
 		painter.setStateTo(this.get_transformationMatrix());
-		painter.get_state().setProjectionMatrix(projectionX,projectionY,painter.get_backBufferWidth() / scaleX,painter.get_backBufferHeight() / scaleY,stageWidth,stageHeight,stage.get_cameraPosition());
-		if(this.__mask != null) {
-			painter.drawMask(this.get_mask(),this);
-		}
-		if(this.__filter != null) {
-			this.__filter.render(painter);
-		} else {
-			this.render(painter);
-		}
+		var stepX;
+		var stepY = projectionY;
+		var stepWidth = painter.get_backBufferWidth() / scaleX;
+		var stepHeight = painter.get_backBufferHeight() / scaleY;
+		var positionInBitmap = starling_utils_Pool.getPoint(0,0);
+		var boundsInBuffer = starling_utils_Pool.getRectangle(0,0,painter.get_backBufferWidth() * backBufferScale,painter.get_backBufferHeight() * backBufferScale);
 		if(this.__mask != null) {
 			painter.eraseMask(this.get_mask(),this);
 		}
-		painter.finishMeshBatch();
-		painter.get_context().drawToBitmapData(out);
+		while(positionInBitmap.y < out.height) {
+			stepX = projectionX;
+			positionInBitmap.x = 0;
+			while(positionInBitmap.x < out.width) {
+				painter.clear(color,alpha);
+				painter.get_state().setProjectionMatrix(stepX,stepY,stepWidth,stepHeight,stageWidth,stageHeight,stage.get_cameraPosition());
+				if(this.__mask != null) {
+					painter.drawMask(this.get_mask(),this);
+				}
+				if(this.__filter != null) {
+					this.__filter.render(painter);
+				} else {
+					this.render(painter);
+				}
+				if(this.__mask != null) {
+					painter.eraseMask(this.get_mask(),this);
+				}
+				painter.finishMeshBatch();
+				starling_utils_Execute.execute(($_=painter.get_context(),$bind($_,$_.drawToBitmapData)),[out,boundsInBuffer,positionInBitmap]);
+				stepX += stepWidth;
+				positionInBitmap.x += stepWidth * totalScaleX;
+			}
+			stepY += stepHeight;
+			positionInBitmap.y += stepHeight * totalScaleY;
+		}
 		painter.popState();
+		starling_utils_Pool.putRectangle(boundsInBuffer);
+		starling_utils_Pool.putPoint(positionInBitmap);
 		return out;
 	}
 	,getTransformationMatrix3D: function(targetSpace,out) {
@@ -6487,7 +6497,7 @@ starling_display_DisplayObject.prototype = $extend(starling_events_EventDispatch
 		if(this.__mask != value) {
 			if(!starling_display_DisplayObject.sMaskWarningShown) {
 				if(!starling_utils_SystemUtil.get_supportsDepthAndStencil()) {
-					haxe_Log.trace("[Starling] Full mask support requires 'depthAndStencil'" + " to be enabled in the application descriptor.",{ fileName : "starling/display/DisplayObject.hx", lineNumber : 1257, className : "starling.display.DisplayObject", methodName : "set_mask"});
+					haxe_Log.trace("[Starling] Full mask support requires 'depthAndStencil'" + " to be enabled in the application descriptor.",{ fileName : "starling/display/DisplayObject.hx", lineNumber : 1293, className : "starling.display.DisplayObject", methodName : "set_mask"});
 				}
 				starling_display_DisplayObject.sMaskWarningShown = true;
 			}
@@ -6691,7 +6701,9 @@ starling_display_DisplayObjectContainer.prototype = $extend(starling_display_Dis
 				}
 			}
 			child.__setParent(null);
-			index = this.__children.indexOf(child,0);
+			if(index >= this.__children.get_length() || this.__children.get(index) != child) {
+				index = this.__children.indexOf(child,0);
+			}
 			if(index >= 0) {
 				this.__children.removeAt(index);
 			}
@@ -6795,9 +6807,9 @@ starling_display_DisplayObjectContainer.prototype = $extend(starling_display_Dis
 		}
 		var numChildren = this.__children.get_length();
 		if(numChildren == 0) {
-			this.getTransformationMatrix(targetSpace,starling_display_DisplayObjectContainer.sHelperMatrix);
-			starling_utils_MatrixUtil.transformCoords(starling_display_DisplayObjectContainer.sHelperMatrix,0.0,0.0,starling_display_DisplayObjectContainer.sHelperPoint);
-			out.setTo(starling_display_DisplayObjectContainer.sHelperPoint.x,starling_display_DisplayObjectContainer.sHelperPoint.y,0,0);
+			this.getTransformationMatrix(targetSpace,starling_display_DisplayObjectContainer.sBoundsMatrix);
+			starling_utils_MatrixUtil.transformCoords(starling_display_DisplayObjectContainer.sBoundsMatrix,0.0,0.0,starling_display_DisplayObjectContainer.sBoundsPoint);
+			out.setTo(starling_display_DisplayObjectContainer.sBoundsPoint.x,starling_display_DisplayObjectContainer.sBoundsPoint.y,0,0);
 		} else if(numChildren == 1) {
 			this.__children.get(0).getBounds(targetSpace,out);
 		} else {
@@ -6844,10 +6856,10 @@ starling_display_DisplayObjectContainer.prototype = $extend(starling_display_Dis
 				--i;
 				continue;
 			}
-			starling_display_DisplayObjectContainer.sHelperMatrix.copyFrom(child.get_transformationMatrix());
-			starling_display_DisplayObjectContainer.sHelperMatrix.invert();
-			starling_utils_MatrixUtil.transformCoords(starling_display_DisplayObjectContainer.sHelperMatrix,localX,localY,starling_display_DisplayObjectContainer.sHelperPoint);
-			target = child.hitTest(starling_display_DisplayObjectContainer.sHelperPoint);
+			starling_display_DisplayObjectContainer.sHitTestMatrix.copyFrom(child.get_transformationMatrix());
+			starling_display_DisplayObjectContainer.sHitTestMatrix.invert();
+			starling_utils_MatrixUtil.transformCoords(starling_display_DisplayObjectContainer.sHitTestMatrix,localX,localY,starling_display_DisplayObjectContainer.sHitTestPoint);
+			target = child.hitTest(starling_display_DisplayObjectContainer.sHitTestPoint);
 			if(target != null) {
 				if(this.__touchGroup) {
 					return this;
@@ -6986,21 +6998,17 @@ var starling_display_Button = function(upState,text,downState,overState,disabled
 	this.__downState = downState;
 	this.__overState = overState;
 	this.__disabledState = disabledState;
-	this.__state = "up";
+	this.__behavior = new starling_utils_ButtonBehavior(this,$bind(this,this.onStateChange),starling_utils_SystemUtil.get_isDesktop() ? 16 : 44);
 	this.__body = new starling_display_Image(upState);
 	this.__body.set_pixelSnapping(true);
 	this.__scaleWhenDown = downState != null ? 1.0 : 0.9;
 	this.__scaleWhenOver = this.__alphaWhenDown = 1.0;
 	this.__alphaWhenDisabled = disabledState != null ? 1.0 : 0.5;
-	this.__enabled = true;
-	this.__useHandCursor = true;
 	this.__textBounds = new openfl_geom_Rectangle(0,0,this.__body.get_width(),this.__body.get_height());
-	this.__triggerBounds = new openfl_geom_Rectangle();
 	this.__contents = new starling_display_Sprite();
 	this.__contents.addChild(this.__body);
 	this.addChild(this.__contents);
 	this.__setStateTexture(upState);
-	this.addEventListener("touch",$bind(this,this.__onTouch));
 	this.set_touchGroup(true);
 	this.set_text(text);
 };
@@ -7017,18 +7025,41 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 	,__textField: null
 	,__textBounds: null
 	,__overlay: null
+	,__behavior: null
 	,__scaleWhenDown: null
 	,__scaleWhenOver: null
 	,__alphaWhenDown: null
 	,__alphaWhenDisabled: null
-	,__enabled: null
-	,__state: null
-	,__triggerBounds: null
 	,dispose: function() {
 		if(this.__textField != null) {
 			this.__textField.dispose();
 		}
 		starling_display_DisplayObjectContainer.prototype.dispose.call(this);
+	}
+	,onStateChange: function(state) {
+		this.__contents.set_x(this.__contents.set_y(0));
+		this.__contents.set_scaleX(this.__contents.set_scaleY(this.__contents.set_alpha(1.0)));
+		switch(state) {
+		case "disabled":
+			this.__setStateTexture(this.__disabledState);
+			this.__contents.set_alpha(this.__alphaWhenDisabled);
+			break;
+		case "down":
+			this.__setStateTexture(this.__downState);
+			this.__setContentScale(this.__scaleWhenDown);
+			this.__contents.set_alpha(this.__alphaWhenDown);
+			break;
+		case "over":
+			this.__setStateTexture(this.__overState);
+			this.__setContentScale(this.__scaleWhenOver);
+			break;
+		case "up":
+			this.__setStateTexture(this.__upState);
+			break;
+		}
+	}
+	,hitTest: function(localPoint) {
+		return this.__behavior.hitTest(localPoint);
 	}
 	,readjustSize: function(resetTextBounds) {
 		if(resetTextBounds == null) {
@@ -7060,62 +7091,11 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 		this.__textField.set_x(this.__textBounds.x);
 		this.__textField.set_y(this.__textBounds.y);
 	}
-	,__onTouch: function(event) {
-		openfl_ui_Mouse.set_cursor(this.__useHandCursor && this.__enabled && event.interactsWith(this) ? "button" : "auto");
-		var touch = event.getTouch(this);
-		var isWithinBounds;
-		if(!this.__enabled) {
-			return;
-		} else if(touch == null) {
-			this.set_state("up");
-		} else if(touch.get_phase() == "hover") {
-			this.set_state("over");
-		} else if(touch.get_phase() == "began" && this.__state != "down") {
-			this.__triggerBounds = this.getBounds(this.get_stage(),this.__triggerBounds);
-			this.__triggerBounds.inflate(50,50);
-			this.set_state("down");
-		} else if(touch.get_phase() == "moved") {
-			isWithinBounds = this.__triggerBounds.contains(touch.get_globalX(),touch.get_globalY());
-			if(this.__state == "down" && !isWithinBounds) {
-				this.set_state("up");
-			} else if(this.__state == "up" && isWithinBounds) {
-				this.set_state("down");
-			}
-		} else if(touch.get_phase() == "ended" && this.__state == "down") {
-			this.set_state("up");
-			if(!touch.get_cancelled()) {
-				this.dispatchEventWith("triggered",true);
-			}
-		}
-	}
 	,get_state: function() {
-		return this.__state;
+		return this.__behavior.get_state();
 	}
 	,set_state: function(value) {
-		this.__state = value;
-		this.__contents.set_x(this.__contents.set_y(0));
-		this.__contents.set_scaleX(this.__contents.set_scaleY(this.__contents.set_alpha(1.0)));
-		switch(this.__state) {
-		case "disabled":
-			this.__setStateTexture(this.__disabledState);
-			this.__contents.set_alpha(this.__alphaWhenDisabled);
-			break;
-		case "down":
-			this.__setStateTexture(this.__downState);
-			this.__setContentScale(this.__scaleWhenDown);
-			this.__contents.set_alpha(this.__alphaWhenDown);
-			break;
-		case "over":
-			this.__setStateTexture(this.__overState);
-			this.__setContentScale(this.__scaleWhenOver);
-			break;
-		case "up":
-			this.__setStateTexture(this.__upState);
-			break;
-		default:
-			throw new openfl_errors_ArgumentError("Invalid button state: " + this.__state);
-		}
-		return value;
+		return this.__behavior.set_state(value);
 	}
 	,__setContentScale: function(scale) {
 		this.__contents.set_scaleX(this.__contents.set_scaleY(scale));
@@ -7156,14 +7136,10 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 		return this.__alphaWhenDisabled = value;
 	}
 	,get_enabled: function() {
-		return this.__enabled;
+		return this.__behavior.get_enabled();
 	}
 	,set_enabled: function(value) {
-		if(this.__enabled != value) {
-			this.__enabled = value;
-			this.set_state(value ? "up" : "disabled");
-		}
-		return value;
+		return this.__behavior.set_enabled(value);
 	}
 	,get_text: function() {
 		if(this.__textField != null) {
@@ -7226,7 +7202,8 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 		}
 		if(this.__upState != value) {
 			this.__upState = value;
-			if(this.__state == "up" || this.__state == "disabled" && this.__disabledState == null || this.__state == "down" && this.__downState == null || this.__state == "over" && this.__overState == null) {
+			var state = this.__behavior.get_state();
+			if(state == "up" || state == "disabled" && this.__disabledState == null || state == "down" && this.__downState == null || state == "over" && this.__overState == null) {
 				this.__setStateTexture(value);
 			}
 		}
@@ -7238,7 +7215,7 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 	,set_downState: function(value) {
 		if(this.__downState != value) {
 			this.__downState = value;
-			if(this.__state == "down") {
+			if(this.get_state() == "down") {
 				this.__setStateTexture(value);
 			}
 		}
@@ -7250,7 +7227,7 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 	,set_overState: function(value) {
 		if(this.__overState != value) {
 			this.__overState = value;
-			if(this.__state == "over") {
+			if(this.get_state() == "over") {
 				this.__setStateTexture(value);
 			}
 		}
@@ -7262,7 +7239,7 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 	,set_disabledState: function(value) {
 		if(this.__disabledState != value) {
 			this.__disabledState = value;
-			if(this.__state == "disabled") {
+			if(this.get_state() == "disabled") {
 				this.__setStateTexture(value);
 			}
 		}
@@ -7296,10 +7273,10 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 		return this.__overlay;
 	}
 	,get_useHandCursor: function() {
-		return this.__useHandCursor;
+		return this.__behavior.get_useHandCursor();
 	}
 	,set_useHandCursor: function(value) {
-		return this.__useHandCursor = value;
+		return this.__behavior.set_useHandCursor(value);
 	}
 	,get_pixelSnapping: function() {
 		return this.__body.get_pixelSnapping();
@@ -7339,8 +7316,20 @@ starling_display_Button.prototype = $extend(starling_display_DisplayObjectContai
 	,set_scale9Grid: function(value) {
 		return this.__body.set_scale9Grid(value);
 	}
+	,get_minHitAreaSize: function() {
+		return this.__behavior.get_minHitAreaSize();
+	}
+	,set_minHitAreaSize: function(value) {
+		return this.__behavior.set_minHitAreaSize(value);
+	}
+	,get_abortDistance: function() {
+		return this.__behavior.get_abortDistance();
+	}
+	,set_abortDistance: function(value) {
+		return this.__behavior.set_abortDistance(value);
+	}
 	,__class__: starling_display_Button
-	,__properties__: $extend(starling_display_DisplayObjectContainer.prototype.__properties__,{set_scale9Grid:"set_scale9Grid",get_scale9Grid:"get_scale9Grid",set_pixelSnapping:"set_pixelSnapping",get_pixelSnapping:"get_pixelSnapping",get_overlay:"get_overlay",set_textureSmoothing:"set_textureSmoothing",get_textureSmoothing:"get_textureSmoothing",set_color:"set_color",get_color:"get_color",set_textBounds:"set_textBounds",get_textBounds:"get_textBounds",set_disabledState:"set_disabledState",get_disabledState:"get_disabledState",set_overState:"set_overState",get_overState:"get_overState",set_downState:"set_downState",get_downState:"get_downState",set_upState:"set_upState",get_upState:"get_upState",set_style:"set_style",get_style:"get_style",set_textStyle:"set_textStyle",get_textStyle:"get_textStyle",set_textFormat:"set_textFormat",get_textFormat:"get_textFormat",set_text:"set_text",get_text:"get_text",set_enabled:"set_enabled",get_enabled:"get_enabled",set_alphaWhenDisabled:"set_alphaWhenDisabled",get_alphaWhenDisabled:"get_alphaWhenDisabled",set_alphaWhenDown:"set_alphaWhenDown",get_alphaWhenDown:"get_alphaWhenDown",set_scaleWhenOver:"set_scaleWhenOver",get_scaleWhenOver:"get_scaleWhenOver",set_scaleWhenDown:"set_scaleWhenDown",get_scaleWhenDown:"get_scaleWhenDown",set_state:"set_state",get_state:"get_state"})
+	,__properties__: $extend(starling_display_DisplayObjectContainer.prototype.__properties__,{set_abortDistance:"set_abortDistance",get_abortDistance:"get_abortDistance",set_minHitAreaSize:"set_minHitAreaSize",get_minHitAreaSize:"get_minHitAreaSize",set_scale9Grid:"set_scale9Grid",get_scale9Grid:"get_scale9Grid",set_pixelSnapping:"set_pixelSnapping",get_pixelSnapping:"get_pixelSnapping",get_overlay:"get_overlay",set_textureSmoothing:"set_textureSmoothing",get_textureSmoothing:"get_textureSmoothing",set_color:"set_color",get_color:"get_color",set_textBounds:"set_textBounds",get_textBounds:"get_textBounds",set_disabledState:"set_disabledState",get_disabledState:"get_disabledState",set_overState:"set_overState",get_overState:"get_overState",set_downState:"set_downState",get_downState:"get_downState",set_upState:"set_upState",get_upState:"get_upState",set_style:"set_style",get_style:"get_style",set_textStyle:"set_textStyle",get_textStyle:"get_textStyle",set_textFormat:"set_textFormat",get_textFormat:"get_textFormat",set_text:"set_text",get_text:"get_text",set_enabled:"set_enabled",get_enabled:"get_enabled",set_alphaWhenDisabled:"set_alphaWhenDisabled",get_alphaWhenDisabled:"get_alphaWhenDisabled",set_alphaWhenDown:"set_alphaWhenDown",get_alphaWhenDown:"get_alphaWhenDown",set_scaleWhenOver:"set_scaleWhenOver",get_scaleWhenOver:"get_scaleWhenOver",set_scaleWhenDown:"set_scaleWhenDown",get_scaleWhenDown:"get_scaleWhenDown",set_state:"set_state",get_state:"get_state"})
 });
 var feathers_core_IFeathersEventDispatcher = function() { };
 $hxClasses["feathers.core.IFeathersEventDispatcher"] = feathers_core_IFeathersEventDispatcher;
@@ -7435,20 +7424,20 @@ feathers_core_IMeasureDisplayObject.__name__ = "feathers.core.IMeasureDisplayObj
 feathers_core_IMeasureDisplayObject.__isInterface__ = true;
 feathers_core_IMeasureDisplayObject.__interfaces__ = [feathers_core_IFeathersDisplayObject];
 feathers_core_IMeasureDisplayObject.prototype = {
-	get_minWidth: null
+	get_explicitWidth: null
+	,get_explicitMinWidth: null
+	,get_minWidth: null
 	,set_minWidth: null
+	,get_explicitMaxWidth: null
 	,get_maxWidth: null
 	,set_maxWidth: null
-	,get_minHeight: null
-	,set_minHeight: null
-	,get_maxHeight: null
-	,set_maxHeight: null
-	,get_explicitWidth: null
-	,get_explicitMinWidth: null
-	,get_explicitMaxWidth: null
 	,get_explicitHeight: null
 	,get_explicitMinHeight: null
+	,get_minHeight: null
+	,set_minHeight: null
 	,get_explicitMaxHeight: null
+	,get_maxHeight: null
+	,set_maxHeight: null
 	,__class__: feathers_core_IMeasureDisplayObject
 	,__properties__: {set_maxHeight:"set_maxHeight",get_maxHeight:"get_maxHeight",get_explicitMaxHeight:"get_explicitMaxHeight",set_minHeight:"set_minHeight",get_minHeight:"get_minHeight",get_explicitMinHeight:"get_explicitMinHeight",get_explicitHeight:"get_explicitHeight",set_maxWidth:"set_maxWidth",get_maxWidth:"get_maxWidth",get_explicitMaxWidth:"get_explicitMaxWidth",set_minWidth:"set_minWidth",get_minWidth:"get_minWidth",get_explicitMinWidth:"get_explicitMinWidth",get_explicitWidth:"get_explicitWidth"}
 };
@@ -7471,15 +7460,15 @@ feathers_core_IFeathersControl.__interfaces__ = [feathers_core_IMeasureDisplayOb
 feathers_core_IFeathersControl.prototype = {
 	get_isEnabled: null
 	,set_isEnabled: null
+	,get_isInitialized: null
+	,get_isCreated: null
+	,get_styleNameList: null
 	,get_styleName: null
 	,set_styleName: null
 	,get_styleProvider: null
 	,set_styleProvider: null
 	,get_toolTip: null
 	,set_toolTip: null
-	,get_isInitialized: null
-	,get_isCreated: null
-	,get_styleNameList: null
 	,get_effectsSuspended: null
 	,setSize: null
 	,move: null
@@ -7536,6 +7525,7 @@ var feathers_core_FeathersControl = function() {
 	this._delayedInvalidationFlags = new haxe_ds_StringMap();
 	this._invalidationFlags = new haxe_ds_StringMap();
 	this._isAllInvalid = false;
+	this._restrictedStyles = new haxe_ds_StringMap();
 	this._applyingStyles = false;
 	this._isInitialized = false;
 	this._isInitializing = false;
@@ -7556,22 +7546,22 @@ var feathers_core_FeathersControl = function() {
 	this._showEffect = null;
 	this._showEffectContext = null;
 	starling_display_Sprite.call(this);
-	this._styleProvider = this.get_defaultStyleProvider();
+	this.set_styleProvider(this.get_defaultStyleProvider());
 	this.addEventListener("addedToStage",$bind(this,this.feathersControl_addedToStageHandler));
 	this.addEventListener("removedFromStage",$bind(this,this.feathersControl_removedFromStageHandler));
 	if(js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 		this.addEventListener("focusIn",$bind(this,this.focusInHandler));
-		this.addEventListener("focusOut",$bind(this,this.focusOutHandler));
+		this.removeEventListener("focusOut",$bind(this,this.focusOutHandler));
 	}
 };
 $hxClasses["feathers.core.FeathersControl"] = feathers_core_FeathersControl;
 feathers_core_FeathersControl.__name__ = "feathers.core.FeathersControl";
 feathers_core_FeathersControl.__interfaces__ = [feathers_layout_ILayoutDisplayObject,feathers_core_IFeathersControl];
 feathers_core_FeathersControl.defaultTextRendererFactory = function() {
-	return new feathers_controls_text_BitmapFontTextRenderer();
+	return new feathers_controls_text_TextFieldTextRenderer();
 };
 feathers_core_FeathersControl.defaultTextEditorFactory = function() {
-	return new feathers_controls_text_StageTextTextEditor();
+	return new feathers_controls_text_TextFieldTextEditor();
 };
 feathers_core_FeathersControl.__super__ = starling_display_Sprite;
 feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.prototype,{
@@ -7581,8 +7571,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._showEffect;
 	}
 	,set_showEffect: function(value) {
-		this._showEffect = value;
-		return this._showEffect;
+		return this._showEffect = value;
 	}
 	,_hideEffectContext: null
 	,_hideEffect: null
@@ -7590,13 +7579,12 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._hideEffect;
 	}
 	,set_hideEffect: function(value) {
-		this._hideEffect = value;
-		return this._hideEffect;
+		return this._hideEffect = value;
 	}
 	,_pendingVisible: null
 	,set_visible: function(value) {
 		if(value == this._pendingVisible) {
-			return this._pendingVisible;
+			return value;
 		}
 		this._pendingVisible = value;
 		if(this._suspendEffectsCount == 0 && this._hideEffectContext != null) {
@@ -7610,18 +7598,18 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(this._pendingVisible) {
 			starling_display_Sprite.prototype.set_visible.call(this,this._pendingVisible);
 			if(this.get_isCreated() && this._suspendEffectsCount == 0 && this._showEffect != null && this.get_stage() != null) {
-				this._showEffectContext = js_Boot.__cast(this._showEffect(this) , feathers_motion_effectClasses_IEffectContext);
+				this._showEffectContext = this._showEffect(this);
 				this._showEffectContext.addEventListener("complete",$bind(this,this.showEffectContext_completeHandler));
 				this._showEffectContext.play();
 			}
 		} else if(!this.get_isCreated() || this._suspendEffectsCount > 0 || this._hideEffect == null || this.get_stage() == null) {
 			starling_display_Sprite.prototype.set_visible.call(this,this._pendingVisible);
 		} else {
-			this._hideEffectContext = js_Boot.__cast(this._hideEffect(this) , feathers_motion_effectClasses_IEffectContext);
+			this._hideEffectContext = this._hideEffect(this);
 			this._hideEffectContext.addEventListener("complete",$bind(this,this.hideEffectContext_completeHandler));
 			this._hideEffectContext.play();
 		}
-		return this._pendingVisible;
+		return value;
 	}
 	,_focusInEffectContext: null
 	,_focusInEffect: null
@@ -7629,8 +7617,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._focusInEffect;
 	}
 	,set_focusInEffect: function(value) {
-		this._focusInEffect = value;
-		return this._focusInEffect;
+		return this._focusInEffect = value;
 	}
 	,_focusOutEffectContext: null
 	,_focusOutEffect: null
@@ -7638,8 +7625,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._focusOutEffect;
 	}
 	,set_focusOutEffect: function(value) {
-		this._focusOutEffect = value;
-		return this._focusOutEffect;
+		return this._focusOutEffect = value;
 	}
 	,_addedEffectContext: null
 	,_addedEffect: null
@@ -7647,8 +7633,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._addedEffect;
 	}
 	,set_addedEffect: function(value) {
-		this._addedEffect = value;
-		return this._addedEffect;
+		return this._addedEffect = value;
 	}
 	,_removedEffectContext: null
 	,_disposeAfterRemovedEffect: null
@@ -7657,8 +7642,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._styleNameList.get_value();
 	}
 	,set_styleName: function(value) {
-		this._styleNameList.set_value(value);
-		return this._styleNameList.get_value();
+		return this._styleNameList.set_value(value);
 	}
 	,_styleNameList: null
 	,get_styleNameList: function() {
@@ -7670,7 +7654,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	}
 	,set_styleProvider: function(value) {
 		if(this._styleProvider == value) {
-			return this._styleProvider;
+			return value;
 		}
 		if(this._applyingStyles) {
 			throw new openfl_errors_IllegalOperationError("Cannot change styleProvider while the current style provider is applying styles.");
@@ -7699,8 +7683,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._isQuickHitAreaEnabled;
 	}
 	,set_isQuickHitAreaEnabled: function(value) {
-		this._isQuickHitAreaEnabled = value;
-		return this._isQuickHitAreaEnabled;
+		return this._isQuickHitAreaEnabled = value;
 	}
 	,_hitArea: null
 	,_isInitializing: null
@@ -7719,7 +7702,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	}
 	,set_isEnabled: function(value) {
 		if(this._isEnabled == value) {
-			return this._isEnabled;
+			return value;
 		}
 		this._isEnabled = value;
 		this.invalidate("state");
@@ -7735,8 +7718,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._resizeEffect;
 	}
 	,set_resizeEffect: function(value) {
-		this._resizeEffect = value;
-		return this._resizeEffect;
+		return this._resizeEffect = value;
 	}
 	,_moveEffectContext: null
 	,_moveEffect: null
@@ -7744,12 +7726,11 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		return this._moveEffect;
 	}
 	,set_moveEffect: function(value) {
-		this._moveEffect = value;
-		return this._moveEffect;
+		return this._moveEffect = value;
 	}
 	,set_x: function(value) {
-		var newY = this.get_y();
 		var moveEffectContext;
+		var newY = this.get_y();
 		if(this._suspendEffectsCount == 0 && this._moveEffectContext != null) {
 			if(js_Boot.__implements(this._moveEffectContext,feathers_motion_effectClasses_IMoveEffectContext)) {
 				moveEffectContext = this._moveEffectContext;
@@ -7759,7 +7740,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			this._moveEffectContext = null;
 		}
 		if(this.get_isCreated() && this._suspendEffectsCount == 0 && this._moveEffect != null) {
-			this._moveEffectContext = js_Boot.__cast(this._moveEffect(this) , feathers_motion_effectClasses_IEffectContext);
+			this._moveEffectContext = this._moveEffect(this);
 			this._moveEffectContext.addEventListener("complete",$bind(this,this.moveEffectContext_completeHandler));
 			if(js_Boot.__implements(this._moveEffectContext,feathers_motion_effectClasses_IMoveEffectContext)) {
 				moveEffectContext = this._moveEffectContext;
@@ -7774,11 +7755,11 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		} else {
 			starling_display_Sprite.prototype.set_x.call(this,value);
 		}
-		return starling_display_Sprite.prototype.get_x.call(this);
+		return value;
 	}
 	,set_y: function(value) {
-		var newX = this.get_x();
 		var moveEffectContext;
+		var newX = this.get_x();
 		if(this._suspendEffectsCount == 0 && this._moveEffectContext != null) {
 			if(js_Boot.__implements(this._moveEffectContext,feathers_motion_effectClasses_IMoveEffectContext)) {
 				moveEffectContext = this._moveEffectContext;
@@ -7803,7 +7784,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		} else {
 			starling_display_Sprite.prototype.set_y.call(this,value);
 		}
-		return starling_display_Sprite.prototype.get_y.call(this);
+		return value;
 	}
 	,actualWidth: null
 	,scaledActualWidth: null
@@ -7813,13 +7794,13 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	,set_width: function(value) {
 		var valueIsNaN = value != value;
 		if(valueIsNaN && this._explicitWidth != this._explicitWidth) {
-			return this.get_width();
+			return value;
 		}
 		if(this.get_scaleX() != 1) {
 			value /= this.get_scaleX();
 		}
 		if(this._explicitWidth == value) {
-			return this.get_width();
+			return value;
 		}
 		var hasSetExplicitWidth = false;
 		var newHeight = this.actualHeight;
@@ -7861,7 +7842,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 				}
 			}
 		}
-		return this.get_width();
+		return value;
 	}
 	,_explicitHeight: null
 	,get_explicitHeight: function() {
@@ -7875,13 +7856,13 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	,set_height: function(value) {
 		var valueIsNaN = value != value;
 		if(valueIsNaN && this._explicitHeight != this._explicitHeight) {
-			return this.get_height();
+			return value;
 		}
 		if(this.get_scaleY() != 1) {
 			value /= this.get_scaleY();
 		}
 		if(this._explicitHeight == value) {
-			return this.get_height();
+			return value;
 		}
 		var hasSetExplicitHeight = false;
 		var newWidth = this.actualWidth;
@@ -7923,7 +7904,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 				}
 			}
 		}
-		return this.get_height();
+		return value;
 	}
 	,_minTouchWidth: null
 	,get_minTouchWidth: function() {
@@ -7931,11 +7912,11 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	}
 	,set_minTouchWidth: function(value) {
 		if(this._minTouchWidth == value) {
-			return this.get_minTouchWidth();
+			return value;
 		}
 		this._minTouchWidth = value;
 		this.refreshHitAreaX();
-		return this.get_minTouchWidth();
+		return this._minTouchWidth;
 	}
 	,_minTouchHeight: null
 	,get_minTouchHeight: function() {
@@ -7943,11 +7924,11 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	}
 	,set_minTouchHeight: function(value) {
 		if(this._minTouchHeight == value) {
-			return this.get_minTouchHeight();
+			return value;
 		}
 		this._minTouchHeight = value;
 		this.refreshHitAreaY();
-		return this.get_minTouchHeight();
+		return this._minTouchHeight;
 	}
 	,_explicitMinWidth: null
 	,get_explicitMinWidth: function() {
@@ -7961,13 +7942,13 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	,set_minWidth: function(value) {
 		var valueIsNaN = value != value;
 		if(valueIsNaN && this._explicitMinWidth != this._explicitMinWidth) {
-			return this.get_minWidth();
+			return value;
 		}
 		if(this.get_scaleX() != 1) {
 			value /= this.get_scaleX();
 		}
 		if(this._explicitMinWidth == value) {
-			return this.get_minWidth();
+			return value;
 		}
 		var oldValue = this._explicitMinWidth;
 		this._explicitMinWidth = value;
@@ -7981,7 +7962,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 				this.invalidate("size");
 			}
 		}
-		return this.get_minWidth();
+		return value;
 	}
 	,_explicitMinHeight: null
 	,get_explicitMinHeight: function() {
@@ -7995,13 +7976,13 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	,set_minHeight: function(value) {
 		var valueIsNaN = value != value;
 		if(valueIsNaN && this._explicitMinHeight != this._explicitMinHeight) {
-			return this.get_minHeight();
+			return value;
 		}
 		if(this.get_scaleY() != 1) {
 			value /= this.get_scaleY();
 		}
 		if(this._explicitMinHeight == value) {
-			return this.get_minHeight();
+			return value;
 		}
 		var oldValue = this._explicitMinHeight;
 		this._explicitMinHeight = value;
@@ -8015,7 +7996,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 				this.invalidate("size");
 			}
 		}
-		return this.get_minHeight();
+		return this._explicitMinHeight;
 	}
 	,_explicitMaxWidth: null
 	,get_explicitMaxWidth: function() {
@@ -8029,7 +8010,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			value = 0;
 		}
 		if(this._explicitMaxWidth == value) {
-			return this.get_maxWidth();
+			return value;
 		}
 		if(value != value) {
 			throw new openfl_errors_ArgumentError("maxWidth cannot be NaN");
@@ -8039,7 +8020,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(this._explicitWidth != this._explicitWidth && (this.actualWidth > value || this.actualWidth == oldValue)) {
 			this.invalidate("size");
 		}
-		return this.get_maxWidth();
+		return this._explicitMaxWidth;
 	}
 	,_explicitMaxHeight: null
 	,get_explicitMaxHeight: function() {
@@ -8053,7 +8034,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			value = 0;
 		}
 		if(this._explicitMaxHeight == value) {
-			return this.get_maxHeight();
+			return value;
 		}
 		if(value != value) {
 			throw new openfl_errors_ArgumentError("maxHeight cannot be NaN");
@@ -8063,17 +8044,17 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(this._explicitHeight != this._explicitHeight && (this.actualHeight > value || this.actualHeight == oldValue)) {
 			this.invalidate("size");
 		}
-		return this.get_maxHeight();
+		return this._explicitMaxHeight;
 	}
 	,set_scaleX: function(value) {
 		starling_display_Sprite.prototype.set_scaleX.call(this,value);
 		this.saveMeasurements(this.actualWidth,this.actualHeight,this.actualMinWidth,this.actualMinHeight);
-		return this.get_scaleX();
+		return value;
 	}
 	,set_scaleY: function(value) {
 		starling_display_Sprite.prototype.set_scaleY.call(this,value);
 		this.saveMeasurements(this.actualWidth,this.actualHeight,this.actualMinWidth,this.actualMinHeight);
-		return this.get_scaleY();
+		return value;
 	}
 	,_includeInLayout: null
 	,get_includeInLayout: function() {
@@ -8081,11 +8062,11 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	}
 	,set_includeInLayout: function(value) {
 		if(this._includeInLayout == value) {
-			return this.get_includeInLayout();
+			return value;
 		}
 		this._includeInLayout = value;
 		this.dispatchEventWith("layoutDataChange");
-		return this.get_includeInLayout();
+		return this._includeInLayout;
 	}
 	,_layoutData: null
 	,get_layoutData: function() {
@@ -8093,7 +8074,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 	}
 	,set_layoutData: function(value) {
 		if(this._layoutData == value) {
-			return this.get_layoutData();
+			return value;
 		}
 		if(this._layoutData != null) {
 			this._layoutData.removeEventListener("change",$bind(this,this.layoutData_changeHandler));
@@ -8103,15 +8084,14 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			this._layoutData.addEventListener("change",$bind(this,this.layoutData_changeHandler));
 		}
 		this.dispatchEventWith("layoutDataChange");
-		return this.get_layoutData();
+		return this._layoutData;
 	}
 	,_toolTip: null
 	,get_toolTip: function() {
 		return this._toolTip;
 	}
 	,set_toolTip: function(value) {
-		this._toolTip = value;
-		return this._toolTip;
+		return this._toolTip = value;
 	}
 	,_focusManager: null
 	,get_focusManager: function() {
@@ -8122,42 +8102,38 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			throw new openfl_errors_IllegalOperationError("Cannot pass a focus manager to a component that does not implement feathers.core.IFocusDisplayObject");
 		}
 		if(this._focusManager == value) {
-			return this._focusManager;
+			return value;
 		}
-		this._focusManager = value;
-		return this._focusManager;
+		return this._focusManager = value;
 	}
 	,_focusOwner: null
 	,get_focusOwner: function() {
 		return this._focusOwner;
 	}
 	,set_focusOwner: function(value) {
-		this._focusOwner = value;
-		return this._focusOwner;
+		return this._focusOwner = value;
 	}
 	,_isFocusEnabled: null
 	,get_isFocusEnabled: function() {
-		if(this._isEnabled) {
-			return this._isFocusEnabled;
-		} else {
-			return false;
-		}
+		return this._isFocusEnabled;
 	}
 	,set_isFocusEnabled: function(value) {
 		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 			throw new openfl_errors_IllegalOperationError("Cannot enable focus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
 		if(this._isFocusEnabled == value) {
-			return this.get_isFocusEnabled();
+			return value;
 		}
-		this._isFocusEnabled = value;
-		return this.get_isFocusEnabled();
+		return this._isFocusEnabled = value;
 	}
 	,get_isShowingFocus: function() {
 		return this._showFocus;
 	}
 	,get_maintainTouchFocus: function() {
 		return false;
+	}
+	,set_maintainTouchFocus: function(value) {
+		throw new openfl_errors_Error("FeathersControl maintainTouchFocus setter must be override by sub class");
 	}
 	,_nextTabFocus: null
 	,get_nextTabFocus: function() {
@@ -8167,8 +8143,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 			throw new openfl_errors_IllegalOperationError("Cannot set nextTabFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextTabFocus = value;
-		return this._nextTabFocus;
+		return this._nextTabFocus = value;
 	}
 	,_previousTabFocus: null
 	,get_previousTabFocus: function() {
@@ -8178,8 +8153,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 			throw new openfl_errors_IllegalOperationError("Cannot set previousTabFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._previousTabFocus = value;
-		return this._previousTabFocus;
+		return this._previousTabFocus = value;
 	}
 	,_nextUpFocus: null
 	,get_nextUpFocus: function() {
@@ -8189,8 +8163,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 			throw new openfl_errors_IllegalOperationError("Cannot set nextUpFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextUpFocus = value;
-		return this._nextUpFocus;
+		return this._nextUpFocus = value;
 	}
 	,_nextRightFocus: null
 	,get_nextRightFocus: function() {
@@ -8200,8 +8173,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 			throw new openfl_errors_IllegalOperationError("Cannot set nextRightFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextRightFocus = value;
-		return this._nextRightFocus;
+		return this._nextRightFocus = value;
 	}
 	,_nextDownFocus: null
 	,get_nextDownFocus: function() {
@@ -8211,8 +8183,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 			throw new openfl_errors_IllegalOperationError("Cannot set nextDownFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextDownFocus = value;
-		return this._nextDownFocus;
+		return this._nextDownFocus = value;
 	}
 	,_nextLeftFocus: null
 	,get_nextLeftFocus: function() {
@@ -8222,8 +8193,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 			throw new openfl_errors_IllegalOperationError("Cannot set nextLeftFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextLeftFocus = value;
-		return this._nextLeftFocus;
+		return this._nextLeftFocus = value;
 	}
 	,_focusIndicatorSkin: null
 	,get_focusIndicatorSkin: function() {
@@ -8233,11 +8203,8 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(!js_Boot.__implements(this,feathers_core_IFocusDisplayObject)) {
 			throw new openfl_errors_IllegalOperationError("Cannot set focus indicator skin on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		if(this.processStyleRestriction($bind(this,this.set_focusIndicatorSkin))) {
-			return this._focusIndicatorSkin;
-		}
 		if(this._focusIndicatorSkin == value) {
-			return this._focusIndicatorSkin;
+			return value;
 		}
 		if(this._focusIndicatorSkin != null) {
 			if(this._focusIndicatorSkin.get_parent() == this) {
@@ -8252,9 +8219,9 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			this._focusIndicatorSkin.set_touchable(false);
 		}
 		if(js_Boot.__implements(this._focusIndicatorSkin,feathers_core_IStateObserver) && js_Boot.__implements(this,feathers_core_IStateContext)) {
-			(js_Boot.__cast(this._focusIndicatorSkin , feathers_core_IStateObserver)).set_stateContext(js_Boot.__cast(this , feathers_core_IStateContext));
+			(js_Boot.__cast(this._focusIndicatorSkin , feathers_core_IStateObserver)).set_stateContext(this);
 		}
-		if(this._focusManager != null && js_Boot.__cast(this._focusManager.get_focus() , feathers_core_IFeathersDisplayObject) == this) {
+		if(this._focusManager != null && this._focusManager.get_focus() == (((this) instanceof starling_display_DisplayObject) ? this : null)) {
 			this.invalidate("styles");
 		}
 		return this._focusIndicatorSkin;
@@ -8266,68 +8233,67 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		this.set_focusPaddingTop(value);
 		this.set_focusPaddingRight(value);
 		this.set_focusPaddingBottom(value);
-		this.set_focusPaddingLeft(value);
-		return this.get_focusPadding();
+		return this.set_focusPaddingLeft(value);
 	}
 	,_focusPaddingTop: null
 	,get_focusPaddingTop: function() {
 		return this._focusPaddingTop;
 	}
 	,set_focusPaddingTop: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_focusPaddingTop))) {
-			return this.get_focusPaddingTop();
+		if(this.processStyleRestriction("focusPaddingTop")) {
+			return value;
 		}
 		if(this._focusPaddingTop == value) {
-			return this.get_focusPaddingTop();
+			return value;
 		}
 		this._focusPaddingTop = value;
 		this.invalidate("focus");
-		return this.get_focusPaddingTop();
+		return this._focusPaddingTop;
 	}
 	,_focusPaddingRight: null
 	,get_focusPaddingRight: function() {
 		return this._focusPaddingRight;
 	}
 	,set_focusPaddingRight: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_focusPaddingRight))) {
-			return this.get_focusPaddingRight();
+		if(this.processStyleRestriction("focusPaddingRight")) {
+			return value;
 		}
 		if(this._focusPaddingRight == value) {
-			return this.get_focusPaddingRight();
+			return value;
 		}
 		this._focusPaddingRight = value;
 		this.invalidate("focus");
-		return this.get_focusPaddingRight();
+		return this._focusPaddingRight;
 	}
 	,_focusPaddingBottom: null
 	,get_focusPaddingBottom: function() {
 		return this._focusPaddingBottom;
 	}
 	,set_focusPaddingBottom: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_focusPaddingBottom))) {
-			return this.get_focusPaddingBottom();
+		if(this.processStyleRestriction("focusPaddingBottom")) {
+			return value;
 		}
 		if(this._focusPaddingBottom == value) {
-			return this.get_focusPaddingBottom();
+			return value;
 		}
 		this._focusPaddingBottom = value;
 		this.invalidate("focus");
-		return this.get_focusPaddingBottom();
+		return this._focusPaddingBottom;
 	}
 	,_focusPaddingLeft: null
 	,get_focusPaddingLeft: function() {
 		return this._focusPaddingLeft;
 	}
 	,set_focusPaddingLeft: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_focusPaddingLeft))) {
-			return this.get_focusPaddingLeft();
+		if(this.processStyleRestriction("focusPaddingLeft")) {
+			return value;
 		}
 		if(this._focusPaddingLeft == value) {
-			return this.get_focusPaddingLeft();
+			return value;
 		}
 		this._focusPaddingLeft = value;
 		this.invalidate("focus");
-		return this.get_focusPaddingLeft();
+		return this._focusPaddingLeft;
 	}
 	,get_effectsSuspended: function() {
 		return this._suspendEffectsCount > 0;
@@ -8350,10 +8316,10 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(resultRect == null) {
 			resultRect = new openfl_geom_Rectangle();
 		}
-		var minX = 1.79e+308;
-		var maxX = -1.79e+308;
-		var minY = 1.79e+308;
-		var maxY = -1.79e+308;
+		var minX = -999999999;
+		var maxX = 999999999;
+		var minY = -999999999;
+		var maxY = 999999999;
 		if(targetSpace == this) {
 			minX = 0;
 			minY = 0;
@@ -8487,7 +8453,8 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			}
 			this._invalidateCount++;
 			if(this._invalidateCount >= 10) {
-				throw new openfl_errors_Error(openfl_Lib.getQualifiedClassName(this) + " returned to validation queue too many times during validation. This may be an infinite loop. Try to avoid doing anything that calls invalidate() during validation.");
+				var c = js_Boot.getClass(this);
+				throw new openfl_errors_Error(c.__name__ + " returned to validation queue too many times during validation. This may be an infinite loop. Try to avoid doing anything that calls invalidate() during validation.");
 			}
 			this._validationQueue.addControl(this);
 			return;
@@ -8516,18 +8483,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		}
 		this._isValidating = true;
 		this.draw();
-		var h = this._invalidationFlags.h;
-		var flag_h = h;
-		var flag_keys = Object.keys(h);
-		var flag_length = flag_keys.length;
-		var flag_current = 0;
-		while(flag_current < flag_length) {
-			var flag = flag_keys[flag_current++];
-			var _this = this._invalidationFlags;
-			if(Object.prototype.hasOwnProperty.call(_this.h,flag)) {
-				delete(_this.h[flag]);
-			}
-		}
+		this._invalidationFlags.h = Object.create(null);
 		this._isAllInvalid = false;
 		var h = this._delayedInvalidationFlags.h;
 		var flag_h = h;
@@ -8541,11 +8497,8 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			} else {
 				this._invalidationFlags.h[flag] = true;
 			}
-			var _this = this._delayedInvalidationFlags;
-			if(Object.prototype.hasOwnProperty.call(_this.h,flag)) {
-				delete(_this.h[flag]);
-			}
 		}
+		this._delayedInvalidationFlags.h = Object.create(null);
 		this._isValidating = false;
 		if(!this._hasValidated) {
 			this._hasValidated = true;
@@ -8809,7 +8762,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		this._ignoreNextStyleRestriction = false;
 		if(this._applyingStyles) {
 			if(this._restrictedStyles != null) {
-				return this._restrictedStyles.exists(key);
+				return Object.prototype.hasOwnProperty.call(this._restrictedStyles.h,key);
 			} else {
 				return false;
 			}
@@ -8818,9 +8771,9 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 			return false;
 		}
 		if(this._restrictedStyles == null) {
-			this._restrictedStyles = new feathers_core_FunctionMap();
+			this._restrictedStyles = new haxe_ds_StringMap();
 		}
-		this._restrictedStyles.set(key,true);
+		this._restrictedStyles.h[key] = true;
 		return false;
 	}
 	,ignoreNextStyleRestriction: function() {
@@ -8903,7 +8856,19 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		if(!this._isInitialized) {
 			this.initializeNow();
 		}
-		this._depth = feathers_utils_display_FeathersDisplayUtil.getDisplayObjectDepthFromStage(this);
+		var target = this;
+		var tmp;
+		if(target.get_stage() == null) {
+			tmp = -1;
+		} else {
+			var count = 0;
+			while(target.get_parent() != null) {
+				target = target.get_parent();
+				++count;
+			}
+			tmp = count;
+		}
+		this._depth = tmp;
 		this._validationQueue = feathers_core_ValidationQueue.forStarling(this.get_stage().get_starling());
 		if(this.isInvalid()) {
 			this._invalidateCount = 0;
@@ -8989,7 +8954,7 @@ feathers_core_FeathersControl.prototype = $extend(starling_display_Sprite.protot
 		this._applyingStyles = false;
 	}
 	,__class__: feathers_core_FeathersControl
-	,__properties__: $extend(starling_display_Sprite.prototype.__properties__,{get_depth:"get_depth",get_isCreated:"get_isCreated",get_effectsSuspended:"get_effectsSuspended",set_focusPaddingLeft:"set_focusPaddingLeft",get_focusPaddingLeft:"get_focusPaddingLeft",set_focusPaddingBottom:"set_focusPaddingBottom",get_focusPaddingBottom:"get_focusPaddingBottom",set_focusPaddingRight:"set_focusPaddingRight",get_focusPaddingRight:"get_focusPaddingRight",set_focusPaddingTop:"set_focusPaddingTop",get_focusPaddingTop:"get_focusPaddingTop",set_focusIndicatorSkin:"set_focusIndicatorSkin",get_focusIndicatorSkin:"get_focusIndicatorSkin",set_nextLeftFocus:"set_nextLeftFocus",get_nextLeftFocus:"get_nextLeftFocus",set_nextDownFocus:"set_nextDownFocus",get_nextDownFocus:"get_nextDownFocus",set_nextRightFocus:"set_nextRightFocus",get_nextRightFocus:"get_nextRightFocus",set_nextUpFocus:"set_nextUpFocus",get_nextUpFocus:"get_nextUpFocus",set_previousTabFocus:"set_previousTabFocus",get_previousTabFocus:"get_previousTabFocus",set_nextTabFocus:"set_nextTabFocus",get_nextTabFocus:"get_nextTabFocus",set_isFocusEnabled:"set_isFocusEnabled",get_isFocusEnabled:"get_isFocusEnabled",set_focusOwner:"set_focusOwner",get_focusOwner:"get_focusOwner",set_focusManager:"set_focusManager",get_focusManager:"get_focusManager",set_toolTip:"set_toolTip",get_toolTip:"get_toolTip",set_layoutData:"set_layoutData",get_layoutData:"get_layoutData",set_includeInLayout:"set_includeInLayout",get_includeInLayout:"get_includeInLayout",set_maxHeight:"set_maxHeight",get_maxHeight:"get_maxHeight",get_explicitMaxHeight:"get_explicitMaxHeight",set_maxWidth:"set_maxWidth",get_maxWidth:"get_maxWidth",get_explicitMaxWidth:"get_explicitMaxWidth",set_minHeight:"set_minHeight",get_minHeight:"get_minHeight",get_explicitMinHeight:"get_explicitMinHeight",set_minWidth:"set_minWidth",get_minWidth:"get_minWidth",get_explicitMinWidth:"get_explicitMinWidth",set_minTouchHeight:"set_minTouchHeight",get_minTouchHeight:"get_minTouchHeight",set_minTouchWidth:"set_minTouchWidth",get_minTouchWidth:"get_minTouchWidth",get_explicitHeight:"get_explicitHeight",set_moveEffect:"set_moveEffect",get_moveEffect:"get_moveEffect",set_resizeEffect:"set_resizeEffect",get_resizeEffect:"get_resizeEffect",get_explicitWidth:"get_explicitWidth",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",get_isInitialized:"get_isInitialized",set_isQuickHitAreaEnabled:"set_isQuickHitAreaEnabled",get_isQuickHitAreaEnabled:"get_isQuickHitAreaEnabled",get_defaultStyleProvider:"get_defaultStyleProvider",set_styleProvider:"set_styleProvider",get_styleProvider:"get_styleProvider",get_styleNameList:"get_styleNameList",set_styleName:"set_styleName",get_styleName:"get_styleName",set_addedEffect:"set_addedEffect",get_addedEffect:"get_addedEffect",set_focusOutEffect:"set_focusOutEffect",get_focusOutEffect:"get_focusOutEffect",set_focusInEffect:"set_focusInEffect",get_focusInEffect:"get_focusInEffect",set_hideEffect:"set_hideEffect",get_hideEffect:"get_hideEffect",set_showEffect:"set_showEffect",get_showEffect:"get_showEffect"})
+	,__properties__: $extend(starling_display_Sprite.prototype.__properties__,{get_depth:"get_depth",get_isCreated:"get_isCreated",get_effectsSuspended:"get_effectsSuspended",set_focusPaddingLeft:"set_focusPaddingLeft",get_focusPaddingLeft:"get_focusPaddingLeft",set_focusPaddingBottom:"set_focusPaddingBottom",get_focusPaddingBottom:"get_focusPaddingBottom",set_focusPaddingRight:"set_focusPaddingRight",get_focusPaddingRight:"get_focusPaddingRight",set_focusPaddingTop:"set_focusPaddingTop",get_focusPaddingTop:"get_focusPaddingTop",set_focusPadding:"set_focusPadding",get_focusPadding:"get_focusPadding",set_focusIndicatorSkin:"set_focusIndicatorSkin",get_focusIndicatorSkin:"get_focusIndicatorSkin",set_nextLeftFocus:"set_nextLeftFocus",get_nextLeftFocus:"get_nextLeftFocus",set_nextDownFocus:"set_nextDownFocus",get_nextDownFocus:"get_nextDownFocus",set_nextRightFocus:"set_nextRightFocus",get_nextRightFocus:"get_nextRightFocus",set_nextUpFocus:"set_nextUpFocus",get_nextUpFocus:"get_nextUpFocus",set_previousTabFocus:"set_previousTabFocus",get_previousTabFocus:"get_previousTabFocus",set_nextTabFocus:"set_nextTabFocus",get_nextTabFocus:"get_nextTabFocus",set_maintainTouchFocus:"set_maintainTouchFocus",get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus",set_isFocusEnabled:"set_isFocusEnabled",get_isFocusEnabled:"get_isFocusEnabled",set_focusOwner:"set_focusOwner",get_focusOwner:"get_focusOwner",set_focusManager:"set_focusManager",get_focusManager:"get_focusManager",set_toolTip:"set_toolTip",get_toolTip:"get_toolTip",set_layoutData:"set_layoutData",get_layoutData:"get_layoutData",set_includeInLayout:"set_includeInLayout",get_includeInLayout:"get_includeInLayout",set_maxHeight:"set_maxHeight",get_maxHeight:"get_maxHeight",get_explicitMaxHeight:"get_explicitMaxHeight",set_maxWidth:"set_maxWidth",get_maxWidth:"get_maxWidth",get_explicitMaxWidth:"get_explicitMaxWidth",set_minHeight:"set_minHeight",get_minHeight:"get_minHeight",get_explicitMinHeight:"get_explicitMinHeight",set_minWidth:"set_minWidth",get_minWidth:"get_minWidth",get_explicitMinWidth:"get_explicitMinWidth",set_minTouchHeight:"set_minTouchHeight",get_minTouchHeight:"get_minTouchHeight",set_minTouchWidth:"set_minTouchWidth",get_minTouchWidth:"get_minTouchWidth",get_explicitHeight:"get_explicitHeight",set_moveEffect:"set_moveEffect",get_moveEffect:"get_moveEffect",set_resizeEffect:"set_resizeEffect",get_resizeEffect:"get_resizeEffect",get_explicitWidth:"get_explicitWidth",set_isEnabled:"set_isEnabled",get_isEnabled:"get_isEnabled",get_isInitialized:"get_isInitialized",set_isQuickHitAreaEnabled:"set_isQuickHitAreaEnabled",get_isQuickHitAreaEnabled:"get_isQuickHitAreaEnabled",get_defaultStyleProvider:"get_defaultStyleProvider",set_styleProvider:"set_styleProvider",get_styleProvider:"get_styleProvider",get_styleNameList:"get_styleNameList",set_styleName:"set_styleName",get_styleName:"get_styleName",set_addedEffect:"set_addedEffect",get_addedEffect:"get_addedEffect",set_focusOutEffect:"set_focusOutEffect",get_focusOutEffect:"get_focusOutEffect",set_focusInEffect:"set_focusInEffect",get_focusInEffect:"get_focusInEffect",set_hideEffect:"set_hideEffect",get_hideEffect:"get_hideEffect",set_showEffect:"set_showEffect",get_showEffect:"get_showEffect"})
 });
 var feathers_controls_LayoutGroup = function() {
 	this._ignoreChildChangesButSetFlags = false;
@@ -9019,11 +8984,11 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 		return this._layout;
 	}
 	,set_layout: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_layout))) {
-			return this.get_layout();
+		if(this.processStyleRestriction("layout")) {
+			return value;
 		}
 		if(this._layout == value) {
-			return this.get_layout();
+			return value;
 		}
 		if(this._layout != null) {
 			this._layout.removeEventListener("change",$bind(this,this.layout_changeHandler));
@@ -9037,25 +9002,25 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 			this.invalidate("layout");
 		}
 		this.invalidate("layout");
-		return this.get_layout();
+		return this._layout;
 	}
 	,_clipContent: null
 	,get_clipContent: function() {
 		return this._clipContent;
 	}
 	,set_clipContent: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_clipContent))) {
-			return this.get_clipContent();
+		if(this.processStyleRestriction("clipContent")) {
+			return value;
 		}
-		if(this._clipContent == value) {
-			return this.get_clipContent();
+		if(this.get_clipContent() == value) {
+			return value;
 		}
 		this._clipContent = value;
 		if(!value) {
 			this.set_mask(null);
 		}
 		this.invalidate("clipping");
-		return this.get_clipContent();
+		return this._clipContent;
 	}
 	,_explicitBackgroundWidth: null
 	,_explicitBackgroundHeight: null
@@ -9069,14 +9034,14 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 		return this._backgroundSkin;
 	}
 	,set_backgroundSkin: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_backgroundSkin))) {
+		if(this.processStyleRestriction("backgroundSkin")) {
 			if(value != null) {
 				value.dispose();
 			}
-			return this.get_backgroundSkin();
+			return value;
 		}
 		if(this._backgroundSkin == value) {
-			return this.get_backgroundSkin();
+			return value;
 		}
 		if(this._backgroundSkin != null && this.currentBackgroundSkin == this._backgroundSkin) {
 			this.removeCurrentBackgroundSkin(this._backgroundSkin);
@@ -9084,21 +9049,21 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 		}
 		this._backgroundSkin = value;
 		this.invalidate("skin");
-		return this.get_backgroundSkin();
+		return this._backgroundSkin;
 	}
 	,_backgroundDisabledSkin: null
 	,get_backgroundDisabledSkin: function() {
 		return this._backgroundDisabledSkin;
 	}
 	,set_backgroundDisabledSkin: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_backgroundDisabledSkin))) {
+		if(this.processStyleRestriction("backgroundDisabledSkin")) {
 			if(value != null) {
 				value.dispose();
 			}
-			return this.get_backgroundDisabledSkin();
+			return value;
 		}
 		if(this._backgroundDisabledSkin == value) {
-			return this.get_backgroundDisabledSkin();
+			return value;
 		}
 		if(this._backgroundDisabledSkin != null && this.currentBackgroundSkin == this._backgroundDisabledSkin) {
 			this.removeCurrentBackgroundSkin(this._backgroundDisabledSkin);
@@ -9106,7 +9071,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 		}
 		this._backgroundDisabledSkin = value;
 		this.invalidate("skin");
-		return this.get_backgroundDisabledSkin();
+		return this._backgroundDisabledSkin;
 	}
 	,_autoSizeMode: null
 	,get_autoSizeMode: function() {
@@ -9114,7 +9079,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 	}
 	,set_autoSizeMode: function(value) {
 		if(this._autoSizeMode == value) {
-			return this.get_autoSizeMode();
+			return value;
 		}
 		this._autoSizeMode = value;
 		if(this.get_stage() != null) {
@@ -9125,7 +9090,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 			}
 		}
 		this.invalidate("size");
-		return this.get_autoSizeMode();
+		return this._autoSizeMode;
 	}
 	,_ignoreChildChanges: null
 	,_ignoreChildChangesButSetFlags: null
@@ -9140,7 +9105,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 		if(oldIndex == index) {
 			return child;
 		}
-		if(oldIndex >= 0) {
+		if(oldIndex != -1) {
 			this.items.splice(oldIndex,1);
 		}
 		this.items.splice(index,0,child);
@@ -9162,7 +9127,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 			child.removeEventListener("layoutDataChange",$bind(this,this.child_layoutDataChangeHandler));
 		}
 		this.invalidate("layout");
-		return child;
+		return feathers_core_FeathersControl.prototype.removeChildAt.call(this,index,dispose);
 	}
 	,setChildIndex: function(child,index) {
 		feathers_core_FeathersControl.prototype.setChildIndex.call(this,child,index);
@@ -9299,7 +9264,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 					(js_Boot.__cast(this.currentBackgroundSkin , feathers_core_IFeathersControl)).initializeNow();
 				}
 				if(js_Boot.__implements(this.currentBackgroundSkin,feathers_core_IMeasureDisplayObject)) {
-					var measureSkin = js_Boot.__cast(this.currentBackgroundSkin , feathers_core_IMeasureDisplayObject);
+					var measureSkin = this.currentBackgroundSkin;
 					this._explicitBackgroundWidth = measureSkin.get_explicitWidth();
 					this._explicitBackgroundHeight = measureSkin.get_explicitHeight();
 					this._explicitBackgroundMinWidth = measureSkin.get_explicitMinWidth();
@@ -9480,7 +9445,7 @@ feathers_controls_LayoutGroup.prototype = $extend(feathers_core_FeathersControl.
 		if(this.get_clipContent()) {
 			return;
 		}
-		var mask = js_Boot.__cast(this.get_mask() , starling_display_Quad);
+		var mask = this.get_mask();
 		if(mask != null) {
 			mask.set_x(0);
 			mask.set_y(0);
@@ -9626,8 +9591,8 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 		return result;
 	}
 	,measureViewPort: function(items,viewPortWidth,viewPortHeight,result) {
-		this._helperVector1.splice(0,this._helperVector1.length);
-		this._helperVector2.splice(0,this._helperVector2.length);
+		this._helperVector1.length = 0;
+		this._helperVector2.length = 0;
 		result.setTo(0,0);
 		var mainVector = items;
 		var otherVector = this._helperVector1;
@@ -9645,20 +9610,20 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 			var oldLength = currentLength;
 			currentLength = otherVector.length;
 			if(oldLength == currentLength) {
-				this._helperVector1.splice(0,this._helperVector1.length);
-				this._helperVector2.splice(0,this._helperVector2.length);
+				this._helperVector1.length = 0;
+				this._helperVector2.length = 0;
 				throw new openfl_errors_IllegalOperationError("It is impossible to create this layout due to a circular reference in the AnchorLayoutData.");
 			}
 		}
-		this._helperVector1.splice(0,this._helperVector1.length);
-		this._helperVector2.splice(0,this._helperVector2.length);
+		this._helperVector1.length = 0;
+		this._helperVector2.length = 0;
 		return result;
 	}
 	,measureVector: function(items,unpositionedItems,result) {
 		if(result == null) {
 			result = new openfl_geom_Point();
 		}
-		unpositionedItems.splice(0,unpositionedItems.length);
+		unpositionedItems.length = 0;
 		var itemCount = items.length;
 		var pushIndex = 0;
 		var _g = 0;
@@ -9668,13 +9633,13 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 			var item = items[i];
 			var layoutData = null;
 			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-				var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				var layoutItem = item;
 				if(!layoutItem.get_includeInLayout()) {
 					continue;
 				}
-				layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+				layoutData = layoutItem.get_layoutData();
 			}
-			var isReadyForLayout = layoutData == null || this.isReadyForLayout(layoutData,i,items,unpositionedItems);
+			var isReadyForLayout = layoutData != null || this.isReadyForLayout(layoutData,i,items,unpositionedItems);
 			if(!isReadyForLayout) {
 				unpositionedItems[pushIndex] = item;
 				++pushIndex;
@@ -9688,21 +9653,21 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 		var maxX = result.x;
 		var maxY = result.y;
 		var isAnchored = false;
-		var measurement = 0;
+		var measurement;
 		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
-			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			var layoutItem = item;
+			var layoutData = layoutItem.get_layoutData();
 			if(layoutData != null) {
 				measurement = this.measureItemHorizontally(layoutItem,layoutData);
+				if(measurement > maxX) {
+					maxX = measurement;
+				}
+				measurement = this.measureItemVertically(layoutItem,layoutData);
+				if(measurement > maxY) {
+					maxY = measurement;
+				}
+				isAnchored = true;
 			}
-			if(measurement > maxX) {
-				maxX = measurement;
-			}
-			measurement = this.measureItemVertically(layoutItem,layoutData);
-			if(measurement > maxY) {
-				maxY = measurement;
-			}
-			isAnchored = true;
 		}
 		if(!isAnchored) {
 			measurement = item.get_x() - item.get_pivotX() + item.get_width();
@@ -9719,7 +9684,7 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 	}
 	,measureItemHorizontally: function(item,layoutData) {
 		var itemWidth = item.get_width();
-		var displayItem = js_Boot.__cast(item , starling_display_DisplayObject);
+		var displayItem = item;
 		var left = this.getLeftOffset(displayItem);
 		var right = this.getRightOffset(displayItem);
 		return itemWidth + left + right;
@@ -9733,7 +9698,7 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 				itemHeight = (js_Boot.__cast(item , feathers_core_IFeathersControl)).get_minHeight();
 			}
 		}
-		var displayItem = js_Boot.__cast(item , starling_display_DisplayObject);
+		var displayItem = item;
 		var top = this.getTopOffset(displayItem);
 		var bottom = this.getBottomOffset(displayItem);
 		return itemHeight + top + bottom;
@@ -9742,8 +9707,8 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 	}
 	,getTopOffset: function(item) {
 		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
-			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			var layoutItem = item;
+			var layoutData = layoutItem.get_layoutData();
 			if(layoutData != null) {
 				var top = layoutData.get_top();
 				var hasTopPosition = top == top;
@@ -9785,8 +9750,8 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 	}
 	,getRightOffset: function(item) {
 		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
-			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			var layoutItem = item;
+			var layoutData = layoutItem.get_layoutData();
 			if(layoutData != null) {
 				var right = layoutData.get_right();
 				var hasRightPosition = right == right;
@@ -9826,8 +9791,8 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 	}
 	,getBottomOffset: function(item) {
 		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
-			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			var layoutItem = item;
+			var layoutData = layoutItem.get_layoutData();
 			if(layoutData != null) {
 				var bottom = layoutData.get_bottom();
 				var hasBottomPosition = bottom == bottom;
@@ -9867,8 +9832,8 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 	}
 	,getLeftOffset: function(item) {
 		if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-			var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
-			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			var layoutItem = item;
+			var layoutData = layoutItem.get_layoutData();
 			if(layoutData != null) {
 				var left = layoutData.get_left();
 				var hasLeftPosition = left == left;
@@ -9944,12 +9909,11 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 		while(_g < _g1) {
 			var i = _g++;
 			var item = items[i];
-			var layoutItem = js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) ? item : null;
+			var layoutItem = item;
 			if(layoutItem == null || !layoutItem.get_includeInLayout()) {
 				continue;
 			}
-			var e = layoutItem.get_layoutData();
-			var layoutData = ((e) instanceof feathers_layout_AnchorLayoutData) ? e : null;
+			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_AnchorLayoutData);
 			if(layoutData == null) {
 				continue;
 			}
@@ -9964,7 +9928,7 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 		}
 	}
 	,positionHorizontally: function(item,layoutData,boundsX,boundsY,viewPortWidth,viewPortHeight) {
-		var uiItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+		var uiItem = item;
 		var percentWidth = layoutData.get_percentWidth();
 		var itemWidth;
 		if(percentWidth == percentWidth) {
@@ -10006,11 +9970,10 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 		var hasHorizontalCenterPosition = horizontalCenter == horizontalCenter;
 		var right = layoutData.get_right();
 		var hasRightPosition = right == right;
-		var rightAnchorDisplayObject = null;
-		var horizontalCenterAnchorDisplayObject = null;
+		var horizontalCenterAnchorDisplayObject;
 		var xPositionOfCenter;
 		if(hasRightPosition) {
-			rightAnchorDisplayObject = layoutData.get_rightAnchorDisplayObject();
+			var rightAnchorDisplayObject = layoutData.get_rightAnchorDisplayObject();
 			if(hasLeftPosition) {
 				var leftRightWidth = viewPortWidth;
 				if(rightAnchorDisplayObject != null) {
@@ -10109,11 +10072,10 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 		var hasVerticalCenterPosition = verticalCenter == verticalCenter;
 		var bottom = layoutData.get_bottom();
 		var hasBottomPosition = bottom == bottom;
-		var bottomAnchorDisplayObject = null;
-		var verticalCenterAnchorDisplayObject = null;
+		var verticalCenterAnchorDisplayObject;
 		var yPositionOfCenter;
 		if(hasBottomPosition) {
-			bottomAnchorDisplayObject = layoutData.get_bottomAnchorDisplayObject();
+			var bottomAnchorDisplayObject = layoutData.get_bottomAnchorDisplayObject();
 			if(hasTopPosition) {
 				var topBottomHeight = viewPortHeight;
 				if(bottomAnchorDisplayObject != null) {
@@ -10225,12 +10187,11 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 		var _g1 = itemCount;
 		while(_g < _g1) {
 			var i = _g++;
-			var e = items[i];
-			var otherItem = js_Boot.__implements(e,feathers_layout_ILayoutDisplayObject) ? e : null;
+			var otherItem = js_Boot.__cast(items[i] , feathers_layout_ILayoutDisplayObject);
 			if(otherItem == null || js_Boot.__cast(otherItem , starling_display_DisplayObject) == item) {
 				continue;
 			}
-			var layoutData = js_Boot.__cast(otherItem.get_layoutData() , feathers_layout_AnchorLayoutData);
+			var layoutData = otherItem.get_layoutData();
 			if(layoutData == null) {
 				continue;
 			}
@@ -10258,12 +10219,11 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 			var i = _g++;
 			var item = items[i];
 			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-				var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				var layoutItem = item;
 				if(!layoutItem.get_includeInLayout()) {
 					continue;
 				}
-				var e = layoutItem.get_layoutData();
-				var layoutData = ((e) instanceof feathers_layout_AnchorLayoutData) ? e : null;
+				var layoutData = layoutItem.get_layoutData();
 				if(layoutData != null) {
 					var left = layoutData.get_left();
 					var hasLeftPosition = left == left;
@@ -10273,7 +10233,8 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 					var hasRightPosition = right == right;
 					var percentWidth = layoutData.get_percentWidth();
 					var hasPercentWidth = percentWidth == percentWidth;
-					var measureItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+					var measureItem = item;
+					var itemWidth;
 					if(needsWidth) {
 						if(hasLeftPosition && leftAnchor == null && hasRightPosition && rightAnchor == null) {
 							measureItem.set_width(NaN);
@@ -10287,26 +10248,23 @@ feathers_layout_AnchorLayout.prototype = $extend(starling_events_EventDispatcher
 							measureItem.set_width(NaN);
 							measureItem.set_maxWidth(percentWidth * 0.01 * maxWidth);
 						}
-					} else {
-						var itemWidth;
-						if(hasLeftPosition && leftAnchor == null && hasRightPosition && rightAnchor == null) {
-							itemWidth = containerWidth - left - right;
-							if(measureItem.get_explicitMaxWidth() == measureItem.get_explicitMaxWidth() && measureItem.get_explicitMaxWidth() < itemWidth) {
-								itemWidth = measureItem.get_explicitMaxWidth();
-							}
-							item.set_width(itemWidth);
-						} else if(hasPercentWidth) {
-							if(percentWidth < 0) {
-								percentWidth = 0;
-							} else if(percentWidth > 100) {
-								percentWidth = 100;
-							}
-							itemWidth = percentWidth * 0.01 * containerWidth;
-							if(measureItem.get_explicitMaxWidth() == measureItem.get_explicitMaxWidth() && measureItem.get_explicitMaxWidth() < itemWidth) {
-								itemWidth = measureItem.get_explicitMaxWidth();
-							}
-							item.set_width(itemWidth);
+					} else if(hasLeftPosition && leftAnchor == null && hasRightPosition && rightAnchor == null) {
+						itemWidth = containerWidth - left - right;
+						if(measureItem.get_explicitMaxWidth() == measureItem.get_explicitMaxWidth() && measureItem.get_explicitMaxWidth() < itemWidth) {
+							itemWidth = measureItem.get_explicitMaxWidth();
 						}
+						item.set_width(itemWidth);
+					} else if(hasPercentWidth) {
+						if(percentWidth < 0) {
+							percentWidth = 0;
+						} else if(percentWidth > 100) {
+							percentWidth = 100;
+						}
+						itemWidth = percentWidth * 0.01 * containerWidth;
+						if(measureItem.get_explicitMaxWidth() == measureItem.get_explicitMaxWidth() && measureItem.get_explicitMaxWidth() < itemWidth) {
+							itemWidth = measureItem.get_explicitMaxWidth();
+						}
+						item.set_width(itemWidth);
 					}
 					var horizontalCenter = layoutData.get_horizontalCenter();
 					var hasHorizontalCenterPosition = horizontalCenter == horizontalCenter;
@@ -10462,6 +10420,7 @@ var feathers_controls_Scroller = function() {
 	this._maxVerticalScrollPosition = 0;
 	this._minVerticalScrollPosition = 0;
 	this._verticalScrollPosition = 0;
+	this._targetVerticalScrollPosition = 0;
 	this._verticalMouseWheelScrollStep = NaN;
 	this.explicitVerticalScrollStep = NaN;
 	this.actualVerticalScrollStep = 1;
@@ -10472,6 +10431,7 @@ var feathers_controls_Scroller = function() {
 	this._maxHorizontalScrollPosition = 0;
 	this._minHorizontalScrollPosition = 0;
 	this._horizontalScrollPosition = 0;
+	this._targetHorizontalScrollPosition = 0;
 	this.explicitHorizontalScrollStep = NaN;
 	this.actualHorizontalScrollStep = 1;
 	this._horizontalScrollBarPosition = "bottom";
@@ -10491,6 +10451,8 @@ var feathers_controls_Scroller = function() {
 	this._previousVelocityX = [];
 	this._velocityY = 0;
 	this._velocityX = 0;
+	this._startVerticalScrollPosition = 0;
+	this._startHorizontalScrollPosition = 0;
 	this._touchPointID = -1;
 	this._verticalScrollBarTouchPointID = -1;
 	this._horizontalScrollBarTouchPointID = -1;
@@ -10608,7 +10570,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._snapToPages;
 	}
 	,set_snapToPages: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_snapToPages))) {
+		if(this.processStyleRestriction("snapToPages")) {
 			return value;
 		}
 		if(this._snapToPages == value) {
@@ -10636,7 +10598,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._customHorizontalScrollBarStyleName;
 	}
 	,set_customHorizontalScrollBarStyleName: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_customHorizontalScrollBarStyleName))) {
+		if(this.processStyleRestriction("customHorizontalScrollBarStyleName")) {
 			return value;
 		}
 		if(this._customHorizontalScrollBarStyleName == value) {
@@ -10649,7 +10611,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	,_horizontalScrollBarProperties: null
 	,get_horizontalScrollBarProperties: function() {
 		if(this._horizontalScrollBarProperties == null) {
-			this._horizontalScrollBarProperties = new feathers_core_PropertyProxy($bind(this,this.childProperties_onChange));
+			var this1 = new feathers_core_PropertyProxyReal($bind(this,this.childProperties_onChange));
+			this._horizontalScrollBarProperties = this1;
 		}
 		return this._horizontalScrollBarProperties;
 	}
@@ -10658,19 +10621,34 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			return value;
 		}
 		if(value == null) {
-			value = new feathers_core_PropertyProxy();
+			var this1 = new feathers_core_PropertyProxyReal(null);
+			value = this1;
 		}
-		if(!((value) instanceof feathers_core_PropertyProxy)) {
-			var newValue = feathers_core_PropertyProxy.fromObject(value);
-			value = newValue;
+		if(!((value) instanceof feathers_core_PropertyProxyReal)) {
+			var fields;
+			if(js_Boot.__instanceof(value,Dynamic)) {
+				fields = Reflect.fields(value);
+			} else {
+				fields = Type.getInstanceFields(js_Boot.getClass(value));
+			}
+			var this1 = new feathers_core_PropertyProxyReal(null);
+			var newValue = this1;
+			var _g = 0;
+			while(_g < fields.length) {
+				var field = fields[_g];
+				++_g;
+				newValue.setProperty(field,Reflect.getProperty(value,field));
+			}
+			var newValue1 = newValue;
+			value = newValue1;
 		}
 		if(this._horizontalScrollBarProperties != null) {
-			this._horizontalScrollBarProperties.removeOnChangeCallback($bind(this,this.childProperties_onChange));
-			this._horizontalScrollBarProperties.dispose();
+			(this._horizontalScrollBarProperties.getProperty("removeOnChangeCallback"))($bind(this,this.childProperties_onChange));
+			(this._horizontalScrollBarProperties.getProperty("dispose"))();
 		}
 		this._horizontalScrollBarProperties = value;
 		if(this._horizontalScrollBarProperties != null) {
-			this._horizontalScrollBarProperties.addOnChangeCallback($bind(this,this.childProperties_onChange));
+			(this._horizontalScrollBarProperties.getProperty("addOnChangeCallback"))($bind(this,this.childProperties_onChange));
 		}
 		this.invalidate("styles");
 		return this._horizontalScrollBarProperties;
@@ -10680,7 +10658,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._verticalScrollBarPosition;
 	}
 	,set_verticalScrollBarPosition: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_verticalScrollBarPosition))) {
+		if(this.processStyleRestriction("verticalScrollBarPosition")) {
 			return value;
 		}
 		if(this._verticalScrollBarPosition == value) {
@@ -10695,7 +10673,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._horizontalScrollBarPosition;
 	}
 	,set_horizontalScrollBarPosition: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_horizontalScrollBarPosition))) {
+		if(this.processStyleRestriction("horizontalScrollBarPosition")) {
 			return value;
 		}
 		if(this._horizontalScrollBarPosition == value) {
@@ -10722,7 +10700,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._customVerticalScrollBarStyleName;
 	}
 	,set_customVerticalScrollBarStyleName: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_customVerticalScrollBarStyleName))) {
+		if(this.processStyleRestriction("customVerticalScrollBarStyleName")) {
 			return value;
 		}
 		if(this._customVerticalScrollBarStyleName == value) {
@@ -10735,7 +10713,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	,_verticalScrollBarProperties: null
 	,get_verticalScrollBarProperties: function() {
 		if(this._verticalScrollBarProperties == null) {
-			this._verticalScrollBarProperties = new feathers_core_PropertyProxy($bind(this,this.childProperties_onChange));
+			var this1 = new feathers_core_PropertyProxyReal($bind(this,this.childProperties_onChange));
+			this._verticalScrollBarProperties = this1;
 		}
 		return this._verticalScrollBarProperties;
 	}
@@ -10744,19 +10723,34 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			return value;
 		}
 		if(value == null) {
-			value = new feathers_core_PropertyProxy();
+			var this1 = new feathers_core_PropertyProxyReal(null);
+			value = this1;
 		}
-		if(!((value) instanceof feathers_core_PropertyProxy)) {
-			var newValue = feathers_core_PropertyProxy.fromObject(value);
-			value = newValue;
+		if(!((value) instanceof feathers_core_PropertyProxyReal)) {
+			var fields;
+			if(js_Boot.__instanceof(value,Dynamic)) {
+				fields = Reflect.fields(value);
+			} else {
+				fields = Type.getInstanceFields(js_Boot.getClass(value));
+			}
+			var this1 = new feathers_core_PropertyProxyReal(null);
+			var newValue = this1;
+			var _g = 0;
+			while(_g < fields.length) {
+				var field = fields[_g];
+				++_g;
+				newValue.setProperty(field,Reflect.getProperty(value,field));
+			}
+			var newValue1 = newValue;
+			value = newValue1;
 		}
 		if(this._verticalScrollBarProperties != null) {
-			this._verticalScrollBarProperties.removeOnChangeCallback($bind(this,this.childProperties_onChange));
-			this._verticalScrollBarProperties.dispose();
+			(this._verticalScrollBarProperties.getProperty("removeOnChangeCallback"))($bind(this,this.childProperties_onChange));
+			(this._verticalScrollBarProperties.getProperty("dispose"))();
 		}
 		this._verticalScrollBarProperties = value;
 		if(this._verticalScrollBarProperties != null) {
-			this._verticalScrollBarProperties.addOnChangeCallback($bind(this,this.childProperties_onChange));
+			(this._verticalScrollBarProperties.getProperty("addOnChangeCallback"))($bind(this,this.childProperties_onChange));
 		}
 		this.invalidate("styles");
 		return this._verticalScrollBarProperties;
@@ -10968,14 +10962,14 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._clipContent;
 	}
 	,set_clipContent: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_clipContent))) {
+		if(this.processStyleRestriction("clipContent")) {
 			return value;
 		}
 		if(this._clipContent == value) {
 			return value;
 		}
 		this._clipContent = value;
-		if(value == null && this._viewPort != null) {
+		if(!value && this._viewPort != null) {
 			this._viewPort.set_mask(null);
 		}
 		this.invalidate("clipping");
@@ -11028,7 +11022,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._hasElasticEdges;
 	}
 	,set_hasElasticEdges: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_hasElasticEdges))) {
+		if(this.processStyleRestriction("hasElasticEdges")) {
 			return value;
 		}
 		return this._hasElasticEdges = value;
@@ -11038,7 +11032,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._elasticity;
 	}
 	,set_elasticity: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_elasticity))) {
+		if(this.processStyleRestriction("elasticity")) {
 			return value;
 		}
 		return this._elasticity = value;
@@ -11048,7 +11042,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._throwElasticity;
 	}
 	,set_throwElasticity: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_throwElasticity))) {
+		if(this.processStyleRestriction("throwElasticity")) {
 			return value;
 		}
 		return this._throwElasticity = value;
@@ -11058,7 +11052,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._scrollBarDisplayMode;
 	}
 	,set_scrollBarDisplayMode: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_scrollBarDisplayMode))) {
+		if(this.processStyleRestriction("scrollBarDisplayMode")) {
 			return value;
 		}
 		if(this._scrollBarDisplayMode == value) {
@@ -11074,7 +11068,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._interactionMode;
 	}
 	,set_interactionMode: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_interactionMode))) {
+		if(this.processStyleRestriction("interactionMode")) {
 			return value;
 		}
 		if(this._interactionMode == value) {
@@ -11096,7 +11090,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._backgroundSkin;
 	}
 	,set_backgroundSkin: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_backgroundSkin))) {
+		if(this.processStyleRestriction("backgroundSkin")) {
 			if(value != null) {
 				value.dispose();
 			}
@@ -11118,7 +11112,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._backgroundDisabledSkin;
 	}
 	,set_backgroundDisabledSkin: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_backgroundDisabledSkin))) {
+		if(this.processStyleRestriction("backgroundDisabledSkin")) {
 			if(value != null) {
 				value.dispose();
 			}
@@ -11140,7 +11134,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._autoHideBackground;
 	}
 	,set_autoHideBackground: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_autoHideBackground))) {
+		if(this.processStyleRestriction("autoHideBackground")) {
 			return value;
 		}
 		if(this._autoHideBackground == value) {
@@ -11178,7 +11172,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._paddingTop;
 	}
 	,set_paddingTop: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingTop))) {
+		if(this.processStyleRestriction("paddingTop")) {
 			return value;
 		}
 		if(this._paddingTop == value) {
@@ -11193,7 +11187,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._paddingRight;
 	}
 	,set_paddingRight: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingRight))) {
+		if(this.processStyleRestriction("paddingRight")) {
 			return value;
 		}
 		if(this._paddingRight == value) {
@@ -11208,7 +11202,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._paddingBottom;
 	}
 	,set_paddingBottom: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingBottom))) {
+		if(this.processStyleRestriction("paddingBottom")) {
 			return value;
 		}
 		if(this._paddingBottom == value) {
@@ -11223,7 +11217,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._paddingLeft;
 	}
 	,set_paddingLeft: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingLeft))) {
+		if(this.processStyleRestriction("paddingLeft")) {
 			return value;
 		}
 		if(this._paddingLeft == value) {
@@ -11240,7 +11234,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._hideScrollBarAnimationDuration;
 	}
 	,set_hideScrollBarAnimationDuration: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_hideScrollBarAnimationDuration))) {
+		if(this.processStyleRestriction("hideScrollBarAnimationDuration")) {
 			return value;
 		}
 		return this._hideScrollBarAnimationDuration = value;
@@ -11250,7 +11244,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._hideScrollBarAnimationEase;
 	}
 	,set_hideScrollBarAnimationEase: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_hideScrollBarAnimationEase))) {
+		if(this.processStyleRestriction("hideScrollBarAnimationEase")) {
 			return value;
 		}
 		return this._hideScrollBarAnimationEase = value;
@@ -11260,7 +11254,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._elasticSnapDuration;
 	}
 	,set_elasticSnapDuration: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_elasticSnapDuration))) {
+		if(this.processStyleRestriction("elasticSnapDuration")) {
 			return value;
 		}
 		return this._elasticSnapDuration = value;
@@ -11271,7 +11265,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._decelerationRate;
 	}
 	,set_decelerationRate: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_decelerationRate))) {
+		if(this.processStyleRestriction("decelerationRate")) {
 			return value;
 		}
 		if(this._decelerationRate == value) {
@@ -11288,7 +11282,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._useFixedThrowDuration;
 	}
 	,set_useFixedThrowDuration: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_useFixedThrowDuration))) {
+		if(this.processStyleRestriction("useFixedThrowDuration")) {
 			return value;
 		}
 		return this._useFixedThrowDuration = value;
@@ -11298,7 +11292,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._pageThrowDuration;
 	}
 	,set_pageThrowDuration: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_pageThrowDuration))) {
+		if(this.processStyleRestriction("pageThrowDuration")) {
 			return value;
 		}
 		return this._pageThrowDuration = value;
@@ -11308,7 +11302,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._mouseWheelScrollDuration;
 	}
 	,set_mouseWheelScrollDuration: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_mouseWheelScrollDuration))) {
+		if(this.processStyleRestriction("mouseWheelScrollDuration")) {
 			return value;
 		}
 		return this._mouseWheelScrollDuration = value;
@@ -11325,7 +11319,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._throwEase;
 	}
 	,set_throwEase: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_throwEase))) {
+		if(this.processStyleRestriction("throwEase")) {
 			return value;
 		}
 		if(value == null) {
@@ -11338,7 +11332,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._snapScrollPositionsToPixels;
 	}
 	,set_snapScrollPositionsToPixels: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_snapScrollPositionsToPixels))) {
+		if(this.processStyleRestriction("snapScrollPositionsToPixels")) {
 			return value;
 		}
 		if(this._snapScrollPositionsToPixels == value) {
@@ -11368,7 +11362,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		return this._revealScrollBarsDuration;
 	}
 	,set_revealScrollBarsDuration: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_revealScrollBarsDuration))) {
+		if(this.processStyleRestriction("revealScrollBarsDuration")) {
 			return value;
 		}
 		return this._revealScrollBarsDuration = value;
@@ -11483,7 +11477,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	}
 	,set_rightPullViewDisplayMode: function(value) {
 		if(this._rightPullViewDisplayMode == value) {
-			return this._rightPullViewDisplayMode;
+			return value;
 		}
 		this._rightPullViewDisplayMode = value;
 		this.invalidate("styles");
@@ -11649,26 +11643,26 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	}
 	,stopScrolling: function() {
 		if(this._horizontalAutoScrollTween != null) {
-			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._horizontalAutoScrollTween);
 			this._horizontalAutoScrollTween = null;
 		}
 		if(this._verticalAutoScrollTween != null) {
-			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._verticalAutoScrollTween);
 			this._verticalAutoScrollTween = null;
 		}
 		this._isScrollingStopped = true;
 		this._velocityX = 0;
 		this._velocityY = 0;
-		this._previousVelocityX.splice(0,this._previousVelocityX.length);
-		this._previousVelocityY.splice(0,this._previousVelocityY.length);
+		this._previousVelocityX.length = 0;
+		this._previousVelocityY.length = 0;
 		this.hideHorizontalScrollBar();
 		this.hideVerticalScrollBar();
 	}
 	,scrollToPosition: function(horizontalScrollPosition,verticalScrollPosition,animationDuration) {
-		if(animationDuration == null) {
+		if(animationDuration != null) {
 			animationDuration = NaN;
 		}
-		if(isNaN(animationDuration)) {
+		if(animationDuration != animationDuration) {
 			if(this._useFixedThrowDuration) {
 				animationDuration = this._fixedThrowDuration;
 			} else {
@@ -11688,6 +11682,9 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		this.invalidate("pendingScroll");
 	}
 	,scrollToPageIndex: function(horizontalPageIndex,verticalPageIndex,animationDuration) {
+		if(animationDuration == null) {
+			animationDuration = NaN;
+		}
 		if(animationDuration != animationDuration) {
 			animationDuration = this._pageThrowDuration;
 		}
@@ -12001,27 +11998,31 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	,refreshScrollBarStyles: function() {
 		var propertyValue;
 		if(this.horizontalScrollBar != null) {
-			var _g = this._horizontalScrollBarProperties.iterator();
-			while(_g.current < _g.array.length) {
-				var propertyName = _g.array[_g.current++];
-				propertyValue = this._horizontalScrollBarProperties.getProperty(propertyName);
-				Reflect.setProperty(this.horizontalScrollBar,propertyName,propertyValue);
+			if(this._horizontalScrollBarProperties != null) {
+				var _g = this._horizontalScrollBarProperties.iterator();
+				while(_g.current < _g.array.length) {
+					var propertyName = _g.array[_g.current++];
+					propertyValue = this._horizontalScrollBarProperties.getProperty(propertyName);
+					Reflect.setProperty(this.horizontalScrollBar,propertyName,propertyValue);
+				}
 			}
 			if(this._horizontalScrollBarHideTween != null) {
-				starling_core_Starling.get_current().get_juggler().remove(this._horizontalScrollBarHideTween);
+				starling_core_Starling.get_currentJuggler().remove(this._horizontalScrollBarHideTween);
 				this._horizontalScrollBarHideTween = null;
 			}
 			this.horizontalScrollBar.set_alpha(this._scrollBarDisplayMode == "float" ? 0 : 1);
 		}
 		if(this.verticalScrollBar != null) {
-			var _g = this._verticalScrollBarProperties.iterator();
-			while(_g.current < _g.array.length) {
-				var propertyName = _g.array[_g.current++];
-				propertyValue = this._verticalScrollBarProperties.getProperty(propertyName);
-				Reflect.setProperty(this.verticalScrollBar,propertyName,propertyValue);
+			if(this._verticalScrollBarProperties != null) {
+				var _g = this._verticalScrollBarProperties.iterator();
+				while(_g.current < _g.array.length) {
+					var propertyName = _g.array[_g.current++];
+					propertyValue = this._verticalScrollBarProperties.getProperty(propertyName);
+					Reflect.setProperty(this.verticalScrollBar,propertyName,propertyValue);
+				}
 			}
 			if(this._verticalScrollBarHideTween != null) {
-				starling_core_Starling.get_current().get_juggler().remove(this._verticalScrollBarHideTween);
+				starling_core_Starling.get_currentJuggler().remove(this._verticalScrollBarHideTween);
 				this._verticalScrollBarHideTween = null;
 			}
 			this.verticalScrollBar.set_alpha(this._scrollBarDisplayMode == "float" ? 0 : 1);
@@ -12156,18 +12157,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 				if(nearest == 0) {
 					tmp = number;
 				} else {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					tmp = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+					var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
+					tmp = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 				}
 				this._horizontalScrollPosition = tmp;
 			}
@@ -12190,18 +12181,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 				if(nearest == 0) {
 					tmp = number;
 				} else {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					tmp = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+					var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
+					tmp = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 				}
 				this._verticalScrollPosition = tmp;
 			}
@@ -12270,9 +12251,9 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		}
 	}
 	,refreshPageCount: function() {
-		var unroundedPageIndex;
-		var nearestPageIndex;
 		if(this._snapToPages) {
+			var unroundedPageIndex;
+			var nearestPageIndex;
 			var horizontalScrollRange = this._maxHorizontalScrollPosition - this._minHorizontalScrollPosition;
 			if(horizontalScrollRange == Infinity) {
 				if(this._minHorizontalScrollPosition == -Infinity) {
@@ -12590,8 +12571,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	}
 	,layoutPullViews: function() {
 		var viewPortIndex = this.getRawChildIndexInternal(this._viewPort);
-		var pullViewIndex;
 		var pullViewSize;
+		var pullViewIndex;
 		var finalRatio;
 		var scrollRatio;
 		if(this._topPullView != null) {
@@ -13025,29 +13006,19 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			targetVerticalScrollPosition = NaN;
 		}
 		var changedPosition = false;
-		if(!isNaN(targetHorizontalScrollPosition)) {
+		if(targetHorizontalScrollPosition == targetHorizontalScrollPosition) {
 			if(this._snapToPages && targetHorizontalScrollPosition > this._minHorizontalScrollPosition && targetHorizontalScrollPosition < this._maxHorizontalScrollPosition) {
 				var nearest = this.actualPageWidth;
 				if(nearest == null) {
 					nearest = 1;
 				}
 				if(nearest != 0) {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					var roundedNumber = Math.round(Math.round(decimalPlaces * (targetHorizontalScrollPosition / nearest)) / decimalPlaces) * nearest;
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					targetHorizontalScrollPosition = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+					var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(targetHorizontalScrollPosition / nearest,10)) * nearest;
+					targetHorizontalScrollPosition = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 				}
 			}
 			if(this._horizontalAutoScrollTween != null) {
-				starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+				starling_core_Starling.get_currentJuggler().remove(this._horizontalAutoScrollTween);
 				this._horizontalAutoScrollTween = null;
 			}
 			if(this._horizontalScrollPosition != targetHorizontalScrollPosition) {
@@ -13065,7 +13036,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						this._horizontalAutoScrollTween.set_onUpdate($bind(this,this.horizontalAutoScrollTween_onUpdate));
 					}
 					this._horizontalAutoScrollTween.set_onComplete($bind(this,this.horizontalAutoScrollTween_onComplete));
-					starling_core_Starling.get_current().get_juggler().add(this._horizontalAutoScrollTween);
+					starling_core_Starling.get_currentJuggler().add(this._horizontalAutoScrollTween);
 					this.refreshHorizontalAutoScrollTweenEndRatio();
 				}
 			} else {
@@ -13079,22 +13050,12 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					nearest = 1;
 				}
 				if(nearest != 0) {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					var roundedNumber = Math.round(Math.round(decimalPlaces * (targetVerticalScrollPosition / nearest)) / decimalPlaces) * nearest;
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					targetVerticalScrollPosition = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+					var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(targetVerticalScrollPosition / nearest,10)) * nearest;
+					targetVerticalScrollPosition = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 				}
 			}
 			if(this._verticalAutoScrollTween != null) {
-				starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+				starling_core_Starling.get_currentJuggler().remove(this._verticalAutoScrollTween);
 				this._verticalAutoScrollTween = null;
 			}
 			if(this._verticalScrollPosition != targetVerticalScrollPosition) {
@@ -13112,7 +13073,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						this._verticalAutoScrollTween.set_onUpdate($bind(this,this.verticalAutoScrollTween_onUpdate));
 					}
 					this._verticalAutoScrollTween.set_onComplete($bind(this,this.verticalAutoScrollTween_onComplete));
-					starling_core_Starling.get_current().get_juggler().add(this._verticalAutoScrollTween);
+					starling_core_Starling.get_currentJuggler().add(this._verticalAutoScrollTween);
 					this.refreshVerticalAutoScrollTweenEndRatio();
 				}
 			} else {
@@ -13230,7 +13191,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					this._topPullTween.animate("y",yPosition);
 					this._topPullTween.set_onUpdate($bind(this,this.refreshTopPullViewMask));
 					this._topPullTween.set_onComplete($bind(this,this.topPullTween_onComplete));
-					starling_core_Starling.get_current().get_juggler().add(this._topPullTween);
+					starling_core_Starling.get_currentJuggler().add(this._topPullTween);
 				}
 			} else {
 				this.topPullTween_onComplete();
@@ -13251,7 +13212,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					this._bottomPullTween.animate("y",yPosition);
 					this._bottomPullTween.set_onUpdate($bind(this,this.refreshBottomPullViewMask));
 					this._bottomPullTween.set_onComplete($bind(this,this.bottomPullTween_onComplete));
-					starling_core_Starling.get_current().get_juggler().add(this._bottomPullTween);
+					starling_core_Starling.get_currentJuggler().add(this._bottomPullTween);
 				}
 			} else {
 				this.bottomPullTween_onComplete();
@@ -13275,7 +13236,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					this._leftPullTween.animate("x",xPosition);
 					this._leftPullTween.set_onUpdate($bind(this,this.refreshLeftPullViewMask));
 					this._leftPullTween.set_onComplete($bind(this,this.leftPullTween_onComplete));
-					starling_core_Starling.get_current().get_juggler().add(this._leftPullTween);
+					starling_core_Starling.get_currentJuggler().add(this._leftPullTween);
 				}
 			} else {
 				this.leftPullTween_onComplete();
@@ -13296,7 +13257,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					this._rightPullTween.animate("x",xPosition);
 					this._rightPullTween.set_onUpdate($bind(this,this.refreshRightPullViewMask));
 					this._rightPullTween.set_onComplete($bind(this,this.rightPullTween_onComplete));
-					starling_core_Starling.get_current().get_juggler().add(this._rightPullTween);
+					starling_core_Starling.get_currentJuggler().add(this._rightPullTween);
 				}
 			} else {
 				this.rightPullTween_onComplete();
@@ -13305,41 +13266,19 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	}
 	,throwHorizontally: function(pixelsPerMS) {
 		if(this._snapToPages && !this._snapOnComplete) {
-			var snappedPageHorizontalScrollPosition;
 			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
 			var inchesPerSecond = 1000 * pixelsPerMS / (feathers_system_DeviceCapabilities.dpi / starling.get_contentScaleFactor());
+			var snappedPageHorizontalScrollPosition;
+			var targetHorizontalPageIndex;
 			if(inchesPerSecond > this._minimumPageThrowVelocity) {
 				var number = this._horizontalScrollPosition;
 				var nearest = this.actualPageWidth;
 				if(nearest == null) {
 					nearest = 1;
 				}
-				if(nearest == 0) {
-					snappedPageHorizontalScrollPosition = number;
-				} else {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					snappedPageHorizontalScrollPosition = Math.floor(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-				}
+				snappedPageHorizontalScrollPosition = nearest == 0 ? number : Math.floor(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
 			} else if(inchesPerSecond < -this._minimumPageThrowVelocity) {
-				var number = this._horizontalScrollPosition;
-				var nearest = this.actualPageWidth;
-				if(nearest == null) {
-					nearest = 1;
-				}
-				if(nearest == 0) {
-					snappedPageHorizontalScrollPosition = number;
-				} else {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					snappedPageHorizontalScrollPosition = Math.ceil(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-				}
+				snappedPageHorizontalScrollPosition = feathers_utils_math_MathUtils.roundUpToNearest(this._horizontalScrollPosition,this.actualPageWidth);
 			} else {
 				var lastPageWidth = this._maxHorizontalScrollPosition % this.actualPageWidth;
 				var startOfLastPage = this._maxHorizontalScrollPosition - lastPageWidth;
@@ -13350,35 +13289,9 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						if(nearest == null) {
 							nearest = 1;
 						}
-						var snappedPageHorizontalScrollPosition1;
-						if(nearest == 0) {
-							snappedPageHorizontalScrollPosition1 = lastPagePosition;
-						} else {
-							var precision = 10;
-							if(precision == null) {
-								precision = 0;
-							}
-							var decimalPlaces = Math.pow(10,precision);
-							snappedPageHorizontalScrollPosition1 = Math.floor(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
-						}
-						snappedPageHorizontalScrollPosition = startOfLastPage + snappedPageHorizontalScrollPosition1;
+						snappedPageHorizontalScrollPosition = startOfLastPage + (nearest == 0 ? lastPagePosition : Math.floor(feathers_utils_math_MathUtils.roundToPrecision(lastPagePosition / nearest,10)) * nearest);
 					} else if(inchesPerSecond < -this._minimumPageThrowVelocity) {
-						var nearest = lastPageWidth;
-						if(nearest == null) {
-							nearest = 1;
-						}
-						var snappedPageHorizontalScrollPosition1;
-						if(nearest == 0) {
-							snappedPageHorizontalScrollPosition1 = lastPagePosition;
-						} else {
-							var precision = 10;
-							if(precision == null) {
-								precision = 0;
-							}
-							var decimalPlaces = Math.pow(10,precision);
-							snappedPageHorizontalScrollPosition1 = Math.ceil(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
-						}
-						snappedPageHorizontalScrollPosition = startOfLastPage + snappedPageHorizontalScrollPosition1;
+						snappedPageHorizontalScrollPosition = startOfLastPage + feathers_utils_math_MathUtils.roundUpToNearest(lastPagePosition,lastPageWidth);
 					} else {
 						var nearest = lastPageWidth;
 						if(nearest == null) {
@@ -13388,18 +13301,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						if(nearest == 0) {
 							snappedPageHorizontalScrollPosition1 = lastPagePosition;
 						} else {
-							var precision = 10;
-							if(precision == null) {
-								precision = 0;
-							}
-							var decimalPlaces = Math.pow(10,precision);
-							var roundedNumber = Math.round(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
-							var precision = 10;
-							if(precision == null) {
-								precision = 0;
-							}
-							var decimalPlaces = Math.pow(10,precision);
-							snappedPageHorizontalScrollPosition1 = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+							var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(lastPagePosition / nearest,10)) * nearest;
+							snappedPageHorizontalScrollPosition1 = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 						}
 						snappedPageHorizontalScrollPosition = startOfLastPage + snappedPageHorizontalScrollPosition1;
 					}
@@ -13412,18 +13315,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					if(nearest == 0) {
 						snappedPageHorizontalScrollPosition = number;
 					} else {
-						var precision = 10;
-						if(precision == null) {
-							precision = 0;
-						}
-						var decimalPlaces = Math.pow(10,precision);
-						var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-						var precision = 10;
-						if(precision == null) {
-							precision = 0;
-						}
-						var decimalPlaces = Math.pow(10,precision);
-						snappedPageHorizontalScrollPosition = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+						var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
+						snappedPageHorizontalScrollPosition = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 					}
 				}
 			}
@@ -13432,7 +13325,6 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			} else if(snappedPageHorizontalScrollPosition > this._maxHorizontalScrollPosition) {
 				snappedPageHorizontalScrollPosition = this._maxHorizontalScrollPosition;
 			}
-			var targetHorizontalPageIndex;
 			if(snappedPageHorizontalScrollPosition == this._maxHorizontalScrollPosition) {
 				targetHorizontalPageIndex = this._maxHorizontalPageIndex;
 			} else if(this._minHorizontalScrollPosition == -Infinity) {
@@ -13465,32 +13357,9 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 				if(nearest == null) {
 					nearest = 1;
 				}
-				if(nearest == 0) {
-					snappedPageVerticalScrollPosition = number;
-				} else {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					snappedPageVerticalScrollPosition = Math.floor(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-				}
+				snappedPageVerticalScrollPosition = nearest == 0 ? number : Math.floor(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
 			} else if(inchesPerSecond < -this._minimumPageThrowVelocity) {
-				var number = this._verticalScrollPosition;
-				var nearest = this.actualPageHeight;
-				if(nearest == null) {
-					nearest = 1;
-				}
-				if(nearest == 0) {
-					snappedPageVerticalScrollPosition = number;
-				} else {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					snappedPageVerticalScrollPosition = Math.ceil(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-				}
+				snappedPageVerticalScrollPosition = feathers_utils_math_MathUtils.roundUpToNearest(this._verticalScrollPosition,this.actualPageHeight);
 			} else {
 				var lastPageHeight = this._maxVerticalScrollPosition % this.actualPageHeight;
 				var startOfLastPage = this._maxVerticalScrollPosition - lastPageHeight;
@@ -13501,35 +13370,9 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						if(nearest == null) {
 							nearest = 1;
 						}
-						var snappedPageVerticalScrollPosition1;
-						if(nearest == 0) {
-							snappedPageVerticalScrollPosition1 = lastPagePosition;
-						} else {
-							var precision = 10;
-							if(precision == null) {
-								precision = 0;
-							}
-							var decimalPlaces = Math.pow(10,precision);
-							snappedPageVerticalScrollPosition1 = Math.floor(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
-						}
-						snappedPageVerticalScrollPosition = startOfLastPage + snappedPageVerticalScrollPosition1;
+						snappedPageVerticalScrollPosition = startOfLastPage + (nearest == 0 ? lastPagePosition : Math.floor(feathers_utils_math_MathUtils.roundToPrecision(lastPagePosition / nearest,10)) * nearest);
 					} else if(inchesPerSecond < -this._minimumPageThrowVelocity) {
-						var nearest = lastPageHeight;
-						if(nearest == null) {
-							nearest = 1;
-						}
-						var snappedPageVerticalScrollPosition1;
-						if(nearest == 0) {
-							snappedPageVerticalScrollPosition1 = lastPagePosition;
-						} else {
-							var precision = 10;
-							if(precision == null) {
-								precision = 0;
-							}
-							var decimalPlaces = Math.pow(10,precision);
-							snappedPageVerticalScrollPosition1 = Math.ceil(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
-						}
-						snappedPageVerticalScrollPosition = startOfLastPage + snappedPageVerticalScrollPosition1;
+						snappedPageVerticalScrollPosition = startOfLastPage + feathers_utils_math_MathUtils.roundUpToNearest(lastPagePosition,lastPageHeight);
 					} else {
 						var nearest = lastPageHeight;
 						if(nearest == null) {
@@ -13539,18 +13382,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						if(nearest == 0) {
 							snappedPageVerticalScrollPosition1 = lastPagePosition;
 						} else {
-							var precision = 10;
-							if(precision == null) {
-								precision = 0;
-							}
-							var decimalPlaces = Math.pow(10,precision);
-							var roundedNumber = Math.round(Math.round(decimalPlaces * (lastPagePosition / nearest)) / decimalPlaces) * nearest;
-							var precision = 10;
-							if(precision == null) {
-								precision = 0;
-							}
-							var decimalPlaces = Math.pow(10,precision);
-							snappedPageVerticalScrollPosition1 = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+							var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(lastPagePosition / nearest,10)) * nearest;
+							snappedPageVerticalScrollPosition1 = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 						}
 						snappedPageVerticalScrollPosition = startOfLastPage + snappedPageVerticalScrollPosition1;
 					}
@@ -13563,18 +13396,8 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					if(nearest == 0) {
 						snappedPageVerticalScrollPosition = number;
 					} else {
-						var precision = 10;
-						if(precision == null) {
-							precision = 0;
-						}
-						var decimalPlaces = Math.pow(10,precision);
-						var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-						var precision = 10;
-						if(precision == null) {
-							precision = 0;
-						}
-						var decimalPlaces = Math.pow(10,precision);
-						snappedPageVerticalScrollPosition = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+						var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
+						snappedPageVerticalScrollPosition = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 					}
 				}
 			}
@@ -13615,7 +13438,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					this._horizontalScrollPosition = this._maxHorizontalScrollPosition;
 				}
 			}
-			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._horizontalAutoScrollTween);
 			this._horizontalAutoScrollTween = null;
 			this.finishScrollingHorizontally();
 			return;
@@ -13634,7 +13457,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 					this._verticalScrollPosition = this._maxVerticalScrollPosition;
 				}
 			}
-			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._verticalAutoScrollTween);
 			this._verticalAutoScrollTween = null;
 			this.finishScrollingVertically();
 			return;
@@ -13726,7 +13549,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			this._horizontalScrollBarHideTween.fadeTo(0);
 			this._horizontalScrollBarHideTween.set_delay(delay);
 			this._horizontalScrollBarHideTween.set_onComplete($bind(this,this.horizontalScrollBarHideTween_onComplete));
-			starling_core_Starling.get_current().get_juggler().add(this._horizontalScrollBarHideTween);
+			starling_core_Starling.get_currentJuggler().add(this._horizontalScrollBarHideTween);
 		}
 	}
 	,hideVerticalScrollBar: function(delay) {
@@ -13746,7 +13569,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			this._verticalScrollBarHideTween.fadeTo(0);
 			this._verticalScrollBarHideTween.set_delay(delay);
 			this._verticalScrollBarHideTween.set_onComplete($bind(this,this.verticalScrollBarHideTween_onComplete));
-			starling_core_Starling.get_current().get_juggler().add(this._verticalScrollBarHideTween);
+			starling_core_Starling.get_currentJuggler().add(this._verticalScrollBarHideTween);
 		}
 	}
 	,revealHorizontalScrollBar: function() {
@@ -13754,7 +13577,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			return;
 		}
 		if(this._horizontalScrollBarHideTween != null) {
-			starling_core_Starling.get_current().get_juggler().remove(this._horizontalScrollBarHideTween);
+			starling_core_Starling.get_currentJuggler().remove(this._horizontalScrollBarHideTween);
 			this._horizontalScrollBarHideTween = null;
 		}
 		this.horizontalScrollBar.set_alpha(1);
@@ -13764,7 +13587,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			return;
 		}
 		if(this._verticalScrollBarHideTween != null) {
-			starling_core_Starling.get_current().get_juggler().remove(this._verticalScrollBarHideTween);
+			starling_core_Starling.get_currentJuggler().remove(this._verticalScrollBarHideTween);
 			this._verticalScrollBarHideTween = null;
 		}
 		this.verticalScrollBar.set_alpha(1);
@@ -13817,7 +13640,6 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	}
 	,handlePendingPullView: function() {
 		var targetY;
-		var targetX;
 		if(this._isTopPullViewPending) {
 			this._isTopPullViewPending = false;
 			if(this._isTopPullViewActive) {
@@ -13838,7 +13660,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						this._topPullTween.animate("y",targetY);
 						this._topPullTween.set_onUpdate($bind(this,this.refreshTopPullViewMask));
 						this._topPullTween.set_onComplete($bind(this,this.topPullTween_onComplete));
-						starling_core_Starling.get_current().get_juggler().add(this._topPullTween);
+						starling_core_Starling.get_currentJuggler().add(this._topPullTween);
 					} else {
 						this._topPullView.set_y(targetY);
 					}
@@ -13849,6 +13671,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 				this.finishScrollingVertically();
 			}
 		}
+		var targetX;
 		if(this._isRightPullViewPending) {
 			this._isRightPullViewPending = false;
 			if(this._isRightPullViewActive) {
@@ -13869,7 +13692,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						this._rightPullTween.animate("x",targetX);
 						this._rightPullTween.set_onUpdate($bind(this,this.refreshRightPullViewMask));
 						this._rightPullTween.set_onComplete($bind(this,this.rightPullTween_onComplete));
-						starling_core_Starling.get_current().get_juggler().add(this._rightPullTween);
+						starling_core_Starling.get_currentJuggler().add(this._rightPullTween);
 					} else {
 						this._rightPullView.set_x(targetX);
 					}
@@ -13900,7 +13723,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						this._bottomPullTween.animate("y",targetY);
 						this._bottomPullTween.set_onUpdate($bind(this,this.refreshBottomPullViewMask));
 						this._bottomPullTween.set_onComplete($bind(this,this.bottomPullTween_onComplete));
-						starling_core_Starling.get_current().get_juggler().add(this._bottomPullTween);
+						starling_core_Starling.get_currentJuggler().add(this._bottomPullTween);
 					} else {
 						this._bottomPullView.set_y(targetY);
 					}
@@ -13931,7 +13754,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 						this._leftPullTween.animate("x",targetX);
 						this._leftPullTween.set_onUpdate($bind(this,this.refreshLeftPullViewMask));
 						this._leftPullTween.set_onComplete($bind(this,this.leftPullTween_onComplete));
-						starling_core_Starling.get_current().get_juggler().add(this._leftPullTween);
+						starling_core_Starling.get_currentJuggler().add(this._leftPullTween);
 					} else {
 						this._leftPullView.set_x(targetX);
 					}
@@ -14034,7 +13857,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	}
 	,horizontalScrollBar_beginInteractionHandler: function(event) {
 		if(this._horizontalAutoScrollTween != null) {
-			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._horizontalAutoScrollTween);
 			this._horizontalAutoScrollTween = null;
 		}
 		this._isDraggingHorizontally = false;
@@ -14051,7 +13874,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	}
 	,verticalScrollBar_beginInteractionHandler: function(event) {
 		if(this._verticalAutoScrollTween != null) {
-			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._verticalAutoScrollTween);
 			this._verticalAutoScrollTween = null;
 		}
 		this._isDraggingVertically = false;
@@ -14171,18 +13994,18 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 			return;
 		}
 		if(this._horizontalAutoScrollTween != null && this._horizontalScrollPolicy != "off") {
-			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._horizontalAutoScrollTween);
 			this._horizontalAutoScrollTween = null;
 		}
 		if(this._verticalAutoScrollTween != null && this._verticalScrollPolicy != "off") {
-			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._verticalAutoScrollTween);
 			this._verticalAutoScrollTween = null;
 		}
 		this._touchPointID = touch.get_id();
 		this._velocityX = 0;
 		this._velocityY = 0;
-		this._previousVelocityX.splice(0,this._previousVelocityX.length);
-		this._previousVelocityY.splice(0,this._previousVelocityY.length);
+		this._previousVelocityX.length = 0;
+		this._previousVelocityY.length = 0;
 		this._previousTouchTime = openfl_Lib.getTimer();
 		this._previousTouchX = this._startTouchX = this._currentTouchX = touchX;
 		this._previousTouchY = this._startTouchY = this._currentTouchY = touchY;
@@ -14489,18 +14312,18 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		this._isDraggingVertically = false;
 		this._velocityX = 0;
 		this._velocityY = 0;
-		this._previousVelocityX.splice(0,this._previousVelocityX.length);
-		this._previousVelocityY.splice(0,this._previousVelocityY.length);
+		this._previousVelocityX.length = 0;
+		this._previousVelocityY.length = 0;
 		this._horizontalScrollBarIsScrolling = false;
 		this._verticalScrollBarIsScrolling = false;
 		this.removeEventListener("enterFrame",$bind(this,this.scroller_enterFrameHandler));
 		this.get_stage().removeEventListener("touch",$bind(this,this.stage_touchHandler));
 		if(this._verticalAutoScrollTween != null) {
-			starling_core_Starling.get_current().get_juggler().remove(this._verticalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._verticalAutoScrollTween);
 			this._verticalAutoScrollTween = null;
 		}
 		if(this._horizontalAutoScrollTween != null) {
-			starling_core_Starling.get_current().get_juggler().remove(this._horizontalAutoScrollTween);
+			starling_core_Starling.get_currentJuggler().remove(this._horizontalAutoScrollTween);
 			this._horizontalAutoScrollTween = null;
 		}
 		if(this._topPullTween != null) {
@@ -14538,8 +14361,20 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 	}
 	,focusInHandler: function(event) {
 		feathers_core_FeathersControl.prototype.focusInHandler.call(this,event);
-		var priority = -feathers_utils_display_FeathersDisplayUtil.getDisplayObjectDepthFromStage(this);
-		this.get_stage().get_starling().get_nativeStage().addEventListener("keyDown",$bind(this,this.nativeStage_keyDownHandler),false,priority,true);
+		var target = this;
+		var priority;
+		if(target.get_stage() == null) {
+			priority = -1;
+		} else {
+			var count = 0;
+			while(target.get_parent() != null) {
+				target = target.get_parent();
+				++count;
+			}
+			priority = count;
+		}
+		var priority1 = -priority;
+		this.get_stage().get_starling().get_nativeStage().addEventListener("keyDown",$bind(this,this.nativeStage_keyDownHandler),false,priority1,true);
 	}
 	,focusOutHandler: function(event) {
 		feathers_core_FeathersControl.prototype.focusOutHandler.call(this,event);
@@ -14578,7 +14413,7 @@ feathers_controls_Scroller.prototype = $extend(feathers_core_FeathersControl.pro
 		}
 	}
 	,__class__: feathers_controls_Scroller
-	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{get_numRawChildrenInternal:"get_numRawChildrenInternal",set_leftPullViewDisplayMode:"set_leftPullViewDisplayMode",get_leftPullViewDisplayMode:"get_leftPullViewDisplayMode",set_leftPullViewRatio:"set_leftPullViewRatio",get_leftPullViewRatio:"get_leftPullViewRatio",set_leftPullView:"set_leftPullView",get_leftPullView:"get_leftPullView",set_isLeftPullViewActive:"set_isLeftPullViewActive",get_isLeftPullViewActive:"get_isLeftPullViewActive",set_bottomPullViewRatio:"set_bottomPullViewRatio",get_bottomPullViewRatio:"get_bottomPullViewRatio",set_bottomPullViewDisplayMode:"set_bottomPullViewDisplayMode",get_bottomPullViewDisplayMode:"get_bottomPullViewDisplayMode",set_bottomPullView:"set_bottomPullView",get_bottomPullView:"get_bottomPullView",set_isBottomPullViewActive:"set_isBottomPullViewActive",get_isBottomPullViewActive:"get_isBottomPullViewActive",set_rightPullViewRatio:"set_rightPullViewRatio",get_rightPullViewRatio:"get_rightPullViewRatio",set_rightPullViewDisplayMode:"set_rightPullViewDisplayMode",get_rightPullViewDisplayMode:"get_rightPullViewDisplayMode",set_rightPullView:"set_rightPullView",get_rightPullView:"get_rightPullView",set_isRightPullViewActive:"set_isRightPullViewActive",get_isRightPullViewActive:"get_isRightPullViewActive",set_topPullViewRatio:"set_topPullViewRatio",get_topPullViewRatio:"get_topPullViewRatio",set_topPullViewDisplayMode:"set_topPullViewDisplayMode",get_topPullViewDisplayMode:"get_topPullViewDisplayMode",set_topPullView:"set_topPullView",get_topPullView:"get_topPullView",set_isTopPullViewActive:"set_isTopPullViewActive",get_isTopPullViewActive:"get_isTopPullViewActive",set_revealScrollBarsDuration:"set_revealScrollBarsDuration",get_revealScrollBarsDuration:"get_revealScrollBarsDuration",get_isScrolling:"get_isScrolling",set_snapScrollPositionsToPixels:"set_snapScrollPositionsToPixels",get_snapScrollPositionsToPixels:"get_snapScrollPositionsToPixels",set_throwEase:"set_throwEase",get_throwEase:"get_throwEase",set_verticalMouseWheelScrollDirection:"set_verticalMouseWheelScrollDirection",get_verticalMouseWheelScrollDirection:"get_verticalMouseWheelScrollDirection",set_mouseWheelScrollDuration:"set_mouseWheelScrollDuration",get_mouseWheelScrollDuration:"get_mouseWheelScrollDuration",set_pageThrowDuration:"set_pageThrowDuration",get_pageThrowDuration:"get_pageThrowDuration",set_useFixedThrowDuration:"set_useFixedThrowDuration",get_useFixedThrowDuration:"get_useFixedThrowDuration",set_decelerationRate:"set_decelerationRate",get_decelerationRate:"get_decelerationRate",set_elasticSnapDuration:"set_elasticSnapDuration",get_elasticSnapDuration:"get_elasticSnapDuration",set_hideScrollBarAnimationEase:"set_hideScrollBarAnimationEase",get_hideScrollBarAnimationEase:"get_hideScrollBarAnimationEase",set_hideScrollBarAnimationDuration:"set_hideScrollBarAnimationDuration",get_hideScrollBarAnimationDuration:"get_hideScrollBarAnimationDuration",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_minimumPageThrowVelocity:"set_minimumPageThrowVelocity",get_minimumPageThrowVelocity:"get_minimumPageThrowVelocity",set_minimumDragDistance:"set_minimumDragDistance",get_minimumDragDistance:"get_minimumDragDistance",set_autoHideBackground:"set_autoHideBackground",get_autoHideBackground:"get_autoHideBackground",set_backgroundDisabledSkin:"set_backgroundDisabledSkin",get_backgroundDisabledSkin:"get_backgroundDisabledSkin",set_backgroundSkin:"set_backgroundSkin",get_backgroundSkin:"get_backgroundSkin",set_interactionMode:"set_interactionMode",get_interactionMode:"get_interactionMode",set_scrollBarDisplayMode:"set_scrollBarDisplayMode",get_scrollBarDisplayMode:"get_scrollBarDisplayMode",set_throwElasticity:"set_throwElasticity",get_throwElasticity:"get_throwElasticity",set_elasticity:"set_elasticity",get_elasticity:"get_elasticity",set_hasElasticEdges:"set_hasElasticEdges",get_hasElasticEdges:"get_hasElasticEdges",set_pageHeight:"set_pageHeight",get_pageHeight:"get_pageHeight",set_pageWidth:"set_pageWidth",get_pageWidth:"get_pageWidth",set_clipContent:"set_clipContent",get_clipContent:"get_clipContent",set_verticalScrollPolicy:"set_verticalScrollPolicy",get_verticalScrollPolicy:"get_verticalScrollPolicy",get_verticalPageCount:"get_verticalPageCount",get_maxVerticalPageIndex:"get_maxVerticalPageIndex",get_minVerticalPageIndex:"get_minVerticalPageIndex",set_verticalPageIndex:"set_verticalPageIndex",get_verticalPageIndex:"get_verticalPageIndex",get_maxVerticalScrollPosition:"get_maxVerticalScrollPosition",get_minVerticalScrollPosition:"get_minVerticalScrollPosition",set_verticalScrollPosition:"set_verticalScrollPosition",get_verticalScrollPosition:"get_verticalScrollPosition",set_verticalMouseWheelScrollStep:"set_verticalMouseWheelScrollStep",get_verticalMouseWheelScrollStep:"get_verticalMouseWheelScrollStep",set_verticalScrollStep:"set_verticalScrollStep",get_verticalScrollStep:"get_verticalScrollStep",set_horizontalScrollPolicy:"set_horizontalScrollPolicy",get_horizontalScrollPolicy:"get_horizontalScrollPolicy",get_horizontalPageCount:"get_horizontalPageCount",get_maxHorizontalPageIndex:"get_maxHorizontalPageIndex",get_minHorizontalPageIndex:"get_minHorizontalPageIndex",set_horizontalPageIndex:"set_horizontalPageIndex",get_horizontalPageIndex:"get_horizontalPageIndex",get_maxHorizontalScrollPosition:"get_maxHorizontalScrollPosition",get_minHorizontalScrollPosition:"get_minHorizontalScrollPosition",set_horizontalScrollPosition:"set_horizontalScrollPosition",get_horizontalScrollPosition:"get_horizontalScrollPosition",set_horizontalScrollStep:"set_horizontalScrollStep",get_horizontalScrollStep:"get_horizontalScrollStep",set_verticalScrollBarProperties:"set_verticalScrollBarProperties",get_verticalScrollBarProperties:"get_verticalScrollBarProperties",set_customVerticalScrollBarStyleName:"set_customVerticalScrollBarStyleName",get_customVerticalScrollBarStyleName:"get_customVerticalScrollBarStyleName",set_verticalScrollBarFactory:"set_verticalScrollBarFactory",get_verticalScrollBarFactory:"get_verticalScrollBarFactory",set_horizontalScrollBarPosition:"set_horizontalScrollBarPosition",get_horizontalScrollBarPosition:"get_horizontalScrollBarPosition",set_verticalScrollBarPosition:"set_verticalScrollBarPosition",get_verticalScrollBarPosition:"get_verticalScrollBarPosition",set_horizontalScrollBarProperties:"set_horizontalScrollBarProperties",get_horizontalScrollBarProperties:"get_horizontalScrollBarProperties",set_customHorizontalScrollBarStyleName:"set_customHorizontalScrollBarStyleName",get_customHorizontalScrollBarStyleName:"get_customHorizontalScrollBarStyleName",set_horizontalScrollBarFactory:"set_horizontalScrollBarFactory",get_horizontalScrollBarFactory:"get_horizontalScrollBarFactory",set_snapToPages:"set_snapToPages",get_snapToPages:"get_snapToPages",set_measureViewPort:"set_measureViewPort",get_measureViewPort:"get_measureViewPort",set_viewPort:"set_viewPort",get_viewPort:"get_viewPort",get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus"})
+	,__properties__: $extend(feathers_core_FeathersControl.prototype.__properties__,{get_numRawChildrenInternal:"get_numRawChildrenInternal",set_leftPullViewDisplayMode:"set_leftPullViewDisplayMode",get_leftPullViewDisplayMode:"get_leftPullViewDisplayMode",set_leftPullViewRatio:"set_leftPullViewRatio",get_leftPullViewRatio:"get_leftPullViewRatio",set_leftPullView:"set_leftPullView",get_leftPullView:"get_leftPullView",set_isLeftPullViewActive:"set_isLeftPullViewActive",get_isLeftPullViewActive:"get_isLeftPullViewActive",set_bottomPullViewRatio:"set_bottomPullViewRatio",get_bottomPullViewRatio:"get_bottomPullViewRatio",set_bottomPullViewDisplayMode:"set_bottomPullViewDisplayMode",get_bottomPullViewDisplayMode:"get_bottomPullViewDisplayMode",set_bottomPullView:"set_bottomPullView",get_bottomPullView:"get_bottomPullView",set_isBottomPullViewActive:"set_isBottomPullViewActive",get_isBottomPullViewActive:"get_isBottomPullViewActive",set_rightPullViewRatio:"set_rightPullViewRatio",get_rightPullViewRatio:"get_rightPullViewRatio",set_rightPullViewDisplayMode:"set_rightPullViewDisplayMode",get_rightPullViewDisplayMode:"get_rightPullViewDisplayMode",set_rightPullView:"set_rightPullView",get_rightPullView:"get_rightPullView",set_isRightPullViewActive:"set_isRightPullViewActive",get_isRightPullViewActive:"get_isRightPullViewActive",set_topPullViewRatio:"set_topPullViewRatio",get_topPullViewRatio:"get_topPullViewRatio",set_topPullViewDisplayMode:"set_topPullViewDisplayMode",get_topPullViewDisplayMode:"get_topPullViewDisplayMode",set_topPullView:"set_topPullView",get_topPullView:"get_topPullView",set_isTopPullViewActive:"set_isTopPullViewActive",get_isTopPullViewActive:"get_isTopPullViewActive",set_revealScrollBarsDuration:"set_revealScrollBarsDuration",get_revealScrollBarsDuration:"get_revealScrollBarsDuration",get_isScrolling:"get_isScrolling",set_snapScrollPositionsToPixels:"set_snapScrollPositionsToPixels",get_snapScrollPositionsToPixels:"get_snapScrollPositionsToPixels",set_throwEase:"set_throwEase",get_throwEase:"get_throwEase",set_verticalMouseWheelScrollDirection:"set_verticalMouseWheelScrollDirection",get_verticalMouseWheelScrollDirection:"get_verticalMouseWheelScrollDirection",set_mouseWheelScrollDuration:"set_mouseWheelScrollDuration",get_mouseWheelScrollDuration:"get_mouseWheelScrollDuration",set_pageThrowDuration:"set_pageThrowDuration",get_pageThrowDuration:"get_pageThrowDuration",set_useFixedThrowDuration:"set_useFixedThrowDuration",get_useFixedThrowDuration:"get_useFixedThrowDuration",set_decelerationRate:"set_decelerationRate",get_decelerationRate:"get_decelerationRate",set_elasticSnapDuration:"set_elasticSnapDuration",get_elasticSnapDuration:"get_elasticSnapDuration",set_hideScrollBarAnimationEase:"set_hideScrollBarAnimationEase",get_hideScrollBarAnimationEase:"get_hideScrollBarAnimationEase",set_hideScrollBarAnimationDuration:"set_hideScrollBarAnimationDuration",get_hideScrollBarAnimationDuration:"get_hideScrollBarAnimationDuration",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_minimumPageThrowVelocity:"set_minimumPageThrowVelocity",get_minimumPageThrowVelocity:"get_minimumPageThrowVelocity",set_minimumDragDistance:"set_minimumDragDistance",get_minimumDragDistance:"get_minimumDragDistance",set_autoHideBackground:"set_autoHideBackground",get_autoHideBackground:"get_autoHideBackground",set_backgroundDisabledSkin:"set_backgroundDisabledSkin",get_backgroundDisabledSkin:"get_backgroundDisabledSkin",set_backgroundSkin:"set_backgroundSkin",get_backgroundSkin:"get_backgroundSkin",set_interactionMode:"set_interactionMode",get_interactionMode:"get_interactionMode",set_scrollBarDisplayMode:"set_scrollBarDisplayMode",get_scrollBarDisplayMode:"get_scrollBarDisplayMode",set_throwElasticity:"set_throwElasticity",get_throwElasticity:"get_throwElasticity",set_elasticity:"set_elasticity",get_elasticity:"get_elasticity",set_hasElasticEdges:"set_hasElasticEdges",get_hasElasticEdges:"get_hasElasticEdges",set_pageHeight:"set_pageHeight",get_pageHeight:"get_pageHeight",set_pageWidth:"set_pageWidth",get_pageWidth:"get_pageWidth",set_clipContent:"set_clipContent",get_clipContent:"get_clipContent",set_verticalScrollPolicy:"set_verticalScrollPolicy",get_verticalScrollPolicy:"get_verticalScrollPolicy",get_verticalPageCount:"get_verticalPageCount",get_maxVerticalPageIndex:"get_maxVerticalPageIndex",get_minVerticalPageIndex:"get_minVerticalPageIndex",set_verticalPageIndex:"set_verticalPageIndex",get_verticalPageIndex:"get_verticalPageIndex",get_maxVerticalScrollPosition:"get_maxVerticalScrollPosition",get_minVerticalScrollPosition:"get_minVerticalScrollPosition",set_verticalScrollPosition:"set_verticalScrollPosition",get_verticalScrollPosition:"get_verticalScrollPosition",set_verticalMouseWheelScrollStep:"set_verticalMouseWheelScrollStep",get_verticalMouseWheelScrollStep:"get_verticalMouseWheelScrollStep",set_verticalScrollStep:"set_verticalScrollStep",get_verticalScrollStep:"get_verticalScrollStep",set_horizontalScrollPolicy:"set_horizontalScrollPolicy",get_horizontalScrollPolicy:"get_horizontalScrollPolicy",get_horizontalPageCount:"get_horizontalPageCount",get_maxHorizontalPageIndex:"get_maxHorizontalPageIndex",get_minHorizontalPageIndex:"get_minHorizontalPageIndex",set_horizontalPageIndex:"set_horizontalPageIndex",get_horizontalPageIndex:"get_horizontalPageIndex",get_maxHorizontalScrollPosition:"get_maxHorizontalScrollPosition",get_minHorizontalScrollPosition:"get_minHorizontalScrollPosition",set_horizontalScrollPosition:"set_horizontalScrollPosition",get_horizontalScrollPosition:"get_horizontalScrollPosition",set_horizontalScrollStep:"set_horizontalScrollStep",get_horizontalScrollStep:"get_horizontalScrollStep",set_verticalScrollBarProperties:"set_verticalScrollBarProperties",get_verticalScrollBarProperties:"get_verticalScrollBarProperties",set_customVerticalScrollBarStyleName:"set_customVerticalScrollBarStyleName",get_customVerticalScrollBarStyleName:"get_customVerticalScrollBarStyleName",set_verticalScrollBarFactory:"set_verticalScrollBarFactory",get_verticalScrollBarFactory:"get_verticalScrollBarFactory",set_horizontalScrollBarPosition:"set_horizontalScrollBarPosition",get_horizontalScrollBarPosition:"get_horizontalScrollBarPosition",set_verticalScrollBarPosition:"set_verticalScrollBarPosition",get_verticalScrollBarPosition:"get_verticalScrollBarPosition",set_horizontalScrollBarProperties:"set_horizontalScrollBarProperties",get_horizontalScrollBarProperties:"get_horizontalScrollBarProperties",set_customHorizontalScrollBarStyleName:"set_customHorizontalScrollBarStyleName",get_customHorizontalScrollBarStyleName:"get_customHorizontalScrollBarStyleName",set_horizontalScrollBarFactory:"set_horizontalScrollBarFactory",get_horizontalScrollBarFactory:"get_horizontalScrollBarFactory",set_snapToPages:"set_snapToPages",get_snapToPages:"get_snapToPages",set_measureViewPort:"set_measureViewPort",get_measureViewPort:"get_measureViewPort",set_viewPort:"set_viewPort",get_viewPort:"get_viewPort"})
 });
 var feathers_core_IFocusContainer = function() { };
 $hxClasses["feathers.core.IFocusContainer"] = feathers_core_IFocusContainer;
@@ -14595,7 +14430,6 @@ var feathers_controls_IScrollContainer = function() { };
 $hxClasses["feathers.controls.IScrollContainer"] = feathers_controls_IScrollContainer;
 feathers_controls_IScrollContainer.__name__ = "feathers.controls.IScrollContainer";
 feathers_controls_IScrollContainer.__isInterface__ = true;
-feathers_controls_IScrollContainer.__interfaces__ = [feathers_core_IFeathersControl];
 feathers_controls_IScrollContainer.prototype = {
 	get_numRawChildren: null
 	,getRawChildByName: null
@@ -14651,7 +14485,7 @@ feathers_controls_ScrollContainer.prototype = $extend(feathers_controls_Scroller
 		return this._layout;
 	}
 	,set_layout: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_layout))) {
+		if(this.processStyleRestriction("layout")) {
 			return value;
 		}
 		if(this._layout == value) {
@@ -14993,7 +14827,7 @@ feathers_layout_BaseVariableVirtualLayout.prototype = $extend(starling_events_Ev
 		return this._useVirtualLayout;
 	}
 	,resetVariableVirtualCache: function() {
-		this._virtualCache.splice(0,this._virtualCache.length);
+		this._virtualCache.length = 0;
 	}
 	,resetVariableVirtualCacheAtIndex: function(index,item) {
 		this._virtualCache.splice(index,1);
@@ -15146,7 +14980,7 @@ feathers_layout_BaseLinearLayout.prototype = $extend(feathers_layout_BaseVariabl
 	}
 	,set_horizontalAlign: function(value) {
 		if(this._horizontalAlign == value) {
-			return this._horizontalAlign;
+			return value;
 		}
 		this._horizontalAlign = value;
 		this.dispatchEventWith("change");
@@ -15219,7 +15053,6 @@ var feathers_layout_IDragDropLayout = function() { };
 $hxClasses["feathers.layout.IDragDropLayout"] = feathers_layout_IDragDropLayout;
 feathers_layout_IDragDropLayout.__name__ = "feathers.layout.IDragDropLayout";
 feathers_layout_IDragDropLayout.__isInterface__ = true;
-feathers_layout_IDragDropLayout.__interfaces__ = [feathers_layout_ILayout];
 feathers_layout_IDragDropLayout.prototype = {
 	getDropIndex: null
 	,positionDropIndicator: null
@@ -15307,7 +15140,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 			throw new openfl_errors_RangeError("requestedColumnCount requires a value >= 0");
 		}
 		if(this._requestedColumnCount == value) {
-			return this._requestedColumnCount;
+			return value;
 		}
 		this._requestedColumnCount = value;
 		this.dispatchEventWith("change");
@@ -15346,8 +15179,8 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		var maxHeight = viewPortBounds != null ? viewPortBounds.maxHeight : Infinity;
 		var explicitWidth = viewPortBounds != null ? viewPortBounds.explicitWidth : NaN;
 		var explicitHeight = viewPortBounds != null ? viewPortBounds.explicitHeight : NaN;
-		var calculatedTypicalItemWidth = NaN;
-		var calculatedTypicalItemHeight = NaN;
+		var calculatedTypicalItemWidth = 0;
+		var calculatedTypicalItemHeight = 0;
 		if(this._useVirtualLayout) {
 			this.prepareTypicalItem(explicitHeight - this._paddingTop - this._paddingBottom);
 			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
@@ -15388,13 +15221,16 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 			}
 		}
 		var secondToLastIndex = totalItemCount - 2;
-		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		this._discoveredItemsCache.length = 0;
 		var discoveredItemsCacheLastIndex = 0;
 		var gap = 0;
+		var cachedWidth = NaN;
 		var item;
+		var iNormalized;
+		var layoutItem = null;
+		var pivotX;
 		var itemWidth;
 		var itemHeight;
-		var layoutItem;
 		var _g = 0;
 		var _g1 = itemCount;
 		while(_g < _g1) {
@@ -15408,14 +15244,13 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 				}
 			}
 			item = items[i];
-			var iNormalized = i + this._beforeVirtualizedItemCount;
+			iNormalized = i + this._beforeVirtualizedItemCount;
 			gap = this._gap;
 			if(hasFirstGap && iNormalized == 0) {
 				gap = this._firstGap;
 			} else if(hasLastGap && iNormalized > 0 && iNormalized == secondToLastIndex) {
 				gap = this._lastGap;
 			}
-			var cachedWidth = NaN;
 			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
 				cachedWidth = this._virtualCache[iNormalized];
 			}
@@ -15426,11 +15261,11 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 					positionX += cachedWidth + gap;
 				}
 			} else {
-				layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
-				if(layoutItem != null && !layoutItem.get_includeInLayout()) {
+				if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+					layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
 					continue;
 				}
-				var pivotX = item.get_pivotX();
+				pivotX = item.get_pivotX();
 				if(pivotX != 0) {
 					pivotX *= item.get_scaleX();
 				}
@@ -15542,11 +15377,11 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		var availableHeightMinusPadding = availableHeight - this._paddingTop - this._paddingBottom;
 		var _g = 0;
 		var _g1 = discoveredItemCount;
-		_hx_loop3: while(_g < _g1) {
+		while(_g < _g1) {
 			var i = _g++;
 			item = discoveredItems[i];
-			layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
-			if(layoutItem != null && !layoutItem.get_includeInLayout()) {
+			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
+				layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
 				continue;
 			}
 			var pivotY = item.get_pivotY();
@@ -15558,7 +15393,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 				item.set_height(availableHeightMinusPadding);
 			} else {
 				if(layoutItem != null) {
-					var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_HorizontalLayoutData);
+					var layoutData = layoutItem.get_layoutData();
 					if(layoutData != null) {
 						var percentHeight = layoutData.get_percentHeight();
 						if(percentHeight == percentHeight) {
@@ -15595,16 +15430,16 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 				switch(this._verticalAlign) {
 				case "bottom":
 					item.set_y(pivotY + boundsY + verticalAlignHeight - this._paddingBottom - item.get_height());
-					break _hx_loop3;
+					break;
 				case "middle":
 					item.set_y(pivotY + boundsY + this._paddingTop + Math.round((verticalAlignHeight - this._paddingTop - this._paddingBottom - item.get_height()) / 2));
-					break _hx_loop3;
+					break;
 				default:
 					item.set_y(pivotY + boundsY + this._paddingTop);
 				}
 			}
 		}
-		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		this._discoveredItemsCache.length = 0;
 		if(result == null) {
 			result = new feathers_layout_LayoutBoundsResult();
 		}
@@ -15643,6 +15478,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		var hasLastGap = this._lastGap == this._lastGap;
 		var positionX;
 		var maxItemHeight = 0;
+		var cachedWidth;
 		if(this._distributeWidths) {
 			positionX = (calculatedTypicalItemWidth + this._gap) * itemCount;
 		} else {
@@ -15655,7 +15491,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 				var _g1 = itemCount;
 				while(_g < _g1) {
 					var i = _g++;
-					var cachedWidth = this._virtualCache[i];
+					cachedWidth = this._virtualCache[i];
 					if(cachedWidth != cachedWidth) {
 						positionX += calculatedTypicalItemWidth + this._gap;
 					} else {
@@ -15671,8 +15507,8 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		if(hasLastGap && itemCount > 2) {
 			positionX = positionX - this._gap + this._lastGap;
 		}
-		var resultWidth;
 		if(needsWidth) {
+			var resultWidth;
 			if(this._requestedColumnCount > 0) {
 				resultWidth = (calculatedTypicalItemWidth + this._gap) * this._requestedColumnCount - this._gap + this._paddingLeft + this._paddingRight;
 			} else {
@@ -15708,7 +15544,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 	}
 	,getVisibleIndicesAtScrollPosition: function(scrollX,scrollY,width,height,itemCount,result) {
 		if(result != null) {
-			result.splice(0,result.length);
+			result.length = 0;
 		} else {
 			result = [];
 		}
@@ -15769,24 +15605,27 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		var secondToLastIndex = itemCount - 2;
 		var maxPositionX = scrollX + width;
 		var positionX = this._paddingLeft;
+		var gap;
+		var cachedWidth;
+		var itemWidth;
+		var oldPositionX;
 		var _g = 0;
 		var _g1 = itemCount;
 		while(_g < _g1) {
 			var i = _g++;
-			var gap = this._gap;
+			gap = this._gap;
 			if(hasFirstGap && i == 0) {
 				gap = this._firstGap;
 			} else if(hasLastGap && i > 0 && i == secondToLastIndex) {
 				gap = this._lastGap;
 			}
-			var cachedWidth = this._virtualCache[i];
-			var itemWidth;
+			cachedWidth = this._virtualCache[i];
 			if(cachedWidth != cachedWidth) {
 				itemWidth = calculatedTypicalItemWidth;
 			} else {
 				itemWidth = cachedWidth;
 			}
-			var oldPositionX = positionX;
+			oldPositionX = positionX;
 			positionX += itemWidth + gap;
 			if(positionX > scrollX && oldPositionX < maxPositionX) {
 				result[resultLastIndex] = i;
@@ -15804,10 +15643,11 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 			if(lastIndexToAdd < 0) {
 				lastIndexToAdd = 0;
 			}
-			var i = firstExistingIndex - 1;
-			while(i >= lastIndexToAdd) {
-				result.unshift(i);
-				--i;
+			var _g2_i = firstExistingIndex - 1;
+			var _g2_end = lastIndexToAdd;
+			while(_g2_i >= _g2_end) {
+				var i = _g2_i--;
+				result.splice(0,0,i);
 			}
 		}
 		resultLength = result.length;
@@ -15863,19 +15703,19 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		return result;
 	}
 	,calculateNavigationDestination: function(items,index,keyCode,bounds) {
+		var calculatedTypicalItemWidth = 0;
 		var itemArrayCount = items.length;
 		var itemCount = itemArrayCount + this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
-		var calculatedTypicalItemWidth = NaN;
 		if(this._useVirtualLayout) {
 			this.prepareTypicalItem(bounds.viewPortHeight - this._paddingTop - this._paddingBottom);
 			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
 		}
 		var result = index;
-		var item;
-		var cachedWidth = NaN;
-		var iNormalized;
 		var xPosition;
 		var indexOffset;
+		var cachedWidth = NaN;
+		var iNormalized;
+		var item;
 		if(keyCode == 36) {
 			if(itemCount > 0) {
 				result = 0;
@@ -15888,8 +15728,10 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
 				indexOffset = -this._beforeVirtualizedItemCount;
 			}
-			var i = index;
-			while(i >= 0) {
+			var _g_i = index;
+			var _g_end = 0;
+			while(_g_i >= _g_end) {
+				var i = _g_i--;
 				iNormalized = i + indexOffset;
 				if(this._useVirtualLayout && this._hasVariableItemDimensions) {
 					cachedWidth = this._virtualCache[i];
@@ -15917,7 +15759,6 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 				}
 				xPosition += this._gap;
 				result = i;
-				--i;
 			}
 		} else if(keyCode == 34) {
 			xPosition = 0;
@@ -15971,8 +15812,8 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		return result;
 	}
 	,getScrollPositionForIndex: function(index,items,x,y,width,height,result) {
-		var maxScrollX = this.calculateMaxScrollXOfIndex(index,items,x,y,width,height);
 		var itemWidth;
+		var maxScrollX = this.calculateMaxScrollXOfIndex(index,items,x,y,width,height);
 		if(this._useVirtualLayout) {
 			if(this._hasVariableItemDimensions) {
 				itemWidth = this._virtualCache[index];
@@ -16026,7 +15867,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		dropIndicator.set_x(xPosition);
 	}
 	,getDropIndex: function(x,y,items,boundsX,boundsY,width,height) {
-		var calculatedTypicalItemWidth = NaN;
+		var calculatedTypicalItemWidth = 0;
 		var calculatedTypicalItemHeight;
 		if(this._useVirtualLayout) {
 			this.prepareTypicalItem(height - this._paddingTop - this._paddingBottom);
@@ -16046,14 +15887,16 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 			indexOffset = this._beforeVirtualizedItemCount;
 		}
 		var secondToLastIndex = totalItemCount - 2;
+		var item;
 		var cachedWidth = NaN;
+		var itemWidth;
+		var indexMinusOffset;
 		var _g = 0;
 		var _g1 = totalItemCount + 1;
 		while(_g < _g1) {
 			var i = _g++;
-			var item = null;
-			var indexMinusOffset = i - indexOffset;
-			var itemWidth;
+			item = null;
+			indexMinusOffset = i - indexOffset;
 			if(indexMinusOffset >= 0 && indexMinusOffset < itemCount) {
 				item = items[indexMinusOffset];
 			}
@@ -16104,7 +15947,6 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		}
 		var isJustified = this._verticalAlign == "justify";
 		var itemCount = items.length;
-		var itemWidth;
 		var measureItem;
 		var _g = 0;
 		var _g1 = itemCount;
@@ -16137,8 +15979,8 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 						if(percentWidth > 100) {
 							percentWidth = 100;
 						}
-						itemWidth = containerWidth * percentWidth / 100;
-						measureItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+						var itemWidth = containerWidth * percentWidth / 100;
+						measureItem = item;
 						var itemExplicitMinWidth = measureItem.get_explicitMinWidth();
 						if(measureItem.get_explicitMinWidth() == measureItem.get_explicitMinWidth() && itemWidth < itemExplicitMinWidth) {
 							itemWidth = itemExplicitMinWidth;
@@ -16154,7 +15996,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 							percentHeight = 100;
 						}
 						var itemHeight = explicitHeight * percentHeight / 100;
-						measureItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+						measureItem = item;
 						var itemExplicitMinHeight = measureItem.get_explicitMinHeight();
 						if(measureItem.get_explicitMinHeight() == measureItem.get_explicitMinHeight() && itemHeight < itemExplicitMinHeight) {
 							itemHeight = itemExplicitMinHeight;
@@ -16187,7 +16029,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 			this._typicalItem.set_height(justifyHeight);
 		} else if(js_Boot.__implements(this._typicalItem,feathers_layout_ILayoutDisplayObject)) {
 			var layoutItem = this._typicalItem;
-			var layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_VerticalLayoutData);
+			var layoutData = layoutItem.get_layoutData();
 			if(layoutData != null) {
 				var percentHeight = layoutData.get_percentHeight();
 				if(percentHeight == percentHeight) {
@@ -16257,28 +16099,28 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 	}
 	,applyPercentWidths: function(items,explicitWidth,minWidth,maxWidth) {
 		var remainingWidth = explicitWidth;
-		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		this._discoveredItemsCache.length = 0;
 		var totalExplicitWidth = 0;
 		var totalMinWidth = 0;
 		var totalPercentWidth = 0;
-		var itemCount = items.length;
-		var pushIndex = 0;
-		var layoutItem;
 		var item;
-		var percentWidth;
-		var layoutData;
+		var itemCount = items.length;
 		var feathersItem;
+		var layoutData;
+		var layoutItem;
+		var percentWidth;
+		var pushIndex = 0;
 		var _g = 0;
 		var _g1 = itemCount;
 		while(_g < _g1) {
 			var i = _g++;
 			item = items[i];
 			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-				layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				layoutItem = item;
 				if(!layoutItem.get_includeInLayout()) {
 					continue;
 				}
-				layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_HorizontalLayoutData);
+				layoutData = layoutItem.get_layoutData();
 				if(layoutData != null) {
 					percentWidth = layoutData.get_percentWidth();
 					if(percentWidth == percentWidth) {
@@ -16286,7 +16128,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 							percentWidth = 0;
 						}
 						if(js_Boot.__implements(layoutItem,feathers_core_IFeathersControl)) {
-							feathersItem = js_Boot.__cast(layoutItem , feathers_core_IFeathersControl);
+							feathersItem = layoutItem;
 							totalMinWidth += feathersItem.get_minWidth();
 						}
 						totalPercentWidth += percentWidth;
@@ -16321,9 +16163,13 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 		if(remainingWidth < 0) {
 			remainingWidth = 0;
 		}
-		var needsAnotherPass = false;
+		var needsAnotherPass;
+		var percentToPixels;
+		var itemWidth;
+		var itemMinWidth;
 		while(true) {
-			var percentToPixels = remainingWidth / totalPercentWidth;
+			needsAnotherPass = false;
+			percentToPixels = remainingWidth / totalPercentWidth;
 			var _g = 0;
 			var _g1 = pushIndex;
 			while(_g < _g1) {
@@ -16337,10 +16183,10 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 				if(percentWidth < 0) {
 					percentWidth = 0;
 				}
-				var itemWidth = percentToPixels * percentWidth;
+				itemWidth = percentToPixels * percentWidth;
 				if(js_Boot.__implements(layoutItem,feathers_core_IFeathersControl)) {
 					feathersItem = layoutItem;
-					var itemMinWidth = feathersItem.get_explicitMinWidth();
+					itemMinWidth = feathersItem.get_explicitMinWidth();
 					if(itemMinWidth > remainingWidth) {
 						itemMinWidth = remainingWidth;
 					}
@@ -16361,11 +16207,11 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 				break;
 			}
 		}
-		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		this._discoveredItemsCache.length = 0;
 	}
 	,calculateMaxScrollXOfIndex: function(index,items,x,y,width,height) {
-		var calculatedTypicalItemWidth = NaN;
-		var calculatedTypicalItemHeight;
+		var calculatedTypicalItemWidth = 0;
+		var calculatedTypicalItemHeight = 0;
 		if(this._useVirtualLayout) {
 			this.prepareTypicalItem(height - this._paddingTop - this._paddingBottom);
 			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
@@ -16396,11 +16242,12 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 			}
 			positionX += startIndexOffset * (calculatedTypicalItemWidth + this._gap);
 		}
-		index -= startIndexOffset + endIndexOffset | 0;
+		index -= startIndexOffset + (endIndexOffset | 0);
 		var secondToLastIndex = totalItemCount - 2;
 		var item;
 		var iNormalized;
 		var cachedWidth = NaN;
+		var itemWidth;
 		var _g = 0;
 		var _g1 = index + 1;
 		while(_g < _g1) {
@@ -16424,7 +16271,7 @@ feathers_layout_HorizontalLayout.prototype = $extend(feathers_layout_BaseLinearL
 					lastWidth = cachedWidth;
 				}
 			} else {
-				var itemWidth = item.get_width();
+				itemWidth = item.get_width();
 				if(this._useVirtualLayout) {
 					if(this._hasVariableItemDimensions) {
 						if(itemWidth != cachedWidth) {
@@ -16450,7 +16297,6 @@ var feathers_layout_IGroupedLayout = function() { };
 $hxClasses["feathers.layout.IGroupedLayout"] = feathers_layout_IGroupedLayout;
 feathers_layout_IGroupedLayout.__name__ = "feathers.layout.IGroupedLayout";
 feathers_layout_IGroupedLayout.__isInterface__ = true;
-feathers_layout_IGroupedLayout.__interfaces__ = [feathers_layout_ILayout];
 feathers_layout_IGroupedLayout.prototype = {
 	get_headerIndices: null
 	,set_headerIndices: null
@@ -16579,8 +16425,8 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		var maxHeight = viewPortBounds != null ? viewPortBounds.maxHeight : Infinity;
 		var explicitWidth = viewPortBounds != null ? viewPortBounds.explicitWidth : NaN;
 		var explicitHeight = viewPortBounds != null ? viewPortBounds.explicitHeight : NaN;
-		var calculatedTypicalItemWidth = NaN;
-		var calculatedTypicalItemHeight = NaN;
+		var calculatedTypicalItemWidth = 0;
+		var calculatedTypicalItemHeight = 0;
 		if(this._useVirtualLayout) {
 			this.prepareTypicalItem(explicitWidth - this._paddingLeft - this._paddingRight);
 			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
@@ -16624,14 +16470,14 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 			}
 		}
 		var secondToLastIndex = totalItemCount - 2;
-		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		this._discoveredItemsCache.length = 0;
 		var discoveredItemsCacheLastIndex = 0;
 		var gap = 0;
 		var headerIndicesIndex = -1;
 		var nextHeaderIndex = -1;
 		var headerCount = 0;
 		var stickyHeaderMaxY = Infinity;
-		if(this._headerIndices != null && this._stickyHeader != null) {
+		if(this._headerIndices != null && this._stickyHeader) {
 			headerCount = this._headerIndices.length;
 			if(headerCount > 0) {
 				headerIndicesIndex = 0;
@@ -16640,7 +16486,9 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		}
 		var item;
 		var iNormalized;
+		var cachedHeight = NaN;
 		var layoutItem;
+		var pivotY;
 		var itemWidth;
 		var itemHeight;
 		var _g = 0;
@@ -16677,7 +16525,6 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 			} else if(hasLastGap && iNormalized > 0 && iNormalized == secondToLastIndex) {
 				gap = this._lastGap;
 			}
-			var cachedHeight = NaN;
 			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
 				cachedHeight = this._virtualCache[iNormalized];
 			}
@@ -16692,7 +16539,7 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 				if(layoutItem != null && !layoutItem.get_includeInLayout()) {
 					continue;
 				}
-				var pivotY = item.get_pivotY();
+				pivotY = item.get_pivotY();
 				if(pivotY != 0) {
 					pivotY *= item.get_scaleY();
 				}
@@ -16809,7 +16656,7 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		var availableWidthMinusPadding = availableWidth - this._paddingLeft - this._paddingRight;
 		var _g = 0;
 		var _g1 = discoveredItemCount;
-		_hx_loop3: while(_g < _g1) {
+		while(_g < _g1) {
 			var i = _g++;
 			item = discoveredItems[i];
 			layoutItem = item;
@@ -16862,16 +16709,16 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 				switch(this._horizontalAlign) {
 				case "center":
 					item.set_x(pivotX + boundsX + this._paddingLeft + Math.round((horizontalAlignWidth - this._paddingLeft - this._paddingRight - item.get_width()) / 2));
-					break _hx_loop3;
+					break;
 				case "right":
 					item.set_x(pivotX + boundsX + horizontalAlignWidth - this._paddingRight - item.get_width());
-					break _hx_loop3;
+					break;
 				default:
 					item.set_x(pivotX + boundsX + this._paddingLeft);
 				}
 			}
 		}
-		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		this._discoveredItemsCache.length = 0;
 		if(result == null) {
 			result = new feathers_layout_LayoutBoundsResult();
 		}
@@ -16909,7 +16756,7 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		var hasFirstGap = this._firstGap == this._firstGap;
 		var hasLastGap = this._lastGap == this._lastGap;
 		var positionY;
-		var maxItemWidth = NaN;
+		var maxItemWidth = 0;
 		if(this._distributeHeights) {
 			positionY = (calculatedTypicalItemHeight + this._gap) * itemCount;
 		} else {
@@ -16938,9 +16785,8 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		if(hasLastGap && itemCount > 2) {
 			positionY = positionY - this._gap + this._lastGap;
 		}
-		var resultWidth;
 		if(needsWidth) {
-			resultWidth = maxItemWidth + this._paddingLeft + this._paddingRight;
+			var resultWidth = maxItemWidth + this._paddingLeft + this._paddingRight;
 			if(resultWidth < minWidth) {
 				resultWidth = minWidth;
 			} else if(resultWidth > maxWidth) {
@@ -16950,8 +16796,8 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		} else {
 			result.x = explicitWidth;
 		}
-		var resultHeight;
 		if(needsHeight) {
+			var resultHeight;
 			if(this._requestedRowCount > 0) {
 				resultHeight = (calculatedTypicalItemHeight + this._gap) * this._requestedRowCount - this._gap;
 			} else {
@@ -16977,7 +16823,7 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 	}
 	,getVisibleIndicesAtScrollPosition: function(scrollX,scrollY,width,height,itemCount,result) {
 		if(result != null) {
-			result.splice(0,result.length);
+			result.length = 0;
 		} else {
 			result = [];
 		}
@@ -17050,6 +16896,10 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		var startPositionY = this._paddingTop;
 		var foundSticky = false;
 		var positionY = startPositionY;
+		var gap;
+		var itemHeight;
+		var cachedHeight;
+		var oldPositionY;
 		var _g = 0;
 		var _g1 = itemCount;
 		while(_g < _g1) {
@@ -17068,20 +16918,19 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 					}
 				}
 			}
-			var gap = this._gap;
+			gap = this._gap;
 			if(hasFirstGap && i == 0) {
 				gap = this._firstGap;
 			} else if(hasLastGap && i > 0 && i == secondToLastIndex) {
 				gap = this._lastGap;
 			}
-			var cachedHeight = this._virtualCache[i];
-			var itemHeight;
+			cachedHeight = this._virtualCache[i];
 			if(cachedHeight != cachedHeight) {
 				itemHeight = calculatedTypicalItemHeight;
 			} else {
 				itemHeight = cachedHeight;
 			}
-			var oldPositionY = positionY;
+			oldPositionY = positionY;
 			positionY += itemHeight + gap;
 			if(positionY > scrollY && oldPositionY < maxPositionY) {
 				result[resultLastIndex] = i;
@@ -17122,10 +16971,14 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 			if(lastIndexToAdd < 0) {
 				lastIndexToAdd = 0;
 			}
-			var i = firstExistingIndex - 1;
-			while(i >= lastIndexToAdd) {
-				result.unshift(i);
-				--i;
+			var _g2_i = firstExistingIndex - 1;
+			var _g2_end = lastIndexToAdd;
+			while(_g2_i >= _g2_end) {
+				var i = _g2_i--;
+				if(i == nextHeaderIndex) {
+					continue;
+				}
+				result.splice(0,0,i);
 			}
 		}
 		resultLength = result.length;
@@ -17191,15 +17044,15 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 	,calculateNavigationDestination: function(items,index,keyCode,bounds) {
 		var itemArrayCount = items.length;
 		var itemCount = itemArrayCount + this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
-		var calculatedTypicalItemHeight = NaN;
+		var calculatedTypicalItemHeight = 0;
 		if(this._useVirtualLayout) {
 			this.prepareTypicalItem(bounds.viewPortWidth - this._paddingLeft - this._paddingRight);
 			calculatedTypicalItemHeight = this._typicalItem != null ? this._typicalItem.get_height() : 0;
 		}
 		var backwards = false;
 		var result = index;
-		var yPosition;
 		var indexOffset;
+		var yPosition;
 		var iNormalized;
 		var cachedHeight = NaN;
 		var item;
@@ -17217,8 +17070,10 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 				indexOffset = -this._beforeVirtualizedItemCount;
 			}
 			yPosition = 0;
-			var i = index;
-			while(i >= 0) {
+			var _g_i = index;
+			var _g_end = 0;
+			while(_g_i >= _g_end) {
+				var i = _g_i--;
 				iNormalized = i + indexOffset;
 				if(this._useVirtualLayout && this._hasVariableItemDimensions) {
 					cachedHeight = this._virtualCache[i];
@@ -17246,7 +17101,6 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 				}
 				yPosition += this._gap;
 				result = i;
-				--i;
 			}
 		} else if(keyCode == 34) {
 			yPosition = 0;
@@ -17377,8 +17231,8 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		dropIndicator.set_y(yPosition);
 	}
 	,getDropIndex: function(x,y,items,boundsX,boundsY,width,height) {
-		var calculatedTypicalItemWidth = NaN;
-		var calculatedTypicalItemHeight = NaN;
+		var calculatedTypicalItemWidth = 0;
+		var calculatedTypicalItemHeight = 0;
 		if(this._useVirtualLayout) {
 			this.prepareTypicalItem(width - this._paddingLeft - this._paddingRight);
 			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
@@ -17392,17 +17246,20 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		var indexOffset = 0;
 		var itemCount = items.length;
 		var totalItemCount = itemCount;
-		var item = null;
-		var indexMinusOffset;
 		if(this._useVirtualLayout && !this._hasVariableItemDimensions) {
 			totalItemCount += this._beforeVirtualizedItemCount + this._afterVirtualizedItemCount;
 			indexOffset = this._beforeVirtualizedItemCount;
 		}
 		var secondToLastIndex = totalItemCount - 2;
+		var item;
+		var indexMinusOffset;
+		var cachedHeight = NaN;
+		var itemHeight;
 		var _g = 0;
 		var _g1 = totalItemCount;
 		while(_g < _g1) {
 			var i = _g++;
+			item = null;
 			indexMinusOffset = i - indexOffset;
 			if(indexMinusOffset >= 0 && indexMinusOffset < itemCount) {
 				item = items[indexMinusOffset];
@@ -17414,7 +17271,6 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 			} else {
 				gap = this._gap;
 			}
-			var cachedHeight = NaN;
 			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
 				cachedHeight = this._virtualCache[i];
 			}
@@ -17426,7 +17282,7 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 				}
 			} else {
 				positionY = item.get_y();
-				var itemHeight = item.get_height();
+				itemHeight = item.get_height();
 				if(this._useVirtualLayout) {
 					if(this._hasVariableItemDimensions) {
 						if(itemHeight != cachedHeight) {
@@ -17455,6 +17311,16 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		var isJustified = this._horizontalAlign == "justify";
 		var itemCount = items.length;
 		var item;
+		var feathersItem;
+		var layoutItem;
+		var layoutData;
+		var percentWidth;
+		var percentHeight;
+		var measureItem;
+		var itemWidth;
+		var itemExplicitMinWidth;
+		var itemHeight;
+		var itemExplicitMinHeight;
 		var _g = 0;
 		var _g1 = itemCount;
 		while(_g < _g1) {
@@ -17463,22 +17329,19 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 			if(item == null || js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
 				continue;
 			}
-			var itemWidth;
-			var measureItem;
-			var itemExplicitMinWidth;
 			if(isJustified) {
 				item.set_width(explicitWidth);
 				if(js_Boot.__implements(item,feathers_core_IFeathersControl)) {
-					var feathersItem = js_Boot.__cast(item , feathers_core_IFeathersControl);
+					feathersItem = js_Boot.__cast(item , feathers_core_IFeathersControl);
 					feathersItem.set_minWidth(minWidth);
 					feathersItem.set_maxWidth(maxWidth);
 				}
 			} else if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-				var layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
-				var layoutData = layoutItem.get_layoutData();
+				layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				layoutData = layoutItem.get_layoutData();
 				if(layoutData != null) {
-					var percentWidth = layoutData.get_percentWidth();
-					var percentHeight = layoutData.get_percentHeight();
+					percentWidth = layoutData.get_percentWidth();
+					percentHeight = layoutData.get_percentHeight();
 					if(percentWidth == percentWidth) {
 						if(percentWidth < 0) {
 							percentWidth = 0;
@@ -17487,7 +17350,7 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 							percentWidth = 100;
 						}
 						itemWidth = explicitWidth * percentWidth / 100;
-						measureItem = js_Boot.__cast(item , feathers_core_IMeasureDisplayObject);
+						measureItem = item;
 						itemExplicitMinWidth = measureItem.get_explicitMinWidth();
 						if(measureItem.get_explicitMinWidth() == measureItem.get_explicitMinWidth() && itemWidth < itemExplicitMinWidth) {
 							itemWidth = itemExplicitMinWidth;
@@ -17501,9 +17364,9 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 						}
 					}
 					if(percentHeight == percentHeight) {
-						var itemHeight = containerHeight * percentHeight / 100;
+						itemHeight = containerHeight * percentHeight / 100;
 						measureItem = item;
-						var itemExplicitMinHeight = measureItem.get_explicitMinHeight();
+						itemExplicitMinHeight = measureItem.get_explicitMinHeight();
 						if(measureItem.get_explicitMinHeight() == measureItem.get_explicitMinHeight() && itemHeight < itemExplicitMinHeight) {
 							itemHeight = itemExplicitMinHeight;
 						}
@@ -17560,16 +17423,18 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		var includedItemCount = 0;
 		var maxItemHeight = 0;
 		var itemCount = items.length;
+		var item;
+		var itemHeight;
 		var _g = 0;
 		var _g1 = itemCount;
 		while(_g < _g1) {
 			var i = _g++;
-			var item = items[i];
+			item = items[i];
 			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject) && !(js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject)).get_includeInLayout()) {
 				continue;
 			}
 			++includedItemCount;
-			var itemHeight = item.get_height();
+			itemHeight = item.get_height();
 			if(itemHeight > maxItemHeight) {
 				maxItemHeight = itemHeight;
 			}
@@ -17603,12 +17468,13 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 	}
 	,applyPercentHeights: function(items,explicitHeight,minHeight,maxHeight) {
 		var remainingHeight = explicitHeight;
-		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		this._discoveredItemsCache.length = 0;
 		var totalExplicitHeight = 0;
 		var totalMinHeight = 0;
 		var totalPercentHeight = 0;
 		var itemCount = items.length;
 		var pushIndex = 0;
+		var item;
 		var layoutItem;
 		var layoutData;
 		var percentHeight;
@@ -17617,13 +17483,13 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		var _g1 = itemCount;
 		while(_g < _g1) {
 			var i = _g++;
-			var item = items[i];
+			item = items[i];
 			if(js_Boot.__implements(item,feathers_layout_ILayoutDisplayObject)) {
-				layoutItem = js_Boot.__cast(item , feathers_layout_ILayoutDisplayObject);
+				layoutItem = item;
 				if(!layoutItem.get_includeInLayout()) {
 					continue;
 				}
-				layoutData = js_Boot.__cast(layoutItem.get_layoutData() , feathers_layout_VerticalLayoutData);
+				layoutData = layoutItem.get_layoutData();
 				if(layoutData != null) {
 					percentHeight = layoutData.get_percentHeight();
 					if(percentHeight == percentHeight) {
@@ -17631,7 +17497,7 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 							percentHeight = 0;
 						}
 						if(js_Boot.__implements(layoutItem,feathers_core_IFeathersControl)) {
-							feathersItem = js_Boot.__cast(layoutItem , feathers_core_IFeathersControl);
+							feathersItem = layoutItem;
 							totalMinHeight += feathersItem.get_minHeight();
 						}
 						totalPercentHeight += percentHeight;
@@ -17666,9 +17532,12 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 		if(remainingHeight < 0) {
 			remainingHeight = 0;
 		}
-		var needsAnotherPass = false;
+		var needsAnotherPass;
+		var percentToPixels;
+		var itemHeight;
 		while(true) {
-			var percentToPixels = remainingHeight / totalPercentHeight;
+			needsAnotherPass = false;
+			percentToPixels = remainingHeight / totalPercentHeight;
 			var _g = 0;
 			var _g1 = pushIndex;
 			while(_g < _g1) {
@@ -17682,7 +17551,7 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 				if(percentHeight < 0) {
 					percentHeight = 0;
 				}
-				var itemHeight = percentToPixels * percentHeight;
+				itemHeight = percentToPixels * percentHeight;
 				if(js_Boot.__implements(layoutItem,feathers_core_IFeathersControl)) {
 					feathersItem = layoutItem;
 					var itemMinHeight = feathersItem.get_explicitMinHeight();
@@ -17706,11 +17575,11 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 				break;
 			}
 		}
-		this._discoveredItemsCache.splice(0,this._discoveredItemsCache.length);
+		this._discoveredItemsCache.length = 0;
 	}
 	,calculateScrollRangeOfIndex: function(index,items,x,y,width,height,result) {
-		var calculatedTypicalItemWidth = NaN;
-		var calculatedTypicalItemHeight = NaN;
+		var calculatedTypicalItemWidth = 0;
+		var calculatedTypicalItemHeight = 0;
 		if(this._useVirtualLayout) {
 			this.prepareTypicalItem(width - this._paddingLeft - this._paddingRight);
 			calculatedTypicalItemWidth = this._typicalItem != null ? this._typicalItem.get_width() : 0;
@@ -17752,11 +17621,12 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 			}
 			positionY += startIndexOffset * (calculatedTypicalItemHeight + this._gap);
 		}
-		index -= startIndexOffset + endIndexOffset | 0;
+		index -= startIndexOffset + (endIndexOffset | 0);
 		var secondToLastIndex = totalItemCount - 2;
 		var item;
 		var iNormalized;
 		var cachedHeight = NaN;
+		var itemHeight;
 		var _g = 0;
 		var _g1 = index + 1;
 		while(_g < _g1) {
@@ -17773,14 +17643,14 @@ feathers_layout_VerticalLayout.prototype = $extend(feathers_layout_BaseLinearLay
 			if(this._useVirtualLayout && this._hasVariableItemDimensions) {
 				cachedHeight = this._virtualCache[iNormalized];
 			}
-			if(this._useVirtualLayout && item != null) {
+			if(this._useVirtualLayout && item == null) {
 				if(!this._hasVariableItemDimensions || cachedHeight != cachedHeight) {
 					lastHeight = calculatedTypicalItemHeight;
 				} else {
 					lastHeight = cachedHeight;
 				}
 			} else {
-				var itemHeight = item.get_height();
+				itemHeight = item.get_height();
 				if(this._useVirtualLayout) {
 					if(this._hasVariableItemDimensions) {
 						if(itemHeight != cachedHeight) {
@@ -17841,6 +17711,7 @@ Game.__super__ = starling_display_Sprite;
 Game.prototype = $extend(starling_display_Sprite.prototype,{
 	_assetMediator: null
 	,_sprite: null
+	,scrollContainer: null
 	,start: function() {
 		var _gthis = this;
 		Game.assetManager = new starling_utils_AssetManager();
@@ -17849,16 +17720,29 @@ Game.prototype = $extend(starling_display_Sprite.prototype,{
 		var loader = new starlingbuilder_engine_LayoutLoader(ParsedLayouts);
 		Game.assetManager.enqueue([openfl_utils_Assets.getPath("assets/textures/atlas.png"),openfl_utils_Assets.getPath("assets/textures/atlas.xml")]);
 		Game.assetManager.loadQueue(function(ratio) {
-			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 53, className : "Game", methodName : "start"});
+			haxe_Log.trace(ratio,{ fileName : "Source/Game.hx", lineNumber : 55, className : "Game", methodName : "start"});
 			if(ratio == 1) {
-				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 55, className : "Game", methodName : "start"});
+				haxe_Log.trace("Assets Loaded",{ fileName : "Source/Game.hx", lineNumber : 57, className : "Game", methodName : "start"});
 				_gthis._sprite = new starling_display_Sprite();
 				_gthis._sprite = Game.uiBuilder.create(ParsedLayouts.game_ui,false,_gthis);
 				_gthis.addChild(_gthis._sprite);
 				_gthis.onResize(null);
+				_gthis.init();
 			}
 		});
 		starling_core_Starling.get_current().get_stage().addEventListener("resize",$bind(this,this.onResize));
+	}
+	,init: function() {
+		var item_1 = new starling_display_Image(Game.assetManager.getTexture("cell_01"));
+		var item_2 = new starling_display_Image(Game.assetManager.getTexture("cell_02"));
+		var layout = new feathers_layout_HorizontalLayout();
+		layout.set_gap(10);
+		this.scrollContainer = new feathers_controls_ScrollContainer();
+		this.scrollContainer.set_width(300);
+		this.scrollContainer.set_layout(layout);
+		this.scrollContainer.addChild(item_1);
+		this.scrollContainer.addChild(item_2);
+		this._sprite.addChild(this.scrollContainer);
 	}
 	,onResize: function(event) {
 		this.center(this._sprite);
@@ -17972,7 +17856,7 @@ ManifestResources.init = function(config) {
 		ManifestResources.rootPath = "./";
 	}
 	var bundle;
-	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei4921y4:typey4:TEXTy2:idR1y7:preloadtgoR0y24:assets%2Fgame_ui_01.jsonR2i1394R3R4R5R7R6tgoR0y24:assets%2Fgame_ui_02.jsonR2i3559R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R9R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R10R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R11R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R12R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R13R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R14R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R15R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R16R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R17R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R19R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R22R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R20R5R23R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
+	var data = "{\"name\":null,\"assets\":\"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei5123y4:typey4:TEXTy2:idR1y7:preloadtgoR0y24:assets%2Fgame_ui_01.jsonR2i1394R3R4R5R7R6tgoR0y24:assets%2Fgame_ui_02.jsonR2i3559R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R9R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R10R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R11R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R12R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R13R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R14R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R15R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R16R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R17R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R19R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R22R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R20R5R23R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
 	var manifest = lime_utils_AssetManifest.parse(data,ManifestResources.rootPath);
 	var library = lime_utils_AssetLibrary.fromManifest(manifest);
 	lime_utils_Assets.registerLibrary("default",library);
@@ -18600,14 +18484,14 @@ feathers_controls_BasicButton.prototype = $extend(feathers_core_FeathersControl.
 		} else {
 			this.changeState("disabled");
 		}
-		return value;
+		return this._isEnabled;
 	}
 	,_keepDownStateOnRollOut: null
 	,get_keepDownStateOnRollOut: function() {
 		return this._keepDownStateOnRollOut;
 	}
 	,set_keepDownStateOnRollOut: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_keepDownStateOnRollOut))) {
+		if(this.processStyleRestriction("keepDownStateOnRollOut")) {
 			return value;
 		}
 		if(this.touchToState != null) {
@@ -18620,14 +18504,14 @@ feathers_controls_BasicButton.prototype = $extend(feathers_core_FeathersControl.
 		return this._defaultSkin;
 	}
 	,set_defaultSkin: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_defaultSkin))) {
+		if(this.processStyleRestriction("defaultSkin")) {
 			if(value != null) {
 				value.dispose();
 			}
-			return this._defaultSkin;
+			return value;
 		}
 		if(this._defaultSkin == value) {
-			return this._defaultSkin;
+			return value;
 		}
 		if(this._defaultSkin != null && this.currentSkin == this._defaultSkin) {
 			this.removeCurrentSkin(this._defaultSkin);
@@ -18954,7 +18838,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 	}
 	,set_label: function(value) {
 		if(this._label == value) {
-			return this._label;
+			return value;
 		}
 		this._label = value;
 		this.invalidate("data");
@@ -18965,7 +18849,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._hasLabelTextRenderer;
 	}
 	,set_hasLabelTextRenderer: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_hasLabelTextRenderer))) {
+		if(this.processStyleRestriction("hasLabelTextRenderer")) {
 			return value;
 		}
 		if(this._hasLabelTextRenderer == value) {
@@ -18980,11 +18864,11 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._iconPosition;
 	}
 	,set_iconPosition: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_iconPosition))) {
-			return this._iconPosition;
+		if(this.processStyleRestriction("iconPosition")) {
+			return value;
 		}
 		if(this._iconPosition == value) {
-			return this._iconPosition;
+			return value;
 		}
 		this._iconPosition = value;
 		this.invalidate("styles");
@@ -18995,7 +18879,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._gap;
 	}
 	,set_gap: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_gap))) {
+		if(this.processStyleRestriction("gap")) {
 			return value;
 		}
 		if(this._gap == value) {
@@ -19010,7 +18894,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._minGap;
 	}
 	,set_minGap: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_minGap))) {
+		if(this.processStyleRestriction("minGap")) {
 			return value;
 		}
 		if(this._minGap == value) {
@@ -19025,7 +18909,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._horizontalAlign;
 	}
 	,set_horizontalAlign: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_horizontalAlign))) {
+		if(this.processStyleRestriction("horizontalAlign")) {
 			return value;
 		}
 		if(this._horizontalAlign == value) {
@@ -19040,7 +18924,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._verticalAlign;
 	}
 	,set_verticalAlign: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_verticalAlign))) {
+		if(this.processStyleRestriction("verticalAlign")) {
 			return value;
 		}
 		if(this._verticalAlign == value) {
@@ -19064,7 +18948,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._paddingTop;
 	}
 	,set_paddingTop: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingTop))) {
+		if(this.processStyleRestriction("paddingTop")) {
 			return value;
 		}
 		if(this._paddingTop == value) {
@@ -19079,7 +18963,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._paddingRight;
 	}
 	,set_paddingRight: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingRight))) {
+		if(this.processStyleRestriction("paddingRight")) {
 			return value;
 		}
 		if(this._paddingRight == value) {
@@ -19094,7 +18978,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._paddingBottom;
 	}
 	,set_paddingBottom: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingBottom))) {
+		if(this.processStyleRestriction("paddingBottom")) {
 			return value;
 		}
 		if(this._paddingBottom == value) {
@@ -19109,7 +18993,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._paddingLeft;
 	}
 	,set_paddingLeft: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingLeft))) {
+		if(this.processStyleRestriction("paddingLeft")) {
 			return value;
 		}
 		if(this._paddingLeft == value) {
@@ -19124,7 +19008,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._labelOffsetX;
 	}
 	,set_labelOffsetX: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_labelOffsetX))) {
+		if(this.processStyleRestriction("labelOffsetX")) {
 			return value;
 		}
 		if(this._labelOffsetX == value) {
@@ -19139,7 +19023,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._labelOffsetY;
 	}
 	,set_labelOffsetY: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_labelOffsetY))) {
+		if(this.processStyleRestriction("labelOffsetY")) {
 			return value;
 		}
 		if(this._labelOffsetY == value) {
@@ -19154,7 +19038,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._iconOffsetX;
 	}
 	,set_iconOffsetX: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_iconOffsetX))) {
+		if(this.processStyleRestriction("iconOffsetX")) {
 			return value;
 		}
 		if(this._iconOffsetX == value) {
@@ -19169,7 +19053,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._iconOffsetY;
 	}
 	,set_iconOffsetY: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_iconOffsetY))) {
+		if(this.processStyleRestriction("iconOffsetY")) {
 			return value;
 		}
 		if(this._iconOffsetY == value) {
@@ -19185,12 +19069,11 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 	}
 	,set_fontStyles: function(value) {
 		var _gthis = this;
-		if(this.processStyleRestriction($bind(this,this.set_fontStyles))) {
+		if(this.processStyleRestriction("fontStyles")) {
 			return value;
 		}
-		var savedCallee = $bind(this,this.set_fontStyles);
 		var changeHandler = function(event) {
-			_gthis.processStyleRestriction(savedCallee);
+			_gthis.processStyleRestriction("fontStyles");
 		};
 		if(value != null) {
 			value.removeEventListener("change",changeHandler);
@@ -19206,12 +19089,11 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 	}
 	,set_disabledFontStyles: function(value) {
 		var _gthis = this;
-		if(this.processStyleRestriction($bind(this,this.set_disabledFontStyles))) {
+		if(this.processStyleRestriction("disabledFontStyles")) {
 			return value;
 		}
-		var savedCallee = $bind(this,this.set_disabledFontStyles);
 		var changeHandler = function(event) {
-			_gthis.processStyleRestriction(savedCallee);
+			_gthis.processStyleRestriction("disabledFontStyles");
 		};
 		if(value != null) {
 			value.removeEventListener("change",changeHandler);
@@ -19227,7 +19109,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._wordWrap;
 	}
 	,set_wordWrap: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_wordWrap))) {
+		if(this.processStyleRestriction("wordWrap")) {
 			return value;
 		}
 		this._wordWrap = value;
@@ -19251,7 +19133,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._customLabelStyleName;
 	}
 	,set_customLabelStyleName: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_customLabelStyleName))) {
+		if(this.processStyleRestriction("customLabelStyleName")) {
 			return value;
 		}
 		if(this._customLabelStyleName == value) {
@@ -19264,20 +19146,36 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 	,_defaultLabelProperties: null
 	,get_defaultLabelProperties: function() {
 		if(this._defaultLabelProperties == null) {
-			this._defaultLabelProperties = new feathers_core_PropertyProxy($bind(this,this.childProperties_onChange));
+			var this1 = new feathers_core_PropertyProxyReal($bind(this,this.childProperties_onChange));
+			this._defaultLabelProperties = this1;
 		}
 		return this._defaultLabelProperties;
 	}
 	,set_defaultLabelProperties: function(value) {
-		if(!((value) instanceof feathers_core_PropertyProxy)) {
-			value = feathers_core_PropertyProxy.fromObject(value);
+		if(!((value) instanceof feathers_core_PropertyProxyReal)) {
+			var fields;
+			if(js_Boot.__instanceof(value,Dynamic)) {
+				fields = Reflect.fields(value);
+			} else {
+				fields = Type.getInstanceFields(js_Boot.getClass(value));
+			}
+			var this1 = new feathers_core_PropertyProxyReal(null);
+			var newValue = this1;
+			var _g = 0;
+			while(_g < fields.length) {
+				var field = fields[_g];
+				++_g;
+				newValue.setProperty(field,Reflect.getProperty(value,field));
+			}
+			value = newValue;
 		}
-		if(this._defaultLabelProperties == null) {
-			this._defaultLabelProperties.removeOnChangeCallback($bind(this,this.childProperties_onChange));
+		if(this._defaultLabelProperties != null) {
+			(this._defaultLabelProperties.getProperty("removeOnChangeCallback"))($bind(this,this.childProperties_onChange));
+			(this._defaultLabelProperties.getProperty("dispose"))();
 		}
 		this._defaultLabelProperties = value;
 		if(this._defaultLabelProperties != null) {
-			this._defaultLabelProperties.addOnChangeCallback($bind(this,this.childProperties_onChange));
+			(this._defaultLabelProperties.getProperty("addOnChangeCallback"))($bind(this,this.childProperties_onChange));
 		}
 		this.invalidate("styles");
 		return this._defaultLabelProperties;
@@ -19287,14 +19185,14 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		return this._defaultIcon;
 	}
 	,set_defaultIcon: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_defaultIcon))) {
+		if(this.processStyleRestriction("defaultIcon")) {
 			if(value != null) {
 				value.dispose();
 			}
-			return this._defaultIcon;
+			return value;
 		}
 		if(this._defaultIcon == value) {
-			return this._defaultIcon;
+			return value;
 		}
 		if(this._defaultIcon != null && this.currentIcon == this._defaultIcon) {
 			this.removeCurrentIcon(this._defaultIcon);
@@ -19339,7 +19237,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 	}
 	,set_longPressDuration: function(value) {
 		if(this._longPressDuration == value) {
-			return this._longPressDuration;
+			return value;
 		}
 		this._longPressDuration = value;
 		this.invalidate("styles");
@@ -19351,7 +19249,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 	}
 	,set_isLongPressEnabled: function(value) {
 		if(this._isLongPressEnabled == value) {
-			return this._isLongPressEnabled;
+			return value;
 		}
 		this._isLongPressEnabled = value;
 		this.invalidate("styles");
@@ -19431,7 +19329,8 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 			this._fontStylesSet = null;
 		}
 		if(this._defaultLabelProperties != null) {
-			this._defaultLabelProperties.dispose();
+			(this._defaultLabelProperties.getProperty("dispose"))();
+			this._defaultLabelProperties = null;
 		}
 		feathers_controls_BasicButton.prototype.dispose.call(this);
 	}
@@ -19573,7 +19472,8 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 			adjustedGap = this._minGap;
 		}
 		feathers_utils_skins_SkinsUtils.resetFluidChildDimensionsForMeasurement(this.currentSkin,this._explicitWidth,this._explicitHeight,this._explicitMinWidth,this._explicitMinHeight,this._explicitMaxWidth,this._explicitMaxHeight,this._explicitSkinWidth,this._explicitSkinHeight,this._explicitSkinMinWidth,this._explicitSkinMinHeight,this._explicitSkinMaxWidth,this._explicitSkinMaxHeight);
-		var measureSkin = this.currentSkin;
+		var e = this.currentSkin;
+		var measureSkin = js_Boot.__implements(e,feathers_core_IMeasureDisplayObject) ? e : null;
 		if(js_Boot.__implements(this.currentIcon,feathers_core_IValidating)) {
 			(js_Boot.__cast(this.currentIcon , feathers_core_IValidating)).validate();
 		}
@@ -19811,11 +19711,14 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		}
 		this.labelTextRenderer.set_fontStyles(this._fontStylesSet);
 		this.labelTextRenderer.set_wordWrap(this._wordWrap);
-		var _g = this._defaultLabelProperties.iterator();
-		while(_g.current < _g.array.length) {
-			var propertyName = _g.array[_g.current++];
-			var propertyValue = this._defaultLabelProperties.getProperty(propertyName);
-			Reflect.setProperty(this.labelTextRenderer,propertyName,propertyValue);
+		if(this._defaultLabelProperties != null) {
+			var propertyValue;
+			var _g = this._defaultLabelProperties.iterator();
+			while(_g.current < _g.array.length) {
+				var propertyName = _g.array[_g.current++];
+				propertyValue = this._defaultLabelProperties.getProperty(propertyName);
+				Reflect.setProperty(this.labelTextRenderer,propertyName,propertyValue);
+			}
 		}
 	}
 	,refreshTriggeredEvents: function() {
@@ -20028,7 +19931,7 @@ feathers_controls_Button.prototype = $extend(feathers_controls_BasicButton.proto
 		this.invalidate("styles");
 	}
 	,__class__: feathers_controls_Button
-	,__properties__: $extend(feathers_controls_BasicButton.prototype.__properties__,{get_numLines:"get_numLines",get_baseline:"get_baseline",set_scaleWhenHovering:"set_scaleWhenHovering",get_scaleWhenHovering:"get_scaleWhenHovering",set_scaleWhenDown:"set_scaleWhenDown",get_scaleWhenDown:"get_scaleWhenDown",set_isLongPressEnabled:"set_isLongPressEnabled",get_isLongPressEnabled:"get_isLongPressEnabled",set_longPressDuration:"set_longPressDuration",get_longPressDuration:"get_longPressDuration",set_disabledIcon:"set_disabledIcon",get_disabledIcon:"get_disabledIcon",set_hoverIcon:"set_hoverIcon",get_hoverIcon:"get_hoverIcon",set_downIcon:"set_downIcon",get_downIcon:"get_downIcon",set_upIcon:"set_upIcon",get_upIcon:"get_upIcon",set_defaultIcon:"set_defaultIcon",get_defaultIcon:"get_defaultIcon",set_defaultLabelProperties:"set_defaultLabelProperties",get_defaultLabelProperties:"get_defaultLabelProperties",set_customLabelStyleName:"set_customLabelStyleName",get_customLabelStyleName:"get_customLabelStyleName",set_labelFactory:"set_labelFactory",get_labelFactory:"get_labelFactory",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_disabledFontStyles:"set_disabledFontStyles",get_disabledFontStyles:"get_disabledFontStyles",set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",set_iconOffsetY:"set_iconOffsetY",get_iconOffsetY:"get_iconOffsetY",set_iconOffsetX:"set_iconOffsetX",get_iconOffsetX:"get_iconOffsetX",set_labelOffsetY:"set_labelOffsetY",get_labelOffsetY:"get_labelOffsetY",set_labelOffsetX:"set_labelOffsetX",get_labelOffsetX:"get_labelOffsetX",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_verticalAlign:"set_verticalAlign",get_verticalAlign:"get_verticalAlign",set_horizontalAlign:"set_horizontalAlign",get_horizontalAlign:"get_horizontalAlign",set_minGap:"set_minGap",get_minGap:"get_minGap",set_gap:"set_gap",get_gap:"get_gap",set_iconPosition:"set_iconPosition",get_iconPosition:"get_iconPosition",set_hasLabelTextRenderer:"set_hasLabelTextRenderer",get_hasLabelTextRenderer:"get_hasLabelTextRenderer",set_label:"set_label",get_label:"get_label",get_maintainTouchFocus:"get_maintainTouchFocus",get_isShowingFocus:"get_isShowingFocus"})
+	,__properties__: $extend(feathers_controls_BasicButton.prototype.__properties__,{get_numLines:"get_numLines",get_baseline:"get_baseline",set_scaleWhenHovering:"set_scaleWhenHovering",get_scaleWhenHovering:"get_scaleWhenHovering",set_scaleWhenDown:"set_scaleWhenDown",get_scaleWhenDown:"get_scaleWhenDown",set_isLongPressEnabled:"set_isLongPressEnabled",get_isLongPressEnabled:"get_isLongPressEnabled",set_longPressDuration:"set_longPressDuration",get_longPressDuration:"get_longPressDuration",set_disabledIcon:"set_disabledIcon",get_disabledIcon:"get_disabledIcon",set_hoverIcon:"set_hoverIcon",get_hoverIcon:"get_hoverIcon",set_downIcon:"set_downIcon",get_downIcon:"get_downIcon",set_upIcon:"set_upIcon",get_upIcon:"get_upIcon",set_defaultIcon:"set_defaultIcon",get_defaultIcon:"get_defaultIcon",set_defaultLabelProperties:"set_defaultLabelProperties",get_defaultLabelProperties:"get_defaultLabelProperties",set_customLabelStyleName:"set_customLabelStyleName",get_customLabelStyleName:"get_customLabelStyleName",set_labelFactory:"set_labelFactory",get_labelFactory:"get_labelFactory",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_disabledFontStyles:"set_disabledFontStyles",get_disabledFontStyles:"get_disabledFontStyles",set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",set_iconOffsetY:"set_iconOffsetY",get_iconOffsetY:"get_iconOffsetY",set_iconOffsetX:"set_iconOffsetX",get_iconOffsetX:"get_iconOffsetX",set_labelOffsetY:"set_labelOffsetY",get_labelOffsetY:"get_labelOffsetY",set_labelOffsetX:"set_labelOffsetX",get_labelOffsetX:"get_labelOffsetX",set_paddingLeft:"set_paddingLeft",get_paddingLeft:"get_paddingLeft",set_paddingBottom:"set_paddingBottom",get_paddingBottom:"get_paddingBottom",set_paddingRight:"set_paddingRight",get_paddingRight:"get_paddingRight",set_paddingTop:"set_paddingTop",get_paddingTop:"get_paddingTop",set_padding:"set_padding",get_padding:"get_padding",set_verticalAlign:"set_verticalAlign",get_verticalAlign:"get_verticalAlign",set_horizontalAlign:"set_horizontalAlign",get_horizontalAlign:"get_horizontalAlign",set_minGap:"set_minGap",get_minGap:"get_minGap",set_gap:"set_gap",get_gap:"get_gap",set_iconPosition:"set_iconPosition",get_iconPosition:"get_iconPosition",set_hasLabelTextRenderer:"set_hasLabelTextRenderer",get_hasLabelTextRenderer:"get_hasLabelTextRenderer",set_label:"set_label",get_label:"get_label"})
 });
 var feathers_controls_ButtonState = function() { };
 $hxClasses["feathers.controls.ButtonState"] = feathers_controls_ButtonState;
@@ -20137,7 +20040,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		return this._direction;
 	}
 	,set_direction: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_direction))) {
+		if(this.processStyleRestriction("direction")) {
 			return value;
 		}
 		if(this._direction == value) {
@@ -20153,7 +20056,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		return this._fixedThumbSize;
 	}
 	,set_fixedThumbSize: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_fixedThumbSize))) {
+		if(this.processStyleRestriction("fixedThumbSize")) {
 			return value;
 		}
 		if(this._fixedThumbSize == value) {
@@ -20170,7 +20073,18 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 	}
 	,set_value: function(newValue) {
 		if(this.clampToRange) {
-			newValue = starling_utils_MathUtil.clamp(newValue,this._minimum,this._maximum);
+			var value = newValue;
+			var minimum = this._minimum;
+			var maximum = this._maximum;
+			if(minimum > maximum) {
+				throw new openfl_errors_ArgumentError("minimum should be smaller than maximum.");
+			}
+			if(value < minimum) {
+				value = minimum;
+			} else if(value > maximum) {
+				value = maximum;
+			}
+			newValue = value;
 		}
 		if(this._value == newValue) {
 			return newValue;
@@ -20200,7 +20114,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 	}
 	,set_maximum: function(value) {
 		if(this._maximum == value) {
-			return this._maximum;
+			return value;
 		}
 		this._maximum = value;
 		this.invalidate("data");
@@ -20219,7 +20133,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 	}
 	,set_page: function(value) {
 		if(this._page == value) {
-			return this._page;
+			return value;
 		}
 		this._page = value;
 		this.invalidate("data");
@@ -20239,7 +20153,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		return this._paddingTop;
 	}
 	,set_paddingTop: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingTop))) {
+		if(this.processStyleRestriction("paddingTop")) {
 			return value;
 		}
 		if(this._paddingTop == value) {
@@ -20254,7 +20168,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		return this._paddingRight;
 	}
 	,set_paddingRight: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingRight))) {
+		if(this.processStyleRestriction("paddingRight")) {
 			return value;
 		}
 		if(this._paddingRight == value) {
@@ -20269,7 +20183,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		return this._paddingBottom;
 	}
 	,set_paddingBottom: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingBottom))) {
+		if(this.processStyleRestriction("paddingBottom")) {
 			return value;
 		}
 		if(this._paddingBottom == value) {
@@ -20284,7 +20198,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		return this._paddingLeft;
 	}
 	,set_paddingLeft: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_paddingLeft))) {
+		if(this.processStyleRestriction("paddingLeft")) {
 			return value;
 		}
 		if(this._paddingLeft == value) {
@@ -20327,7 +20241,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		return this._customThumbStyleName;
 	}
 	,set_customThumbStyleName: function(value) {
-		if(this.processStyleRestriction($bind(this,this.set_customThumbStyleName))) {
+		if(this.processStyleRestriction("customThumbStyleName")) {
 			return value;
 		}
 		if(this._customThumbStyleName == value) {
@@ -20340,7 +20254,8 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 	,_thumbProperties: null
 	,get_thumbProperties: function() {
 		if(this._thumbProperties == null) {
-			this._thumbProperties = new feathers_core_PropertyProxy($bind(this,this.thumbProperties_onChange));
+			var this1 = new feathers_core_PropertyProxyReal($bind(this,this.thumbProperties_onChange));
+			this._thumbProperties = this1;
 		}
 		return this._thumbProperties;
 	}
@@ -20349,18 +20264,34 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 			return value;
 		}
 		if(value == null) {
-			value = new feathers_core_PropertyProxy();
+			var this1 = new feathers_core_PropertyProxyReal(null);
+			value = this1;
 		}
-		if(!((value) instanceof feathers_core_PropertyProxy)) {
-			var newValue = feathers_core_PropertyProxy.fromObject(value);
-			value = newValue;
+		if(!((value) instanceof feathers_core_PropertyProxyReal)) {
+			var fields;
+			if(js_Boot.__instanceof(value,Dynamic)) {
+				fields = Reflect.fields(value);
+			} else {
+				fields = Type.getInstanceFields(js_Boot.getClass(value));
+			}
+			var this1 = new feathers_core_PropertyProxyReal(null);
+			var newValue = this1;
+			var _g = 0;
+			while(_g < fields.length) {
+				var field = fields[_g];
+				++_g;
+				newValue.setProperty(field,Reflect.getProperty(value,field));
+			}
+			var newValue1 = newValue;
+			value = newValue1;
 		}
 		if(this._thumbProperties != null) {
-			this._thumbProperties.removeOnChangeCallback($bind(this,this.thumbProperties_onChange));
+			(this._thumbProperties.getProperty("removeOnChangeCallback"))($bind(this,this.thumbProperties_onChange));
+			(this._thumbProperties.getProperty("dispose"))();
 		}
-		this._thumbProperties = js_Boot.__cast(value , feathers_core_PropertyProxy);
+		this._thumbProperties = value;
 		if(this._thumbProperties != null) {
-			this._thumbProperties.addOnChangeCallback($bind(this,this.thumbProperties_onChange));
+			(this._thumbProperties.getProperty("addOnChangeCallback"))($bind(this,this.thumbProperties_onChange));
 		}
 		this.invalidate("styles");
 		return this._thumbProperties;
@@ -20384,6 +20315,13 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		} else if(this._value > this._maximum) {
 			this.set_value(this._maximum);
 		}
+	}
+	,dispose: function() {
+		if(this._thumbProperties != null) {
+			(this._thumbProperties.getProperty("dispose"))();
+			this._thumbProperties = null;
+		}
+		feathers_core_FeathersControl.prototype.dispose.call(this);
 	}
 	,draw: function() {
 		var dataInvalid = this.isInvalid("data");
@@ -20507,10 +20445,14 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		}
 	}
 	,refreshThumbStyles: function() {
+		if(this._thumbProperties == null) {
+			return;
+		}
+		var propertyValue;
 		var _g = this._thumbProperties.iterator();
 		while(_g.current < _g.array.length) {
 			var propertyName = _g.array[_g.current++];
-			var propertyValue = this._thumbProperties.getProperty(propertyName);
+			propertyValue = this._thumbProperties.getProperty(propertyName);
 			Reflect.setProperty(this.thumb,propertyName,propertyValue);
 		}
 	}
@@ -20632,13 +20574,13 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 	,adjustPage: function() {
 		var range = this._maximum - this._minimum;
 		var adjustedPage = this._page;
-		var newValue;
 		if(adjustedPage == 0) {
 			adjustedPage = this._step;
 		}
 		if(adjustedPage > range) {
 			adjustedPage = range;
 		}
+		var newValue;
 		if(this._touchValue < this._pageStartValue) {
 			newValue = Math.max(this._touchValue,this._value - adjustedPage);
 			if(this._step != 0 && newValue != this._maximum && newValue != this._minimum) {
@@ -20647,12 +20589,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 					nearest = 1;
 				}
 				if(nearest != 0) {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					newValue = Math.floor(Math.round(decimalPlaces * (newValue / nearest)) / decimalPlaces) * nearest;
+					newValue = Math.floor(feathers_utils_math_MathUtils.roundToPrecision(newValue / nearest,10)) * nearest;
 				}
 			}
 			var value = newValue;
@@ -20671,18 +20608,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		} else if(this._touchValue > this._pageStartValue) {
 			newValue = Math.min(this._touchValue,this._value + adjustedPage);
 			if(this._step != 0 && newValue != this._maximum && newValue != this._minimum) {
-				var nearest = this._step;
-				if(nearest == null) {
-					nearest = 1;
-				}
-				if(nearest != 0) {
-					var precision = 10;
-					if(precision == null) {
-						precision = 0;
-					}
-					var decimalPlaces = Math.pow(10,precision);
-					newValue = Math.ceil(Math.round(decimalPlaces * (newValue / nearest)) / decimalPlaces) * nearest;
-				}
+				newValue = feathers_utils_math_MathUtils.roundUpToNearest(newValue,this._step);
 			}
 			var value = newValue;
 			var minimum = this._minimum;
@@ -20765,7 +20691,6 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 		}
 		var touch;
 		var location;
-		var newValue;
 		if(this._touchPointID >= 0) {
 			touch = event.getTouch(this.thumb,null,this._touchPointID);
 			if(touch == null) {
@@ -20773,7 +20698,7 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 			}
 			if(touch.get_phase() == "moved") {
 				location = touch.getLocation(this,starling_utils_Pool.getPoint());
-				newValue = this.locationToValue(location);
+				var newValue = this.locationToValue(location);
 				starling_utils_Pool.putPoint(location);
 				if(this._step != 0 && newValue != this._maximum && newValue != this._minimum) {
 					var nearest = this._step;
@@ -20781,18 +20706,8 @@ feathers_controls_SimpleScrollBar.prototype = $extend(feathers_core_FeathersCont
 						nearest = 1;
 					}
 					if(nearest != 0) {
-						var precision = 10;
-						if(precision == null) {
-							precision = 0;
-						}
-						var decimalPlaces = Math.pow(10,precision);
-						var roundedNumber = Math.round(Math.round(decimalPlaces * (newValue / nearest)) / decimalPlaces) * nearest;
-						var precision = 10;
-						if(precision == null) {
-							precision = 0;
-						}
-						var decimalPlaces = Math.pow(10,precision);
-						newValue = Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+						var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(newValue / nearest,10)) * nearest;
+						newValue = feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 					}
 				}
 				this.set_value(newValue);
@@ -20912,7 +20827,7 @@ feathers_controls_supportClasses_LayoutViewPort.prototype = $extend(feathers_con
 	}
 	,set_maxVisibleWidth: function(value) {
 		if(this._maxVisibleWidth == value) {
-			return this._maxVisibleWidth;
+			return value;
 		}
 		if(value != value) {
 			throw new openfl_errors_ArgumentError("maxVisibleWidth cannot be NaN");
@@ -21005,7 +20920,7 @@ feathers_controls_supportClasses_LayoutViewPort.prototype = $extend(feathers_con
 		if(this._actualVisibleHeight != value) {
 			this.invalidate("size");
 		}
-		return value;
+		return this._explicitVisibleHeight;
 	}
 	,_contentX: null
 	,get_contentX: function() {
@@ -21221,7 +21136,7 @@ feathers_controls_text_BaseTextRenderer.prototype = $extend(feathers_core_Feathe
 	}
 	,set_text: function(value) {
 		if(this._text == value) {
-			return this._text;
+			return value;
 		}
 		this._text = value;
 		this.invalidate("data");
@@ -21233,7 +21148,7 @@ feathers_controls_text_BaseTextRenderer.prototype = $extend(feathers_core_Feathe
 	}
 	,set_stateContext: function(value) {
 		if(this._stateContext == value) {
-			return this._stateContext;
+			return value;
 		}
 		if(this._stateContext != null) {
 			this._stateContext.removeEventListener("stateChange",$bind(this,this.stateContext_stateChangeHandler));
@@ -21251,7 +21166,7 @@ feathers_controls_text_BaseTextRenderer.prototype = $extend(feathers_core_Feathe
 	}
 	,set_wordWrap: function(value) {
 		if(this._wordWrap == value) {
-			return this._wordWrap;
+			return value;
 		}
 		this._wordWrap = value;
 		this.invalidate("styles");
@@ -21263,14 +21178,14 @@ feathers_controls_text_BaseTextRenderer.prototype = $extend(feathers_core_Feathe
 	}
 	,set_fontStyles: function(value) {
 		if(this._fontStyles == value) {
-			return this._fontStyles;
+			return value;
 		}
 		if(this._fontStyles != null) {
-			this._fontStyles.removeEventListener("change",$bind(this,this.fontStylesSet_changeHandler));
+			this._fontStyles.removeEventListener("change",$bind(this,this.fontStyleSet_changeHandler));
 		}
 		this._fontStyles = value;
 		if(this._fontStyles != null) {
-			this._fontStyles.addEventListener("change",$bind(this,this.fontStylesSet_changeHandler));
+			this._fontStyles.addEventListener("change",$bind(this,this.fontStyleSet_changeHandler));
 		}
 		this.invalidate("styles");
 		return this._fontStyles;
@@ -21283,7 +21198,7 @@ feathers_controls_text_BaseTextRenderer.prototype = $extend(feathers_core_Feathe
 	,stateContext_stateChangeHandler: function(event) {
 		this.invalidate("state");
 	}
-	,fontStylesSet_changeHandler: function(event) {
+	,fontStyleSet_changeHandler: function(event) {
 		this.invalidate("styles");
 	}
 	,__class__: feathers_controls_text_BaseTextRenderer
@@ -21299,9 +21214,9 @@ feathers_core_ITextRenderer.prototype = {
 	,set_text: null
 	,get_wordWrap: null
 	,set_wordWrap: null
+	,get_numLines: null
 	,get_fontStyles: null
 	,set_fontStyles: null
-	,get_numLines: null
 	,measureText: null
 	,__class__: feathers_core_ITextRenderer
 	,__properties__: {set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",get_numLines:"get_numLines",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_text:"set_text",get_text:"get_text"}
@@ -21397,7 +21312,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_textFormat: function(value) {
 		if(this._textFormat == value) {
-			return this._textFormat;
+			return value;
 		}
 		this._textFormat = value;
 		this.invalidate("styles");
@@ -21409,7 +21324,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_disabledTextFormat: function(value) {
 		if(this._disabledTextFormat == value) {
-			return this._disabledTextFormat;
+			return value;
 		}
 		this._disabledTextFormat = value;
 		this.invalidate("styles");
@@ -21421,7 +21336,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_selectedTextFormat: function(value) {
 		if(this._selectedTextFormat == value) {
-			return this._selectedTextFormat;
+			return value;
 		}
 		this._selectedTextFormat = value;
 		this.invalidate("styles");
@@ -21433,7 +21348,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_textureSmoothing: function(value) {
 		if(this._textureSmoothing == value) {
-			return this._textureSmoothing;
+			return value;
 		}
 		this._textureSmoothing = value;
 		this.invalidate("styles");
@@ -21445,7 +21360,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_pixelSnapping: function(value) {
 		if(this._pixelSnapping == value) {
-			return this._pixelSnapping;
+			return value;
 		}
 		this._pixelSnapping = value;
 		this.invalidate("styles");
@@ -21457,7 +21372,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_breakLongWords: function(value) {
 		if(this._breakLongWords == value) {
-			return this._breakLongWords;
+			return value;
 		}
 		this._breakLongWords = value;
 		this.invalidate("styles");
@@ -21469,7 +21384,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_truncateToFit: function(value) {
 		if(this._truncateToFit == value) {
-			return this._truncateToFit;
+			return value;
 		}
 		this._truncateToFit = value;
 		this.invalidate("data");
@@ -21481,7 +21396,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_truncationText: function(value) {
 		if(this._truncationText == value) {
-			return this._truncationText;
+			return value;
 		}
 		this._truncationText = value;
 		this.invalidate("data");
@@ -21493,7 +21408,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_useSeparateBatch: function(value) {
 		if(this._useSeparateBatch == value) {
-			return this._useSeparateBatch;
+			return value;
 		}
 		this._useSeparateBatch = value;
 		this.invalidate("styles");
@@ -21506,7 +21421,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	}
 	,set_style: function(value) {
 		if(this._style == value) {
-			return this._style;
+			return value;
 		}
 		this._style = value;
 		this.invalidate("styles");
@@ -21522,12 +21437,12 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 		if(fontSizeScale != fontSizeScale) {
 			fontSizeScale = 1;
 		}
-		var baseline = font.get_baseline();
-		this._compilerWorkaround = baseline;
-		if(baseline != baseline) {
+		var baseLine = font.get_baseline();
+		this._compilerWorkaround = baseLine;
+		if(baseLine != baseLine) {
 			return font.get_lineHeight() * fontSizeScale;
 		}
-		return baseline * fontSizeScale;
+		return baseLine * fontSizeScale;
 	}
 	,_image: null
 	,_compilerWorkaround: null
@@ -21543,7 +21458,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 		if(this._textFormatForState == null) {
 			return null;
 		}
-		return js_Boot.__cast(this._textFormatForState.h[state] , feathers_text_BitmapFontTextFormat);
+		return this._textFormatForState.h[state];
 	}
 	,setTextFormatForState: function(state,textFormat) {
 		if(textFormat != null) {
@@ -21650,17 +21565,18 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 		} else {
 			result.isTruncated = false;
 		}
-		feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER = [];
+		feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.length = 0;
 		var maxX = 0;
 		var currentX = 0;
 		var currentY = 0;
-		var previousCharID = NaN;
+		var previousCharID = -1;
 		var isWordComplete = false;
 		var startXOfPreviousWord = 0;
 		var widthOfWhitespaceAfterWord = 0;
 		var wordLength = 0;
 		var wordCountForLine = 0;
 		var charData = null;
+		var previousCharData;
 		var charCount = textToDraw != null ? textToDraw.length : 0;
 		var _g = 0;
 		var _g1 = charCount;
@@ -21683,7 +21599,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 				if(maxX < currentX) {
 					maxX = currentX;
 				}
-				previousCharID = NaN;
+				previousCharID = -1;
 				currentX = 0;
 				currentY += lineHeight;
 				startXOfPreviousWord = 0;
@@ -21695,24 +21611,23 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 			}
 			charData = font.getChar(charID);
 			if(charData == null) {
-				haxe_Log.trace("Missing character " + String.fromCodePoint(charID) + " in font " + font.get_name() + ".",{ fileName : "Source/feathers/controls/text/BitmapFontTextRenderer.hx", lineNumber : 922, className : "feathers.controls.text.BitmapFontTextRenderer", methodName : "layoutCharacters"});
+				haxe_Log.trace("Missing character " + String.fromCodePoint(charID) + " in font " + font.get_name() + ".",{ fileName : "Source/feathers/controls/text/BitmapFontTextRenderer.hx", lineNumber : 851, className : "feathers.controls.text.BitmapFontTextRenderer", methodName : "layoutCharacters"});
 				continue;
 			}
-			if(isKerningEnabled && previousCharID == previousCharID) {
-				currentX += charData.getKerning(previousCharID | 0) * scale;
+			if(isKerningEnabled && previousCharID != -1) {
+				currentX += charData.getKerning(previousCharID) * scale;
 			}
 			var xAdvance = charData.get_xAdvance() * scale;
-			var previousCharData;
 			if(this._wordWrap) {
-				var currentCharIsWhitespace = charID == 32 || charID == 9;
-				var previousCharIsWhitespace = previousCharID == 32 || previousCharID == 9;
-				if(currentCharIsWhitespace) {
-					if(!previousCharIsWhitespace) {
-						previousCharData = font.getChar(previousCharID | 0);
+				var currentCharIsWhiteSpace = charID == 32 || charID == 9;
+				var previousCharIsWhiteSpace = previousCharID == 32 || previousCharID == 9;
+				if(currentCharIsWhiteSpace) {
+					if(!previousCharIsWhiteSpace) {
+						previousCharData = font.getChar(previousCharID);
 						widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
 					}
 					widthOfWhitespaceAfterWord += xAdvance;
-				} else if(previousCharIsWhitespace) {
+				} else if(previousCharIsWhiteSpace) {
 					startXOfPreviousWord = currentX;
 					wordLength = 0;
 					++wordCountForLine;
@@ -21722,13 +21637,13 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 					this.addBufferToBatch(0);
 				}
 				var charWidth = charData.get_width() * scale;
-				if(!currentCharIsWhitespace && (wordCountForLine > 0 || this._breakLongWords) && currentX + charWidth - maxLineWidth > 0.000001) {
+				if(!currentCharIsWhiteSpace && (wordCountForLine > 0 || this._breakLongWords) && currentX + charWidth - maxLineWidth > 0.000001) {
 					if(wordCountForLine == 0) {
 						wordLength = 0;
 						startXOfPreviousWord = currentX;
 						widthOfWhitespaceAfterWord = 0;
-						if(previousCharID == previousCharID) {
-							previousCharData = font.getChar(previousCharID | 0);
+						if(previousCharID != -1) {
+							previousCharData = font.getChar(previousCharID);
 							widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
 						}
 						if(!isAligned) {
@@ -21745,7 +21660,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 					if(maxX < widthOfWhitespaceAfterWord) {
 						maxX = widthOfWhitespaceAfterWord;
 					}
-					previousCharID = NaN;
+					previousCharID = -1;
 					currentX -= startXOfPreviousWord;
 					currentY += lineHeight;
 					startXOfPreviousWord = 0;
@@ -21757,7 +21672,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 				}
 			}
 			if(this._wordWrap || isAligned) {
-				var charLocation = feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL.length > 0 ? feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL.shift() : new feathers_controls_text_CharLocation();
+				var charLocation = feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL.length != 0 ? feathers_controls_text_BitmapFontTextRenderer.CHAR_LOCATION_POOL.shift() : new feathers_controls_text_CharLocation();
 				charLocation.char = charData;
 				charLocation.x = currentX + offsetX + charData.get_xOffset() * scale;
 				charLocation.y = currentY + offsetY + charData.get_yOffset() * scale;
@@ -21811,20 +21726,23 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 	,trimBuffer: function(skipCount) {
 		var countToRemove = 0;
 		var charCount = feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.length - skipCount;
-		var i = charCount - 1;
-		while(i >= 0) {
+		var index = -1;
+		var _g_i = charCount - 1;
+		var _g_end = 0;
+		while(_g_i >= _g_end) {
+			var i = _g_i--;
 			var charLocation = feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER[i];
 			var charData = charLocation.char;
 			var charID = charData.get_charID();
 			if(charID == 32 || charID == 9) {
 				++countToRemove;
 			} else {
+				index = i;
 				break;
 			}
-			--i;
 		}
 		if(countToRemove > 0) {
-			feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.splice(i + 1,countToRemove);
+			feathers_controls_text_BitmapFontTextRenderer.CHARACTER_BUFFER.splice(index + 1,countToRemove);
 		}
 	}
 	,alignBuffer: function(maxLineWidth,currentLineWidth,skipCount) {
@@ -21901,9 +21819,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 		if(this._stateContext != null) {
 			if(this._textFormatForState != null) {
 				var currentState = this._stateContext.get_currentState();
-				if(Object.prototype.hasOwnProperty.call(this._textFormatForState.h,currentState)) {
-					textFormat = this._textFormatForState.h[currentState];
-				}
+				textFormat = this._textFormatForState.h[currentState];
 			}
 			if(textFormat == null && this._disabledTextFormat != null && js_Boot.__implements(this._stateContext,feathers_core_IFeathersControl) && !(js_Boot.__cast(this._stateContext , feathers_core_IFeathersControl)).get_isEnabled()) {
 				textFormat = this._disabledTextFormat;
@@ -21944,7 +21860,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 				this._fontStylesTextFormat.letterSpacing = textFormat.get_letterSpacing();
 				this._currentVerticalAlign = textFormat.get_verticalAlign();
 			} else if(this._fontStylesTextFormat == null) {
-				if(starling_text_TextField.getBitmapFont("mini") == null) {
+				if(starling_text_TextField.getBitmapFont("mini") != null) {
 					var font = new starling_text_BitmapFont();
 					starling_text_TextField.registerCompositor(font,font.get_name());
 				}
@@ -21988,10 +21904,11 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 		var maxX = 0;
 		var currentX = 0;
 		var currentY = 0;
-		var previousCharID = NaN;
+		var previousCharID = -1;
+		var previousCharData;
 		var charCount = this._text.length;
 		var startXOfPreviousWord = 0;
-		var widthOfWhitespaceAfterWord = 0;
+		var widthOfWhiteSpaceAfterWord = 0;
 		var wordCountForLine = 0;
 		var line = "";
 		var word = "";
@@ -22012,57 +21929,56 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 				if(maxX < currentX) {
 					maxX = currentX;
 				}
-				previousCharID = NaN;
+				previousCharID = -1;
 				currentX = 0;
 				currentY += lineHeight;
 				startXOfPreviousWord = 0;
 				wordCountForLine = 0;
-				widthOfWhitespaceAfterWord = 0;
+				widthOfWhiteSpaceAfterWord = 0;
 				continue;
 			}
 			charData = font.getChar(charID);
 			if(charData == null) {
-				haxe_Log.trace("Missing character " + String.fromCodePoint(charID) + " in font " + font.get_name() + ".",{ fileName : "Source/feathers/controls/text/BitmapFontTextRenderer.hx", lineNumber : 1334, className : "feathers.controls.text.BitmapFontTextRenderer", methodName : "measureTextInternal"});
+				haxe_Log.trace("Missing character " + String.fromCodePoint(charID) + " in font " + font.get_name() + ".",{ fileName : "Source/feathers/controls/text/BitmapFontTextRenderer.hx", lineNumber : 1341, className : "feathers.controls.text.BitmapFontTextRenderer", methodName : "measureTextInternal"});
 				continue;
 			}
-			if(isKerningEnabled && previousCharID == previousCharID) {
-				currentX += charData.getKerning(previousCharID | 0) * scale;
+			if(isKerningEnabled && previousCharID != -1) {
+				currentX += charData.getKerning(previousCharID) * scale;
 			}
 			var xAdvance = charData.get_xAdvance() * scale;
-			var previousCharData;
 			if(this._wordWrap) {
-				var currentCharIsWhitespace = charID == 32 || charID == 9;
-				var previousCharIsWhitespace = previousCharID == 32 || previousCharID == 9;
-				if(currentCharIsWhitespace) {
-					if(!previousCharIsWhitespace) {
-						previousCharData = font.getChar(previousCharID | 0);
-						widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
+				var currentCharIsWhiteSpace = charID == 32 || charID == 9;
+				var previousCharIsWhiteSpace = previousCharID == 32 || previousCharID == 9;
+				if(currentCharIsWhiteSpace) {
+					if(!previousCharIsWhiteSpace) {
+						previousCharData = font.getChar(previousCharID);
+						widthOfWhiteSpaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
 					}
-					widthOfWhitespaceAfterWord += xAdvance;
-				} else if(previousCharIsWhitespace) {
+					widthOfWhiteSpaceAfterWord += xAdvance;
+				} else if(previousCharIsWhiteSpace) {
 					startXOfPreviousWord = currentX;
 					++wordCountForLine;
 					line += word;
 					word = "";
 				}
 				var charWidth = charData.get_width() * scale;
-				if(!currentCharIsWhitespace && (wordCountForLine > 0 || this._breakLongWords) && currentX + charWidth > maxLineWidth) {
+				if(!currentCharIsWhiteSpace && (wordCountForLine > 0 || this._breakLongWords) && currentX + charWidth > maxLineWidth) {
 					if(wordCountForLine == 0) {
 						startXOfPreviousWord = currentX;
-						if(previousCharID == previousCharID) {
-							previousCharData = font.getChar(previousCharID | 0);
-							widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
+						if(previousCharID != -1) {
+							previousCharData = font.getChar(previousCharID);
+							widthOfWhiteSpaceAfterWord = customLetterSpacing + (previousCharData.get_xAdvance() - previousCharData.get_width()) * scale;
 						}
 					}
-					widthOfWhitespaceAfterWord = startXOfPreviousWord - widthOfWhitespaceAfterWord;
-					if(maxX < widthOfWhitespaceAfterWord) {
-						maxX = widthOfWhitespaceAfterWord;
+					widthOfWhiteSpaceAfterWord = startXOfPreviousWord - widthOfWhiteSpaceAfterWord;
+					if(maxX < widthOfWhiteSpaceAfterWord) {
+						maxX = widthOfWhiteSpaceAfterWord;
 					}
-					previousCharID = NaN;
+					previousCharID = -1;
 					currentX -= startXOfPreviousWord;
 					currentY += lineHeight;
 					startXOfPreviousWord = 0;
-					widthOfWhitespaceAfterWord = 0;
+					widthOfWhiteSpaceAfterWord = 0;
 					wordCountForLine = 0;
 					line = "";
 				}
@@ -22096,7 +22012,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 			result.x = this._explicitWidth;
 		}
 		if(needsHeight) {
-			result.y = currentY + lineHeight - this._currentTextFormat.leading;
+			result.y = currentY + lineHeight - this.get_currentTextFormat().leading;
 		} else {
 			result.y = this._explicitHeight;
 		}
@@ -22106,7 +22022,7 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 		if(this._text == null) {
 			return "";
 		}
-		if(width == Infinity || this._wordWrap || this._text.indexOf("\n") >= 0 || this._text.indexOf("\r") >= 0) {
+		if(width == Infinity || this._wordWrap || this._text.indexOf("\n") != -1 || this._text.indexOf("\r") != -1) {
 			return this._text;
 		}
 		var font = this._currentTextFormat.font;
@@ -22118,14 +22034,12 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 			scale = 1;
 		}
 		var currentX = 0;
-		var previousCharID = NaN;
-		var charCount = this._text.length;
-		var truncationIndex = -1;
 		var charID;
 		var charData = null;
-		var charWidth;
+		var previousCharID = -1;
 		var currentKerning;
-		var difference;
+		var charCount = this._text.length;
+		var truncationIndex = -1;
 		var _g = 0;
 		var _g1 = charCount;
 		while(_g < _g1) {
@@ -22136,13 +22050,13 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 				continue;
 			}
 			currentKerning = 0;
-			if(isKerningEnabled && previousCharID == previousCharID) {
-				currentKerning = charData.getKerning(previousCharID | 0) * scale;
+			if(isKerningEnabled && previousCharID != -1) {
+				currentKerning = charData.getKerning(previousCharID) * scale;
 			}
-			charWidth = charData.get_width() * scale;
+			var charWidth = charData.get_width() * scale;
 			currentX += currentKerning + charWidth;
 			if(currentX > width) {
-				difference = Math.abs(currentX - width);
+				var difference = Math.abs(currentX - width);
 				if(difference > 0.000001) {
 					truncationIndex = i;
 					currentX += charData.get_xAdvance() * scale - charWidth;
@@ -22164,8 +22078,8 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 					continue;
 				}
 				currentKerning = 0;
-				if(isKerningEnabled && previousCharID == previousCharID) {
-					currentKerning = charData.getKerning(previousCharID | 0) * scale;
+				if(isKerningEnabled && previousCharID != -1) {
+					currentKerning = charData.getKerning(previousCharID) * scale;
 				}
 				currentX += currentKerning + charData.get_xAdvance() * scale + customLetterSpacing;
 				previousCharID = charID;
@@ -22174,23 +22088,24 @@ feathers_controls_text_BitmapFontTextRenderer.prototype = $extend(feathers_contr
 			if(charData != null) {
 				currentX -= (charData.get_xAdvance() - charData.get_width()) * scale;
 			}
-			var i = truncationIndex;
-			while(i >= 0) {
+			var _g4_i = truncationIndex;
+			var _g4_end = 0;
+			while(_g4_i >= _g4_end) {
+				var i = _g4_i--;
 				charID = HxOverrides.cca(this._text,i);
-				previousCharID = i > 0 ? HxOverrides.cca(this._text,i - 1) : NaN;
+				previousCharID = i > 0 ? HxOverrides.cca(this._text,i - 1) : -1;
 				charData = font.getChar(charID);
 				if(charData == null) {
 					continue;
 				}
 				currentKerning = 0;
-				if(isKerningEnabled && previousCharID == previousCharID) {
-					currentKerning = charData.getKerning(previousCharID | 0) * scale;
+				if(isKerningEnabled && previousCharID != -1) {
+					currentKerning = charData.getKerning(previousCharID) * scale;
 				}
 				currentX -= currentKerning + charData.get_xAdvance() * scale + customLetterSpacing;
 				if(currentX <= width) {
 					return HxOverrides.substr(this._text,0,i) + this._truncationText;
 				}
-				--i;
 			}
 			return this._truncationText;
 		}
@@ -22247,7 +22162,7 @@ feathers_core_BaseTextEditor.prototype = $extend(feathers_core_FeathersControl.p
 			value = "";
 		}
 		if(this._text == value) {
-			return this._text;
+			return value;
 		}
 		this._text = value;
 		this.invalidate("data");
@@ -22260,7 +22175,7 @@ feathers_core_BaseTextEditor.prototype = $extend(feathers_core_FeathersControl.p
 	}
 	,set_stateContext: function(value) {
 		if(this._stateContext == value) {
-			return this._stateContext;
+			return value;
 		}
 		if(this._stateContext != null) {
 			this._stateContext.removeEventListener("stateChange",$bind(this,this.stateContext_stateChangeHandler));
@@ -22278,7 +22193,7 @@ feathers_core_BaseTextEditor.prototype = $extend(feathers_core_FeathersControl.p
 	}
 	,set_fontStyles: function(value) {
 		if(this._fontStyles == value) {
-			return this._fontStyles;
+			return value;
 		}
 		if(this._fontStyles != null) {
 			this._fontStyles.removeEventListener("change",$bind(this,this.fontStylesSet_changeHandler));
@@ -22336,156 +22251,181 @@ feathers_core_ITextEditor.prototype = {
 	,get_selectionBeginIndex: null
 	,get_selectionEndIndex: null
 	,get_fontStyles: null
+	,set_fontStyles: null
 	,setFocus: null
 	,clearFocus: null
 	,selectRange: null
 	,measureText: null
 	,__class__: feathers_core_ITextEditor
-	,__properties__: {get_fontStyles:"get_fontStyles",get_selectionEndIndex:"get_selectionEndIndex",get_selectionBeginIndex:"get_selectionBeginIndex",get_setTouchFocusOnEndedPhase:"get_setTouchFocusOnEndedPhase",set_isSelectable:"set_isSelectable",get_isSelectable:"get_isSelectable",set_isEditable:"set_isEditable",get_isEditable:"get_isEditable",set_restrict:"set_restrict",get_restrict:"get_restrict",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_text:"set_text",get_text:"get_text"}
+	,__properties__: {set_fontStyles:"set_fontStyles",get_fontStyles:"get_fontStyles",get_selectionEndIndex:"get_selectionEndIndex",get_selectionBeginIndex:"get_selectionBeginIndex",get_setTouchFocusOnEndedPhase:"get_setTouchFocusOnEndedPhase",set_isSelectable:"set_isSelectable",get_isSelectable:"get_isSelectable",set_isEditable:"set_isEditable",get_isEditable:"get_isEditable",set_restrict:"set_restrict",get_restrict:"get_restrict",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_text:"set_text",get_text:"get_text"}
 };
-var feathers_core_IMultilineTextEditor = function() { };
-$hxClasses["feathers.core.IMultilineTextEditor"] = feathers_core_IMultilineTextEditor;
-feathers_core_IMultilineTextEditor.__name__ = "feathers.core.IMultilineTextEditor";
-feathers_core_IMultilineTextEditor.__isInterface__ = true;
-feathers_core_IMultilineTextEditor.__interfaces__ = [feathers_core_ITextEditor];
-feathers_core_IMultilineTextEditor.prototype = {
-	get_multiline: null
-	,set_multiline: null
-	,__class__: feathers_core_IMultilineTextEditor
-	,__properties__: {set_multiline:"set_multiline",get_multiline:"get_multiline"}
-};
-var feathers_controls_text_StageTextTextEditor = function() {
-	this._clearButtonMode = "whileEditing";
+var feathers_controls_text_TextFieldTextEditor = function() {
+	this._resetScrollOnFocusOut = true;
+	this._softKeyboard = "default";
+	this._useSnapshotDelayWorkaround = false;
 	this._updateSnapshotOnScaleChange = false;
-	this._lastGlobalScaleY = 0;
-	this._lastGlobalScaleX = 0;
-	this._maintainTouchFocus = false;
-	this._softKeyboardType = "default";
-	this._returnKeyLabel = "default";
-	this._multiline = false;
-	this._maxChars = 0;
-	this._locale = "en";
-	this._fontSize = 12;
-	this._fontFamily = null;
-	this._isSelectable = true;
-	this._isEditable = true;
-	this._displayAsPassword = false;
-	this._disabledColor = 10066329;
-	this._color = -1;
-	this._autoCorrect = false;
-	this._autoCapitalize = "none";
-	this._stageTextIsComplete = false;
 	this._pendingSelectionEndIndex = -1;
 	this._pendingSelectionBeginIndex = -1;
 	this._isWaitingToSetFocus = false;
-	this._stageTextHasFocus = false;
-	this._stageTextIsTextField = false;
-	this._ignoreStageTextChanges = false;
-	this._needsTextureUpdate = false;
+	this._textFieldHasFocus = false;
+	this._useGutter = false;
+	this._borderColor = 0;
+	this._border = false;
+	this._backgroundColor = 16777215;
+	this._background = false;
+	this._thickness = 0;
+	this._sharpness = 0;
+	this._gridFitType = openfl_text_GridFitType.toString(1);
+	this._antiAliasType = openfl_text_AntiAliasType.toString(0);
+	this._isSelectable = true;
+	this._isEditable = false;
+	this._maxChars = 0;
+	this._displayAsPassword = false;
+	this._alwaysShowSelection = false;
+	this._isHTML = false;
+	this._multiline = false;
+	this._wordWrap = false;
+	this._embedFonts = false;
 	this._needsNewTexture = false;
+	this._needsTextureUpdate = false;
+	this._lastGlobalScaleY = 0;
+	this._lastGlobalScaleX = 0;
+	this._textFieldOffsetY = 0;
+	this._textFieldOffsetX = 0;
+	this._textFieldSnapshotClipRect = new openfl_geom_Rectangle();
+	this._snapshotHeight = 0;
+	this._snapshotWidth = 0;
 	feathers_core_BaseTextEditor.call(this);
-	this._stageTextIsTextField = true;
 	this.set_isQuickHitAreaEnabled(true);
+	this.addEventListener("addedToStage",$bind(this,this.textEditor_addedToStageHandler));
 	this.addEventListener("removedFromStage",$bind(this,this.textEditor_removedFromStageHandler));
 };
-$hxClasses["feathers.controls.text.StageTextTextEditor"] = feathers_controls_text_StageTextTextEditor;
-feathers_controls_text_StageTextTextEditor.__name__ = "feathers.controls.text.StageTextTextEditor";
-feathers_controls_text_StageTextTextEditor.__interfaces__ = [feathers_core_INativeFocusOwner,feathers_core_IMultilineTextEditor];
-feathers_controls_text_StageTextTextEditor.globalStyleProvider = null;
-feathers_controls_text_StageTextTextEditor.__super__ = feathers_core_BaseTextEditor;
-feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_BaseTextEditor.prototype,{
+$hxClasses["feathers.controls.text.TextFieldTextEditor"] = feathers_controls_text_TextFieldTextEditor;
+feathers_controls_text_TextFieldTextEditor.__name__ = "feathers.controls.text.TextFieldTextEditor";
+feathers_controls_text_TextFieldTextEditor.__interfaces__ = [feathers_core_INativeFocusOwner,feathers_core_ITextEditor];
+feathers_controls_text_TextFieldTextEditor.globalStyleProvider = null;
+feathers_controls_text_TextFieldTextEditor.__super__ = feathers_core_BaseTextEditor;
+feathers_controls_text_TextFieldTextEditor.prototype = $extend(feathers_core_BaseTextEditor.prototype,{
 	get_defaultStyleProvider: function() {
-		return feathers_controls_text_StageTextTextEditor.globalStyleProvider;
+		return feathers_controls_text_TextFieldTextEditor.globalStyleProvider;
 	}
-	,stageText: null
+	,textField: null
 	,get_nativeFocus: function() {
-		if(!this._isEditable) {
-			return null;
-		}
-		return this.stageText;
+		return this.textField;
 	}
 	,textSnapshot: null
-	,_needsNewTexture: null
+	,measureTextField: null
+	,_snapshotWidth: null
+	,_snapshotHeight: null
+	,_textFieldSnapshotClipRect: null
+	,_textFieldOffsetX: null
+	,_textFieldOffsetY: null
+	,_lastGlobalScaleX: null
+	,_lastGlobalScaleY: null
 	,_needsTextureUpdate: null
-	,_ignoreStageTextChanges: null
-	,_measureTextField: null
-	,_stageTextIsTextField: null
-	,_stageTextHasFocus: null
-	,_isWaitingToSetFocus: null
-	,_pendingSelectionBeginIndex: null
-	,get_selectionBeginIndex: function() {
-		if(this._pendingSelectionBeginIndex >= 0) {
-			return this._pendingSelectionBeginIndex;
-		}
-		if(this.stageText) {
-			return this.stageText.selectionAnchorIndex;
-		}
-		return 0;
-	}
-	,_pendingSelectionEndIndex: null
-	,get_selectionEndIndex: function() {
-		if(this._pendingSelectionEndIndex >= 0) {
-			return this._pendingSelectionEndIndex;
-		}
-		if(this.stageText) {
-			return this.stageText.selectionActiveIndex;
-		}
-		return 0;
-	}
-	,_stageTextIsComplete: null
+	,_needsNewTexture: null
 	,get_baseline: function() {
-		if(this._measureTextField == null) {
+		if(this.textField == null) {
 			return 0;
 		}
-		return this._measureTextField.getLineMetrics(0).ascent;
-	}
-	,_autoCapitalize: null
-	,get_autoCapitalize: function() {
-		return this._autoCapitalize;
-	}
-	,set_autoCapitalize: function(value) {
-		if(this._autoCapitalize == value) {
-			return this._autoCapitalize;
+		var gutterDimensionsOffset = 0;
+		if(this._useGutter || this._border) {
+			gutterDimensionsOffset = 2;
 		}
-		this._autoCapitalize = value;
-		this.invalidate("styles");
-		return this._autoCapitalize;
+		return gutterDimensionsOffset + this.textField.getLineMetrics(0).ascent;
 	}
-	,_autoCorrect: null
-	,get_autoCorrect: function() {
-		return this._autoCorrect;
+	,_previousStarlingTextFormat: null
+	,_currentStarlingTextFormat: null
+	,_previousTextFormat: null
+	,_currentTextFormat: null
+	,get_currentTextFormat: function() {
+		return this._currentTextFormat;
 	}
-	,set_autoCorrect: function(value) {
-		if(this._autoCorrect == value) {
-			return this._autoCorrect;
+	,_textFormatForState: null
+	,_fontStylesTextFormat: null
+	,_textFormat: null
+	,get_textFormat: function() {
+		return this._textFormat;
+	}
+	,set_textFormat: function(value) {
+		if(this._textFormat == value) {
+			return value;
 		}
-		this._autoCorrect = value;
+		this._textFormat = value;
 		this.invalidate("styles");
-		return this._autoCorrect;
+		return this._textFormat;
 	}
-	,_color: null
-	,get_color: function() {
-		return this._color;
+	,_disabledTextFormat: null
+	,get_disabledTextFormat: function() {
+		return this._disabledTextFormat;
 	}
-	,set_color: function(value) {
-		if(this._color == value) {
-			return this._color;
+	,set_disabledTextFormat: function(value) {
+		if(this._disabledTextFormat == value) {
+			return value;
 		}
-		this._color = value;
+		this._disabledTextFormat = value;
 		this.invalidate("styles");
-		return this._color;
+		return this._disabledTextFormat;
 	}
-	,_disabledColor: null
-	,get_disabledColor: function() {
-		return this._disabledColor;
+	,_embedFonts: null
+	,get_embedFonts: function() {
+		return this._embedFonts;
 	}
-	,set_disabledColor: function(value) {
-		if(this._disabledColor == value) {
-			return this._disabledColor;
+	,set_embedFonts: function(value) {
+		if(this._embedFonts == value) {
+			return value;
 		}
-		this._disabledColor = value;
+		this._embedFonts = value;
 		this.invalidate("styles");
-		return this._disabledColor;
+		return this._embedFonts;
+	}
+	,_wordWrap: null
+	,get_wordWrap: function() {
+		return this._wordWrap;
+	}
+	,set_wordWrap: function(value) {
+		if(this._wordWrap == value) {
+			return value;
+		}
+		this._wordWrap = value;
+		this.invalidate("styles");
+		return this._wordWrap;
+	}
+	,_multiline: null
+	,get_multiline: function() {
+		return this._multiline;
+	}
+	,set_multiline: function(value) {
+		if(this._multiline == value) {
+			return value;
+		}
+		this._multiline = value;
+		this.invalidate("styles");
+		return this._multiline;
+	}
+	,_isHTML: null
+	,get_isHTML: function() {
+		return this._isHTML;
+	}
+	,set_isHTML: function(value) {
+		if(this._isHTML == value) {
+			return value;
+		}
+		this._isHTML = value;
+		this.invalidate("data");
+		return this._isHTML;
+	}
+	,_alwaysShowSelection: null
+	,get_alwaysShowSelection: function() {
+		return this._alwaysShowSelection;
+	}
+	,set_alwaysShowSelection: function(value) {
+		if(this._alwaysShowSelection == value) {
+			return value;
+		}
+		this._alwaysShowSelection = value;
+		this.invalidate("styles");
+		return this._alwaysShowSelection;
 	}
 	,_displayAsPassword: null
 	,get_displayAsPassword: function() {
@@ -22493,11 +22433,35 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 	}
 	,set_displayAsPassword: function(value) {
 		if(this._displayAsPassword == value) {
-			return this._displayAsPassword;
+			return value;
 		}
 		this._displayAsPassword = value;
 		this.invalidate("styles");
 		return this._displayAsPassword;
+	}
+	,_maxChars: null
+	,get_maxChars: function() {
+		return this._maxChars;
+	}
+	,set_maxChars: function(value) {
+		if(this._maxChars == value) {
+			return value;
+		}
+		this._maxChars = value;
+		this.invalidate("styles");
+		return this._maxChars;
+	}
+	,_restrict: null
+	,get_restrict: function() {
+		return this._restrict;
+	}
+	,set_restrict: function(value) {
+		if(this._restrict == value) {
+			return value;
+		}
+		this._restrict = value;
+		this.invalidate("styles");
+		return this._restrict;
 	}
 	,_isEditable: null
 	,get_isEditable: function() {
@@ -22505,7 +22469,7 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 	}
 	,set_isEditable: function(value) {
 		if(this._isEditable == value) {
-			return this._isEditable;
+			return value;
 		}
 		this._isEditable = value;
 		this.invalidate("styles");
@@ -22517,181 +22481,234 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 	}
 	,set_isSelectable: function(value) {
 		if(this._isSelectable == value) {
-			return this._isSelectable;
+			return value;
 		}
 		this._isSelectable = value;
 		this.invalidate("styles");
 		return this._isSelectable;
 	}
+	,_antiAliasType: null
+	,get_antiAliasType: function() {
+		return this._antiAliasType;
+	}
+	,set_antiAliasType: function(value) {
+		if(this._antiAliasType == value) {
+			return value;
+		}
+		this._antiAliasType = value;
+		this.invalidate("styles");
+		return this._antiAliasType;
+	}
+	,_gridFitType: null
+	,get_gridFitType: function() {
+		return this._gridFitType;
+	}
+	,set_gridFitType: function(value) {
+		if(this._gridFitType == value) {
+			return value;
+		}
+		this._gridFitType = value;
+		this.invalidate("styles");
+		return this._gridFitType;
+	}
+	,_sharpness: null
+	,get_sharpness: function() {
+		return this._sharpness;
+	}
+	,set_sharpness: function(value) {
+		if(this._sharpness == value) {
+			return value;
+		}
+		this._sharpness = value;
+		this.invalidate("data");
+		return this._sharpness;
+	}
+	,_thickness: null
+	,get_thickness: function() {
+		return this._thickness;
+	}
+	,set_thickness: function(value) {
+		if(this._thickness == value) {
+			return value;
+		}
+		this._thickness = value;
+		this.invalidate("styles");
+		return this._sharpness;
+	}
+	,_background: null
+	,get_background: function() {
+		return this._background;
+	}
+	,set_background: function(value) {
+		if(this._background == value) {
+			return value;
+		}
+		this._background = value;
+		this.invalidate("styles");
+		return this._background;
+	}
+	,_backgroundColor: null
+	,get_backgroundColor: function() {
+		return this._backgroundColor;
+	}
+	,set_backgroundColor: function(value) {
+		if(this._backgroundColor == value) {
+			return value;
+		}
+		this._backgroundColor = value;
+		this.invalidate("styles");
+		return this._backgroundColor;
+	}
+	,_border: null
+	,get_border: function() {
+		return this._border;
+	}
+	,set_border: function(value) {
+		if(this._border == value) {
+			return value;
+		}
+		this._border = value;
+		this.invalidate("styles");
+		return this._border;
+	}
+	,_borderColor: null
+	,get_borderColor: function() {
+		return this._borderColor;
+	}
+	,set_borderColor: function(value) {
+		if(this._borderColor == value) {
+			return value;
+		}
+		this._borderColor = value;
+		this.invalidate("styles");
+		return this._borderColor;
+	}
+	,_useGutter: null
+	,get_useGutter: function() {
+		if(!this._useGutter) {
+			return this._border;
+		} else {
+			return true;
+		}
+	}
+	,set_useGutter: function(value) {
+		if(this._useGutter == value) {
+			return value;
+		}
+		this._useGutter = value;
+		this.invalidate("styles");
+		return this._useGutter;
+	}
 	,get_setTouchFocusOnEndedPhase: function() {
-		return true;
+		return false;
 	}
-	,_fontFamily: null
-	,get_fontFamily: function() {
-		return this._fontFamily;
-	}
-	,set_fontFamily: function(value) {
-		if(this._fontFamily == value) {
-			return this._fontFamily;
+	,_textFieldHasFocus: null
+	,_isWaitingToSetFocus: null
+	,_pendingSelectionBeginIndex: null
+	,get_selectionBeginIndex: function() {
+		if(this._pendingSelectionBeginIndex >= 0) {
+			return this._pendingSelectionBeginIndex;
 		}
-		this._fontFamily = value;
-		this.invalidate("styles");
-		return this._fontFamily;
-	}
-	,_fontSize: null
-	,get_fontSize: function() {
-		return this._fontSize;
-	}
-	,set_fontSize: function(value) {
-		if(this._fontSize == value) {
-			return this._fontSize;
+		if(this.textField != null) {
+			return this.textField.get_selectionBeginIndex();
 		}
-		this._fontSize = value;
-		this.invalidate("styles");
-		return this._fontSize;
+		return 0;
 	}
-	,_locale: null
-	,get_locale: function() {
-		return this._locale;
-	}
-	,set_locale: function(value) {
-		if(this._locale == value) {
-			return this._locale;
+	,_pendingSelectionEndIndex: null
+	,get_selectionEndIndex: function() {
+		if(this._pendingSelectionEndIndex >= 0) {
+			return this._pendingSelectionEndIndex;
 		}
-		this._locale = value;
-		this.invalidate("styles");
-		return this._locale;
-	}
-	,_maxChars: null
-	,get_maxChars: function() {
-		return this._maxChars;
-	}
-	,set_maxChars: function(value) {
-		if(this._maxChars == value) {
-			return this._maxChars;
+		if(this.textField != null) {
+			return this.textField.get_selectionEndIndex();
 		}
-		this._maxChars = value;
-		this.invalidate("styles");
-		return this._maxChars;
-	}
-	,_multiline: null
-	,get_multiline: function() {
-		return this._multiline;
-	}
-	,set_multiline: function(value) {
-		if(this._multiline == value) {
-			return this._multiline;
-		}
-		this._multiline = value;
-		this.invalidate("styles");
-		return this._multiline;
-	}
-	,_restrict_: null
-	,get_restrict: function() {
-		return this._restrict_;
-	}
-	,set_restrict: function(value) {
-		if(this._restrict_ == value) {
-			return this._restrict_;
-		}
-		this._restrict_ = value;
-		this.invalidate("styles");
-		return this._restrict_;
-	}
-	,_returnKeyLabel: null
-	,get_returnKeyLabel: function() {
-		return this._returnKeyLabel;
-	}
-	,set_returnKeyLabel: function(value) {
-		if(this._returnKeyLabel == value) {
-			return this._returnKeyLabel;
-		}
-		this._returnKeyLabel = value;
-		this.invalidate("styles");
-		return this._returnKeyLabel;
-	}
-	,_softKeyboardType: null
-	,get_softKeyboardType: function() {
-		return this._softKeyboardType;
-	}
-	,set_softKeyboardType: function(value) {
-		if(this._softKeyboardType == value) {
-			return this._softKeyboardType;
-		}
-		this._softKeyboardType = value;
-		this.invalidate("styles");
-		return this._softKeyboardType;
-	}
-	,_textAlign: null
-	,get_textAlign: function() {
-		return this._textAlign;
-	}
-	,set_textAlign: function(value) {
-		if(this._textAlign == value) {
-			return this._textAlign;
-		}
-		this._textAlign = value;
-		this.invalidate("styles");
-		return this._textAlign;
+		return 0;
 	}
 	,_maintainTouchFocus: null
 	,get_maintainTouchFocus: function() {
 		return this._maintainTouchFocus;
 	}
 	,set_maintainTouchFocus: function(value) {
-		this._maintainTouchFocus = value;
-		return this._maintainTouchFocus;
+		return this._maintainTouchFocus = value;
 	}
-	,_lastGlobalScaleX: null
-	,_lastGlobalScaleY: null
 	,_updateSnapshotOnScaleChange: null
 	,get_updateSnapshotOnScaleChange: function() {
 		return this._updateSnapshotOnScaleChange;
 	}
 	,set_updateSnapshotOnScaleChange: function(value) {
 		if(this._updateSnapshotOnScaleChange == value) {
-			return this.get_updateSnapshotOnScaleChange();
+			return value;
 		}
 		this._updateSnapshotOnScaleChange = value;
 		this.invalidate("data");
-		return this.get_updateSnapshotOnScaleChange();
+		return this._updateSnapshotOnScaleChange;
 	}
-	,_clearButtonMode: null
-	,get_clearButtonMode: function() {
-		return this._clearButtonMode;
+	,_useSnapshotDelayWorkaround: null
+	,get_useSnapshotDelayWorkaround: function() {
+		return this._useSnapshotDelayWorkaround;
 	}
-	,set_clearButtonMode: function(value) {
-		if(this._clearButtonMode == value) {
-			return this._clearButtonMode;
+	,set_useSnapshotDelayWorkaround: function(value) {
+		if(this._useSnapshotDelayWorkaround == value) {
+			return value;
 		}
-		this._clearButtonMode = value;
+		this._useSnapshotDelayWorkaround = value;
+		this.invalidate("data");
+		return this._useSnapshotDelayWorkaround;
+	}
+	,_softKeyboard: null
+	,get_softKeyboard: function() {
+		return this._softKeyboard;
+	}
+	,set_softKeyboard: function(value) {
+		if(this._softKeyboard == value) {
+			return value;
+		}
+		this._softKeyboard = value;
 		this.invalidate("styles");
-		return this._clearButtonMode;
+		return this._softKeyboard;
+	}
+	,_resetScrollOnFocusOut: null
+	,get_resetScrollOnFocusOut: function() {
+		return this._resetScrollOnFocusOut;
+	}
+	,set_resetScrollOnFocusOut: function(value) {
+		return this._resetScrollOnFocusOut = value;
 	}
 	,dispose: function() {
-		if(this._measureTextField != null) {
-			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
-			starling.get_nativeStage().removeChild(this._measureTextField);
-			this._measureTextField = null;
-		}
-		if(this.stageText) {
-			this.disposeStageText();
-		}
 		if(this.textSnapshot != null) {
 			this.textSnapshot.get_texture().dispose();
 			this.removeChild(this.textSnapshot,true);
 			this.textSnapshot = null;
 		}
+		if(this.textField != null) {
+			if(this.textField.parent != null) {
+				this.textField.parent.removeChild(this.textField);
+			}
+			this.textField.removeEventListener("change",$bind(this,this.textField_changeHandler));
+			this.textField.removeEventListener("focusIn",$bind(this,this.textField_focusInHandler));
+			this.textField.removeEventListener("focusOut",$bind(this,this.textField_focusOutHandler));
+			this.textField.removeEventListener("keyDown",$bind(this,this.textField_keyDownHandler));
+		}
+		this.textField = null;
+		this.measureTextField = null;
+		this.set_stateContext(null);
 		feathers_core_BaseTextEditor.prototype.dispose.call(this);
 	}
 	,render: function(painter) {
-		if(this._stageTextHasFocus) {
-			painter.excludeFromCache(this);
-		}
 		if(this.textSnapshot != null && this._updateSnapshotOnScaleChange) {
 			var matrix = starling_utils_Pool.getMatrix();
 			this.getTransformationMatrix(this.get_stage(),matrix);
-			if(feathers_utils_geom_FeathersGeomUtils.matrixToScaleX(matrix) != this._lastGlobalScaleX || feathers_utils_geom_FeathersGeomUtils.matrixToScaleY(matrix) != this._lastGlobalScaleY) {
+			var tmp;
+			var a = matrix.a;
+			var b = matrix.b;
+			if(Math.sqrt(a * a + b * b) == this._lastGlobalScaleX) {
+				var c = matrix.c;
+				var d = matrix.d;
+				tmp = Math.sqrt(c * c + d * d) != this._lastGlobalScaleY;
+			} else {
+				tmp = true;
+			}
+			if(tmp) {
 				this.invalidate("size");
 				this.validate();
 			}
@@ -22699,104 +22716,119 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 		}
 		if(this._needsTextureUpdate) {
 			this._needsTextureUpdate = false;
-			var hasText = this._text.length > 0;
-			if(hasText) {
+			if(this._useSnapshotDelayWorkaround) {
+				this.addEventListener("enterFrame",$bind(this,this.refreshSnapshot_enterFrameHandler));
+			} else {
 				this.refreshSnapshot();
 			}
-			if(this.textSnapshot != null) {
-				this.textSnapshot.set_visible(!this._stageTextHasFocus);
-				this.textSnapshot.set_alpha(hasText ? 1 : 0);
-			}
-			if(!this._stageTextHasFocus) {
-				this.stageText.visible = false;
-			}
-		}
-		if(this.stageText != null && this.stageText.visible) {
-			this.refreshViewPortAndFontSize();
-		}
-		if(this.textSnapshot != null) {
 			this.positionSnapshot();
+		}
+		if(this.textField != null && this.textField.get_visible()) {
+			this.transformTextField();
 		}
 		feathers_core_BaseTextEditor.prototype.render.call(this,painter);
 	}
 	,setFocus: function(position) {
-		if(!this._isEditable && starling_utils_SystemUtil.get_platform() == "AND") {
-			return;
-		}
-		if(!this._isEditable && !this._isSelectable) {
-			return;
-		}
-		if(this.get_stage() != null && this.stageText.stage == null) {
+		if(this.textField != null) {
 			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
-			this.stageText.stage = starling.get_nativeStage();
-		}
-		if(this.stageText && this._stageTextIsComplete) {
+			if(this.textField.parent == null) {
+				starling.get_nativeStage().addChild(this.textField);
+			}
 			if(position != null) {
-				var positionX = position.x + 2;
-				var positionY = position.y + 2;
-				if(positionX < 0) {
-					this._pendingSelectionBeginIndex = this._pendingSelectionEndIndex = 0;
+				var nativeScaleFactor = 1;
+				if(starling.get_supportHighResolutions()) {
+					nativeScaleFactor = starling.get_nativeStage().get_contentsScaleFactor();
+				}
+				var scaleFactor = starling.get_contentScaleFactor() / nativeScaleFactor;
+				var scaleX = this.textField.get_scaleX();
+				var scaleY = this.textField.get_scaleY();
+				var gutterPositionOffset = 2;
+				if(this._useGutter || this._border) {
+					gutterPositionOffset = 0;
+				}
+				var positionX = position.x + gutterPositionOffset;
+				var positionY = position.y + gutterPositionOffset;
+				if(positionX < gutterPositionOffset) {
+					positionX = gutterPositionOffset;
 				} else {
-					this._pendingSelectionBeginIndex = this._measureTextField.getCharIndexAtPoint(positionX,positionY);
-					if(this._pendingSelectionBeginIndex < 0) {
-						if(this._multiline) {
-							var lineIndex = positionY / this._measureTextField.getLineMetrics(0).height | 0;
-							try {
-								this._pendingSelectionBeginIndex = this._measureTextField.getLineOffset(lineIndex) + this._measureTextField.getLineLength(lineIndex);
-								if(this._pendingSelectionBeginIndex != this._text.length) {
-									this._pendingSelectionBeginIndex--;
-								}
-							} catch( _g ) {
-								if(((haxe_Exception.caught(_g)) instanceof openfl_errors_Error)) {
-									this._pendingSelectionBeginIndex = this._text.length;
-								} else {
-									throw _g;
-								}
+					var maxPositionX = this.textField.get_width() / scaleX - gutterPositionOffset;
+					if(positionX > maxPositionX) {
+						positionX = maxPositionX;
+					}
+				}
+				if(positionY < gutterPositionOffset) {
+					positionY = gutterPositionOffset;
+				} else {
+					var maxPositionY = this.textField.get_height() / scaleY - gutterPositionOffset;
+					if(positionY > maxPositionY) {
+						positionY = maxPositionY;
+					}
+				}
+				this._pendingSelectionBeginIndex = this.getSelectionIndexAtPoint(positionX,positionY);
+				if(this._pendingSelectionBeginIndex < 0) {
+					if(this._multiline) {
+						var lineIndex = this.textField.getLineIndexAtPoint(this.textField.get_width() / 2 / scaleX,positionY);
+						try {
+							this._pendingSelectionBeginIndex = this.textField.getLineOffset(lineIndex) + this.textField.getLineLength(lineIndex);
+							if(this._pendingSelectionBeginIndex != this._text.length) {
+								this._pendingSelectionBeginIndex--;
 							}
-						} else {
-							this._pendingSelectionBeginIndex = this._measureTextField.getCharIndexAtPoint(positionX,this._measureTextField.getLineMetrics(0).ascent / 2);
-							if(this._pendingSelectionBeginIndex < 0) {
+						} catch( _g ) {
+							if(((haxe_Exception.caught(_g)) instanceof openfl_errors_Error)) {
 								this._pendingSelectionBeginIndex = this._text.length;
+							} else {
+								throw _g;
 							}
 						}
 					} else {
-						var bounds = this._measureTextField.getCharBoundaries(this._pendingSelectionBeginIndex);
+						this._pendingSelectionBeginIndex = this.getSelectionIndexAtPoint(positionX,this.textField.getLineMetrics(0).ascent / 2);
+						if(this._pendingSelectionBeginIndex < 0) {
+							this._pendingSelectionBeginIndex = this._text.length;
+						}
+					}
+				} else {
+					var bounds = this.textField.getCharBoundaries(this._pendingSelectionBeginIndex);
+					if(bounds != null) {
 						var boundsX = bounds.x;
-						if(bounds != null && boundsX + bounds.width - positionX < positionX - boundsX) {
+						if(boundsX + bounds.width - positionX < positionX - boundsX) {
 							this._pendingSelectionBeginIndex++;
 						}
 					}
-					this._pendingSelectionEndIndex = this._pendingSelectionBeginIndex;
 				}
+				this._pendingSelectionEndIndex = this._pendingSelectionBeginIndex;
 			} else {
 				this._pendingSelectionBeginIndex = this._pendingSelectionEndIndex = -1;
 			}
-			this.stageText.visible = true;
-			if(!this._isEditable) {
-				this.stageText.editable = true;
+			if(!feathers_core_FocusManager.isEnabledForStage(this.get_stage())) {
+				starling.get_nativeStage().set_focus(this.textField);
 			}
-			if(!this._stageTextHasFocus) {
-				this.stageText.assignFocus();
+			this.textField.requestSoftKeyboard();
+			if(this._textFieldHasFocus) {
+				this.invalidate("selected");
 			}
 		} else {
 			this._isWaitingToSetFocus = true;
 		}
 	}
 	,clearFocus: function() {
-		if(!this._stageTextHasFocus) {
+		if(!this._textFieldHasFocus) {
 			return;
 		}
 		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
-		starling.get_nativeStage().set_focus(null);
-		if(!this.isParentChainVisible()) {
-			this.stageText.visible = false;
+		var nativeStage = starling.get_nativeStage();
+		if(nativeStage.get_focus() == this.textField) {
+			nativeStage.set_focus(null);
 		}
 	}
 	,selectRange: function(beginIndex,endIndex) {
-		if(this._stageTextIsComplete && this.stageText) {
-			this._pendingSelectionBeginIndex = -1;
-			this._pendingSelectionEndIndex = -1;
-			this.stageText.selectRange(beginIndex,endIndex);
+		if(!this._isEditable && !this._isSelectable) {
+			return;
+		}
+		if(this.textField != null) {
+			if(!this._isValidating) {
+				this.validate();
+			}
+			this.textField.setSelection(beginIndex,endIndex);
 		} else {
 			this._pendingSelectionBeginIndex = beginIndex;
 			this._pendingSelectionEndIndex = endIndex;
@@ -22816,30 +22848,48 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 		if(!this._isInitialized) {
 			this.initializeNow();
 		}
-		var stylesInvalid = this.isInvalid("styles");
-		var dataInvalid = this.isInvalid("data");
-		if(stylesInvalid || dataInvalid) {
-			this.refreshMeasureProperties();
-		}
+		this.commit();
 		result = this.measure(result);
 		return result;
 	}
-	,initialize: function() {
-		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
-		if(this._measureTextField != null && this._measureTextField.parent == null) {
-			starling.get_nativeStage().addChild(this._measureTextField);
-		} else if(this._measureTextField == null) {
-			this._measureTextField = new openfl_text_TextField();
-			this._measureTextField.set_visible(false);
-			this._measureTextField.mouseEnabled = false;
-			this._measureTextField.set_autoSize(1);
-			this._measureTextField.set_multiline(false);
-			this._measureTextField.set_wordWrap(false);
-			this._measureTextField.set_embedFonts(false);
-			this._measureTextField.set_defaultTextFormat(new openfl_text_TextFormat(null,11,0,false,false,false));
-			starling.get_nativeStage().addChild(this._measureTextField);
+	,getTextFormatForState: function(state) {
+		if(this._textFormatForState == null) {
+			return null;
 		}
-		this.createStageText();
+		return this._textFormatForState.h[state];
+	}
+	,setTextFormatForState: function(state,textFormat) {
+		if(textFormat != null) {
+			if(this._textFormatForState == null) {
+				this._textFormatForState = new haxe_ds_StringMap();
+			}
+			this._textFormatForState.h[state] = textFormat;
+		} else {
+			var _this = this._textFormatForState;
+			if(Object.prototype.hasOwnProperty.call(_this.h,state)) {
+				delete(_this.h[state]);
+			}
+		}
+		if(this._stateContext != null && this._stateContext.get_currentState() == state) {
+			this.invalidate("state");
+		}
+	}
+	,initialize: function() {
+		this.textField = new openfl_text_TextField();
+		this.textField.set_tabEnabled(false);
+		this.textField.set_visible(false);
+		this.textField.needsSoftKeyboard = true;
+		this.textField.addEventListener("change",$bind(this,this.textField_changeHandler));
+		this.textField.addEventListener("focusIn",$bind(this,this.textField_focusInHandler));
+		this.textField.addEventListener("focusOut",$bind(this,this.textField_focusOutHandler));
+		this.textField.addEventListener("mouseFocusChange",$bind(this,this.textField_mouseFocusChangeHandler));
+		this.textField.addEventListener("keyDown",$bind(this,this.textField_keyDownHandler));
+		this.measureTextField = new openfl_text_TextField();
+		this.measureTextField.set_autoSize(1);
+		this.measureTextField.set_selectable(false);
+		this.measureTextField.set_tabEnabled(false);
+		this.measureTextField.set_mouseWheelEnabled(false);
+		this.measureTextField.mouseEnabled = false;
 	}
 	,draw: function() {
 		var sizeInvalid = this.isInvalid("size");
@@ -22850,89 +22900,13 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 		this.layout(sizeInvalid);
 	}
 	,commit: function() {
-		var stateInvalid = this.isInvalid("state");
 		var stylesInvalid = this.isInvalid("styles");
 		var dataInvalid = this.isInvalid("data");
-		if(stylesInvalid || dataInvalid) {
-			this.refreshMeasureProperties();
-		}
-		var oldIgnoreStageTextChanges = this._ignoreStageTextChanges;
-		this._ignoreStageTextChanges = true;
-		if(stateInvalid || stylesInvalid) {
-			this.refreshStageTextProperties();
-		}
-		if(dataInvalid) {
-			if(this.stageText.text != this._text) {
-				if(this._pendingSelectionBeginIndex < 0) {
-					this._pendingSelectionBeginIndex = this.stageText.selectionActiveIndex;
-					this._pendingSelectionEndIndex = this.stageText.selectionAnchorIndex;
-				}
-				this.stageText.text = this._text;
-			}
-		}
-		this._ignoreStageTextChanges = oldIgnoreStageTextChanges;
-		if(stylesInvalid || stateInvalid) {
-			this.stageText.editable = this._isEditable && this._isEnabled;
-		}
-	}
-	,measure: function(result) {
-		if(result == null) {
-			result = new openfl_geom_Point();
-		}
-		var needsWidth = this._explicitWidth != this._explicitWidth;
-		var needsHeight = this._explicitHeight != this._explicitHeight;
-		this._measureTextField.set_autoSize(1);
-		var newWidth = this._explicitWidth;
-		if(needsWidth) {
-			newWidth = this._measureTextField.get_textWidth();
-			if(newWidth < this._explicitMinWidth) {
-				newWidth = this._explicitMinWidth;
-			} else if(newWidth > this._explicitMaxWidth) {
-				newWidth = this._explicitMaxWidth;
-			}
-		}
-		this._measureTextField.set_width(newWidth + 4);
-		var newHeight = this._explicitHeight;
-		if(needsHeight) {
-			if(this._stageTextIsTextField) {
-				newHeight = this._measureTextField.get_textHeight();
-			} else {
-				newHeight = this._measureTextField.get_height();
-			}
-			if(newHeight < this._explicitMinHeight) {
-				newHeight = this._explicitMinHeight;
-			} else if(newHeight > this._explicitMaxHeight) {
-				newHeight = this._explicitMaxHeight;
-			}
-		}
-		this._measureTextField.set_autoSize(2);
-		this._measureTextField.set_width(this.actualWidth + 4);
-		this._measureTextField.set_height(this.actualHeight);
-		result.x = newWidth;
-		result.y = newHeight;
-		return result;
-	}
-	,layout: function(sizeInvalid) {
 		var stateInvalid = this.isInvalid("state");
-		var stylesInvalid = this.isInvalid("styles");
-		var dataInvalid = this.isInvalid("data");
-		var skinInvalid = this.isInvalid("skin");
-		if(sizeInvalid || stylesInvalid || skinInvalid || stateInvalid) {
-			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
-			this.refreshViewPortAndFontSize();
-			this.refreshMeasureTextFieldDimensions();
-			var viewPort = this.stageText.viewPort;
-			var textureRoot = this.textSnapshot != null ? this.textSnapshot.get_texture().get_root() : null;
-			this._needsNewTexture = this._needsNewTexture || this.textSnapshot == null || textureRoot != null && (textureRoot.get_scale() != starling.get_contentScaleFactor() || viewPort.width != textureRoot.get_nativeWidth() || viewPort.height != textureRoot.get_nativeHeight());
+		if(dataInvalid || stylesInvalid || stateInvalid) {
+			this.refreshTextFormat();
+			this.commitStylesAndData(this.textField);
 		}
-		if(!this._stageTextHasFocus && (stateInvalid || stylesInvalid || dataInvalid || sizeInvalid || this._needsNewTexture)) {
-			if(!this.isParentChainVisible()) {
-				this.stageText.visible = false;
-			}
-			this._needsTextureUpdate = true;
-			this.setRequiresRedraw();
-		}
-		this.doPendingActions();
 	}
 	,autoSizeIfNeeded: function() {
 		var needsWidth = this._explicitWidth != this._explicitWidth;
@@ -22948,108 +22922,298 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 		starling_utils_Pool.putPoint(point);
 		return result;
 	}
-	,refreshMeasureProperties: function() {
-		this._measureTextField.set_displayAsPassword(this._displayAsPassword);
-		this._measureTextField.set_maxChars(this._maxChars);
-		this._measureTextField.set_restrict(this._restrict_);
-		this._measureTextField.set_multiline(this._multiline);
-		this._measureTextField.set_wordWrap(this._multiline);
-		var measureFormat = this._measureTextField.get_defaultTextFormat();
-		var fontStylesFormat = null;
-		if(this._fontStyles != null) {
-			fontStylesFormat = this._fontStyles.getTextFormatForTarget(this);
+	,measure: function(result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
 		}
-		if(this._fontFamily != null) {
-			measureFormat.font = this._fontFamily;
-		} else if(fontStylesFormat != null) {
-			measureFormat.font = fontStylesFormat.get_font();
-		} else {
-			measureFormat.font = null;
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		if(!needsWidth && !needsHeight) {
+			result.x = this._explicitWidth;
+			result.y = this._explicitHeight;
+			return result;
 		}
-		if(this._fontSize > 0) {
-			measureFormat.size = this._fontSize;
-		} else if(fontStylesFormat != null) {
-			measureFormat.size = fontStylesFormat.get_size() | 0;
-		} else {
-			measureFormat.size = 12;
+		this.commitStylesAndData(this.measureTextField);
+		var gutterDimensionsOffset = 4;
+		if(this._useGutter || this._border) {
+			gutterDimensionsOffset = 0;
 		}
-		if(fontStylesFormat != null) {
-			measureFormat.bold = fontStylesFormat.get_bold();
-		} else {
-			measureFormat.bold = false;
+		var newWidth = this._explicitWidth;
+		if(needsWidth) {
+			this.measureTextField.set_wordWrap(false);
+			newWidth = this.measureTextField.get_width() - gutterDimensionsOffset;
+			if(newWidth < this._explicitMinWidth) {
+				newWidth = this._explicitMinWidth;
+			} else if(newWidth > this._explicitMaxWidth) {
+				newWidth = this._explicitMaxWidth;
+			}
 		}
-		if(fontStylesFormat != null) {
-			measureFormat.italic = fontStylesFormat.get_italic();
-		} else {
-			measureFormat.italic = false;
+		var newHeight = this._explicitHeight;
+		if(needsHeight) {
+			this.measureTextField.set_wordWrap(this._wordWrap);
+			this.measureTextField.set_width(newWidth + gutterDimensionsOffset);
+			newHeight = this.measureTextField.get_height() - gutterDimensionsOffset;
+			if(this._useGutter || this._border) {
+				newHeight += 4;
+			}
+			if(newHeight < this._explicitMinHeight) {
+				newHeight = this._explicitMinHeight;
+			} else if(newHeight > this._explicitMaxHeight) {
+				newHeight = this._explicitMaxHeight;
+			}
 		}
-		this._measureTextField.set_defaultTextFormat(measureFormat);
-		this._measureTextField.setTextFormat(measureFormat);
-		if(this._text.length == 0) {
-			this._measureTextField.set_text(" ");
+		result.x = newWidth;
+		result.y = newHeight;
+		return result;
+	}
+	,commitStylesAndData: function(textField) {
+		textField.set_antiAliasType(openfl_text_AntiAliasType.fromString(this._antiAliasType));
+		textField.set_background(this._background);
+		textField.set_backgroundColor(this._backgroundColor);
+		textField.set_border(this._border);
+		textField.set_borderColor(this._borderColor);
+		textField.set_gridFitType(openfl_text_GridFitType.fromString(this._gridFitType));
+		textField.set_sharpness(this._sharpness);
+		textField.set_maxChars(this._maxChars);
+		textField.set_restrict(this._restrict);
+		textField.set_displayAsPassword(this._displayAsPassword);
+		textField.set_wordWrap(this._wordWrap);
+		textField.set_multiline(this._multiline);
+		if(!this._embedFonts && this._currentTextFormat == this._fontStylesTextFormat) {
+			textField.set_embedFonts(starling_utils_SystemUtil.isEmbeddedFont(this._currentTextFormat.font,this._currentTextFormat.bold,this._currentTextFormat.italic,openfl_text_FontType.toString(1)));
 		} else {
-			this._measureTextField.set_text(this._text);
+			textField.set_embedFonts(this._embedFonts);
+		}
+		textField.set_type(this._isEditable ? 1 : 0);
+		textField.set_selectable(this._isEnabled && (this._isEditable || this._isSelectable));
+		var isFormatDifferent = false;
+		if(textField == this.textField) {
+			if(this._currentTextFormat == this._fontStylesTextFormat) {
+				isFormatDifferent = this._previousStarlingTextFormat != this._currentStarlingTextFormat;
+			} else {
+				isFormatDifferent = this._previousTextFormat != this._currentTextFormat;
+			}
+			this._previousStarlingTextFormat = this._currentStarlingTextFormat;
+			this._previousTextFormat = this._currentTextFormat;
+		} else {
+			isFormatDifferent = true;
+		}
+		textField.set_defaultTextFormat(this._currentTextFormat);
+		if(this._isHTML) {
+			if(isFormatDifferent || textField.get_htmlText() != this._text) {
+				if(textField == this.textField && this._pendingSelectionBeginIndex < 0) {
+					this._pendingSelectionBeginIndex = this.textField.get_selectionBeginIndex();
+					this._pendingSelectionEndIndex = this.textField.get_selectionEndIndex();
+				}
+				textField.set_htmlText(this._text);
+			}
+		} else if(isFormatDifferent || textField.get_text() != this._text) {
+			if(textField == this.textField && this._pendingSelectionBeginIndex < 0) {
+				this._pendingSelectionBeginIndex = this.textField.get_selectionBeginIndex();
+				this._pendingSelectionEndIndex = this.textField.get_selectionEndIndex();
+			}
+			textField.set_text(this._text);
 		}
 	}
-	,refreshStageTextProperties: function() {
-		if(this.stageText.multiline != this._multiline) {
-			if(this.stageText != null) {
-				this.disposeStageText();
-			}
-			this.createStageText();
-		}
+	,refreshTextFormat: function() {
 		var textFormat = null;
+		if(this._stateContext != null) {
+			if(this._textFormatForState != null) {
+				var currentState = this._stateContext.get_currentState();
+				if(Object.prototype.hasOwnProperty.call(this._textFormatForState.h,currentState)) {
+					textFormat = this._textFormatForState.h[currentState];
+				}
+			}
+			if(textFormat == null && this._disabledTextFormat != null && js_Boot.__implements(this._stateContext,feathers_core_IFeathersControl) && !(js_Boot.__cast(this._stateContext , feathers_core_IFeathersControl)).get_isEnabled()) {
+				textFormat = this._disabledTextFormat;
+			}
+		} else if(!this._isEnabled && this._disabledTextFormat != null) {
+			textFormat = this._disabledTextFormat;
+		}
+		if(textFormat == null) {
+			textFormat = this._textFormat;
+		}
+		if(textFormat == null) {
+			textFormat = this.getTextFormatFromFontStyles();
+		}
+		this._currentTextFormat = textFormat;
+	}
+	,getTextFormatFromFontStyles: function() {
+		if(this.isInvalid("styles") || this.isInvalid("state")) {
+			if(this._fontStyles != null) {
+				this._currentStarlingTextFormat = this._fontStyles.getTextFormatForTarget(this);
+			} else {
+				this._currentStarlingTextFormat = null;
+			}
+			if(this._currentStarlingTextFormat != null) {
+				this._fontStylesTextFormat = this._currentStarlingTextFormat.toNativeFormat(this._fontStylesTextFormat);
+			} else if(this._fontStylesTextFormat == null) {
+				this._fontStylesTextFormat = new openfl_text_TextFormat();
+			}
+		}
+		return this._fontStylesTextFormat;
+	}
+	,getVerticalAlignment: function() {
+		var verticalAlign = null;
 		if(this._fontStyles != null) {
-			textFormat = this._fontStyles.getTextFormatForTarget(this);
+			var format = this._fontStyles.getTextFormatForTarget(this);
+			if(format != null) {
+				verticalAlign = format.get_verticalAlign();
+			}
 		}
-		this.stageText.autoCapitalize = this._autoCapitalize;
-		this.stageText.autoCorrect = this._autoCorrect;
-		if(this._isEnabled) {
-			if(this._color == -1) {
-				if(textFormat != null) {
-					this.stageText.color = textFormat.get_color();
-				} else {
-					this.stageText.color = 0;
-				}
-			} else {
-				this.stageText.color = this._color;
-			}
-		} else if(this._disabledColor == -1) {
-			if(this._color == -1) {
-				if(textFormat != null) {
-					this.stageText.color = textFormat.get_color();
-				} else {
-					this.stageText.color = 0;
-				}
-			} else {
-				this.stageText.color = this._color;
-			}
+		if(verticalAlign == null) {
+			verticalAlign = "top";
+		}
+		return verticalAlign;
+	}
+	,getVerticalAlignmentOffsetY: function() {
+		var verticalAlign = this.getVerticalAlignment();
+		var textFieldTextHeight = this.textField.get_textHeight();
+		if(textFieldTextHeight > this.actualHeight) {
+			return 0;
+		}
+		if(verticalAlign == "bottom") {
+			return this.actualHeight - textFieldTextHeight;
+		} else if(verticalAlign == "center") {
+			return (this.actualHeight - textFieldTextHeight) / 2;
+		}
+		return 0;
+	}
+	,layout: function(sizeInvalid) {
+		var stylesInvalid = this.isInvalid("styles");
+		var dataInvalid = this.isInvalid("data");
+		var stateInvalid = this.isInvalid("state");
+		if(sizeInvalid) {
+			this.refreshSnapshotParameters();
+			this.refreshTextFieldSize();
+			this.transformTextField();
+			this.positionSnapshot();
+		}
+		this.checkIfNewSnapshotIsNeeded();
+		if(!this._textFieldHasFocus && (sizeInvalid || stylesInvalid || dataInvalid || stateInvalid || this._needsNewTexture)) {
+			this._needsTextureUpdate = true;
+			this.setRequiresRedraw();
+		}
+		this.doPendingActions();
+	}
+	,getSelectionIndexAtPoint: function(pointX,pointY) {
+		return this.textField.getCharIndexAtPoint(pointX,pointY);
+	}
+	,refreshTextFieldSize: function() {
+		var gutterDimensionsOffset = 4;
+		if(this._useGutter || this._border) {
+			gutterDimensionsOffset = 0;
+		}
+		this.textField.set_width(this.actualWidth + gutterDimensionsOffset);
+		this.textField.set_height(this.actualHeight + gutterDimensionsOffset);
+	}
+	,refreshSnapshotParameters: function() {
+		this._textFieldOffsetX = 0;
+		this._textFieldOffsetY = 0;
+		this._textFieldSnapshotClipRect.x = 0;
+		this._textFieldSnapshotClipRect.y = 0;
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var scaleFactor = starling.get_contentScaleFactor();
+		var clipWidth = this.actualWidth * scaleFactor;
+		var matrix = null;
+		if(this._updateSnapshotOnScaleChange) {
+			matrix = starling_utils_Pool.getMatrix();
+			this.getTransformationMatrix(this.get_stage(),matrix);
+			var a = matrix.a;
+			var b = matrix.b;
+			clipWidth *= Math.sqrt(a * a + b * b);
+		}
+		if(clipWidth < 0) {
+			clipWidth = 0;
+		}
+		var clipHeight = this.actualHeight * scaleFactor;
+		if(this._updateSnapshotOnScaleChange) {
+			var c = matrix.c;
+			var d = matrix.d;
+			clipHeight *= Math.sqrt(c * c + d * d);
+			starling_utils_Pool.putMatrix(matrix);
+		}
+		if(clipHeight < 0) {
+			clipHeight = 0;
+		}
+		this._textFieldSnapshotClipRect.width = clipWidth;
+		this._textFieldSnapshotClipRect.height = clipHeight;
+	}
+	,transformTextField: function() {
+		var matrix = starling_utils_Pool.getMatrix();
+		var point = starling_utils_Pool.getPoint();
+		this.getTransformationMatrix(this.get_stage(),matrix);
+		var a = matrix.a;
+		var b = matrix.b;
+		var globalScaleX = Math.sqrt(a * a + b * b);
+		var c = matrix.c;
+		var d = matrix.d;
+		var globalScaleY = Math.sqrt(c * c + d * d);
+		var smallerGlobalScale = globalScaleX;
+		if(globalScaleY < smallerGlobalScale) {
+			smallerGlobalScale = globalScaleY;
+		}
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var nativeScaleFactor = 1;
+		if(starling.get_supportHighResolutions()) {
+			nativeScaleFactor = starling.get_nativeStage().get_contentsScaleFactor();
+		}
+		var scaleFactor = starling.get_contentScaleFactor() / nativeScaleFactor;
+		var gutterPositionOffset = 0;
+		if(!this._useGutter || this._border) {
+			gutterPositionOffset = 2 * smallerGlobalScale;
+		}
+		var verticalAlignOffsetY = this.getVerticalAlignmentOffsetY();
+		if(this.get_is3D()) {
+			var matrix3D = starling_utils_Pool.getMatrix3D();
+			var point3D = starling_utils_Pool.getPoint3D();
+			this.getTransformationMatrix3D(this.get_stage(),matrix3D);
+			starling_utils_MatrixUtil.transformCoords3D(matrix3D,-gutterPositionOffset,-gutterPositionOffset + verticalAlignOffsetY,0,point3D);
+			point.setTo(point3D.x,point3D.y);
+			starling_utils_Pool.putPoint3D(point3D);
+			starling_utils_Pool.putMatrix3D(matrix3D);
 		} else {
-			this.stageText.color = this._disabledColor;
+			starling_utils_MatrixUtil.transformCoords(matrix,-gutterPositionOffset,-gutterPositionOffset + verticalAlignOffsetY,point);
 		}
-		this.stageText.displayAsPassword = this._displayAsPassword;
-		var fontFamily = this._fontFamily;
-		if(fontFamily == null && textFormat != null) {
-			fontFamily = textFormat.get_font();
+		var starlingViewPort = starling.get_viewPort();
+		this.textField.set_x(Math.round(starlingViewPort.x + point.x * scaleFactor));
+		this.textField.set_y(Math.round(starlingViewPort.y + point.y * scaleFactor));
+		var c = matrix.c;
+		var d = matrix.d;
+		this.textField.set_rotation(-Math.atan(c / d) * 180 / Math.PI);
+		var a = matrix.a;
+		var b = matrix.b;
+		this.textField.set_scaleX(Math.sqrt(a * a + b * b) * scaleFactor);
+		var c = matrix.c;
+		var d = matrix.d;
+		this.textField.set_scaleY(Math.sqrt(c * c + d * d) * scaleFactor);
+		starling_utils_Pool.putPoint(point);
+		starling_utils_Pool.putMatrix(matrix);
+	}
+	,positionSnapshot: function() {
+		if(this.textSnapshot == null) {
+			return;
 		}
-		this.stageText.fontFamily = fontFamily;
-		this.stageText.locale = this._locale;
-		this.stageText.maxChars = this._maxChars;
-		this.stageText.restrict = this._restrict_;
-		this.stageText.returnKeyLabel = this._returnKeyLabel;
-		this.stageText.softKeyboardType = this._softKeyboardType;
-		var textAlign = this._textAlign;
-		if(textAlign == null) {
-			if(textFormat != null && textFormat.get_horizontalAlign() != null) {
-				textAlign = textFormat.get_horizontalAlign();
-			} else {
-				textAlign = "start";
-			}
+		var matrix = starling_utils_Pool.getMatrix();
+		this.getTransformationMatrix(this.get_stage(),matrix);
+		this.textSnapshot.set_x(Math.round(matrix.tx) - matrix.tx);
+		this.textSnapshot.set_y(Math.round(matrix.ty) - matrix.ty);
+		var fh = this.textSnapshot;
+		fh.set_y(fh.get_y() + this.getVerticalAlignmentOffsetY());
+		starling_utils_Pool.putMatrix(matrix);
+	}
+	,checkIfNewSnapshotIsNeeded: function() {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var canUseRectangleTexture = starling.get_profile() != 1;
+		if(canUseRectangleTexture) {
+			this._snapshotWidth = this._textFieldSnapshotClipRect.width | 0;
+			this._snapshotHeight = this._textFieldSnapshotClipRect.height | 0;
+		} else {
+			this._snapshotWidth = starling_utils_MathUtil.getNextPowerOfTwo(this._textFieldSnapshotClipRect.width);
+			this._snapshotHeight = starling_utils_MathUtil.getNextPowerOfTwo(this._textFieldSnapshotClipRect.height);
 		}
-		this.stageText.textAlign = textAlign;
-		if(Object.prototype.hasOwnProperty.call(this.stageText,"clearButtonMode")) {
-			this.stageText.clearButtonMode = this._clearButtonMode;
-		}
+		var textureRoot = this.textSnapshot != null ? this.textSnapshot.get_texture().get_root() : null;
+		this._needsNewTexture = this._needsNewTexture || this.textSnapshot == null || textureRoot != null && (textureRoot.get_scale() != starling.get_contentScaleFactor() || this._snapshotWidth != textureRoot.get_nativeWidth() || this._snapshotHeight != textureRoot.get_nativeHeight());
 	}
 	,doPendingActions: function() {
 		if(this._isWaitingToSetFocus) {
@@ -23058,59 +23222,53 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 		}
 		if(this._pendingSelectionBeginIndex >= 0) {
 			var startIndex = this._pendingSelectionBeginIndex;
-			var endIndex = this._pendingSelectionEndIndex < 0 ? this._pendingSelectionBeginIndex : this._pendingSelectionEndIndex;
+			var endIndex = this._pendingSelectionEndIndex;
 			this._pendingSelectionBeginIndex = -1;
 			this._pendingSelectionEndIndex = -1;
-			if(this.stageText.selectionAnchorIndex != startIndex || this.stageText.selectionActiveIndex != endIndex) {
-				this.selectRange(startIndex,endIndex);
-			}
+			this.selectRange(startIndex,endIndex);
 		}
 	}
-	,texture_onRestore: function() {
+	,texture_onRestore: function(texture) {
 		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
-		if(this.textSnapshot.get_texture().get_scale() != starling.get_contentScaleFactor()) {
+		if(this.textSnapshot != null && this.textSnapshot.get_texture() != null && this.textSnapshot.get_texture().get_scale() != starling.get_contentScaleFactor()) {
 			this.invalidate("size");
 		} else {
 			this.refreshSnapshot();
-			if(this.textSnapshot != null) {
-				this.textSnapshot.set_visible(!this._stageTextHasFocus);
-				this.textSnapshot.set_alpha(this._text.length > 0 ? 1 : 0);
-			}
-			if(!this._stageTextHasFocus) {
-				this.stageText.visible = false;
-			}
 		}
 	}
 	,refreshSnapshot: function() {
+		if(this._snapshotWidth <= 0 || this._snapshotHeight <= 0) {
+			return;
+		}
+		var gutterPositionOffset = 2;
+		if(this._useGutter || this._border) {
+			gutterPositionOffset = 0;
+		}
 		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
-		if(this.get_stage() != null && this.stageText.stage == null) {
-			this.stageText.stage = starling.get_nativeStage();
+		var scaleFactor = starling.get_contentScaleFactor();
+		var matrix = starling_utils_Pool.getMatrix();
+		var globalScaleX = 0;
+		var globalScaleY = 0;
+		if(this._updateSnapshotOnScaleChange) {
+			this.getTransformationMatrix(this.get_stage(),matrix);
+			var a = matrix.a;
+			var b = matrix.b;
+			globalScaleX = Math.sqrt(a * a + b * b);
+			var c = matrix.c;
+			var d = matrix.d;
+			globalScaleY = Math.sqrt(c * c + d * d);
 		}
-		if(this.stageText.stage == null) {
-			this.invalidate("data");
-			return;
+		matrix.identity();
+		matrix.translate(this._textFieldOffsetX - gutterPositionOffset,this._textFieldOffsetY - gutterPositionOffset);
+		matrix.scale(scaleFactor,scaleFactor);
+		if(this._updateSnapshotOnScaleChange) {
+			matrix.scale(globalScaleX,globalScaleY);
 		}
-		var viewPort = this.stageText.viewPort;
-		if(viewPort.width == 0 || viewPort.height == 0) {
-			return;
-		}
-		var nativeScaleFactor = 1;
-		var bitmapData = null;
-		try {
-			bitmapData = new openfl_display_BitmapData(viewPort.width * nativeScaleFactor | 0,viewPort.height * nativeScaleFactor | 0,true,16711935);
-			this.stageText.drawViewPortToBitmapData(bitmapData);
-		} catch( _g ) {
-			if(((haxe_Exception.caught(_g)) instanceof openfl_errors_Error)) {
-				bitmapData.dispose();
-				bitmapData = new openfl_display_BitmapData(viewPort.width | 0,viewPort.height | 0,true,16711935);
-				this.stageText.drawViewPortToBitmapData(bitmapData);
-			} else {
-				throw _g;
-			}
-		}
+		var bitmapData = new openfl_display_BitmapData(this._snapshotWidth,this._snapshotHeight,true,16711935);
+		bitmapData.draw(this.textField,matrix,null,null,this._textFieldSnapshotClipRect);
+		starling_utils_Pool.putMatrix(matrix);
 		var newTexture = null;
 		if(this.textSnapshot == null || this._needsNewTexture) {
-			var scaleFactor = starling.get_contentScaleFactor();
 			newTexture = starling_textures_Texture.empty(bitmapData.width / scaleFactor,bitmapData.height / scaleFactor,true,false,false,scaleFactor);
 			newTexture.get_root().uploadBitmapData(bitmapData);
 			newTexture.get_root().set_onRestore($bind(this,this.texture_onRestore));
@@ -23128,286 +23286,1102 @@ feathers_controls_text_StageTextTextEditor.prototype = $extend(feathers_core_Bas
 			existingTexture.get_root().uploadBitmapData(bitmapData);
 			this.textSnapshot.setRequiresRedraw();
 		}
-		var matrix = starling_utils_Pool.getMatrix();
-		this.getTransformationMatrix(this.get_stage(),matrix);
-		var globalScaleX = feathers_utils_geom_FeathersGeomUtils.matrixToScaleX(matrix);
-		var globalScaleY = feathers_utils_geom_FeathersGeomUtils.matrixToScaleY(matrix);
-		starling_utils_Pool.putMatrix(matrix);
 		if(this._updateSnapshotOnScaleChange) {
 			this.textSnapshot.set_scaleX(1 / globalScaleX);
 			this.textSnapshot.set_scaleY(1 / globalScaleY);
 			this._lastGlobalScaleX = globalScaleX;
 			this._lastGlobalScaleY = globalScaleY;
-		} else {
-			this.textSnapshot.set_scaleX(1);
-			this.textSnapshot.set_scaleY(1);
 		}
-		if(nativeScaleFactor > 1 && bitmapData.width == viewPort.width) {
-			var fh = this.textSnapshot;
-			fh.set_scaleX(fh.get_scaleX() * nativeScaleFactor);
-			var fh = this.textSnapshot;
-			fh.set_scaleY(fh.get_scaleY() * nativeScaleFactor);
-		}
+		this.textSnapshot.set_alpha(this._text.length != 0 ? 1 : 0);
 		bitmapData.dispose();
 		this._needsNewTexture = false;
 	}
-	,refreshViewPortAndFontSize: function() {
-		var matrix = starling_utils_Pool.getMatrix();
-		var point = starling_utils_Pool.getPoint();
-		var desktopGutterPositionOffset = 0;
-		var desktopGutterDimensionsOffset = 0;
-		if(this._stageTextIsTextField) {
-			desktopGutterPositionOffset = 2;
-			desktopGutterDimensionsOffset = 4;
+	,textEditor_addedToStageHandler: function(event) {
+		if(this.textField.parent == null) {
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			starling.get_nativeStage().addChild(this.textField);
 		}
-		this.getTransformationMatrix(this.get_stage(),matrix);
-		var globalScaleX;
-		var globalScaleY;
-		var smallerGlobalScale;
-		if(this._stageTextHasFocus || this._updateSnapshotOnScaleChange) {
-			globalScaleX = feathers_utils_geom_FeathersGeomUtils.matrixToScaleX(matrix);
-			globalScaleY = feathers_utils_geom_FeathersGeomUtils.matrixToScaleY(matrix);
-			smallerGlobalScale = globalScaleX;
-			if(globalScaleY < smallerGlobalScale) {
-				smallerGlobalScale = globalScaleY;
-			}
-		} else {
-			globalScaleX = 1;
-			globalScaleY = 1;
-			smallerGlobalScale = 1;
-		}
-		var verticalAlignOffsetY = this.getVerticalAlignmentOffsetY();
-		if(this.get_is3D()) {
-			var matrix3D = starling_utils_Pool.getMatrix3D();
-			var point3D = starling_utils_Pool.getPoint3D();
-			this.getTransformationMatrix3D(this.get_stage(),matrix3D);
-			starling_utils_MatrixUtil.transformCoords3D(matrix3D,-desktopGutterPositionOffset,-desktopGutterPositionOffset + verticalAlignOffsetY,0,point3D);
-			point.setTo(point3D.x,point3D.y);
-			starling_utils_Pool.putPoint3D(point3D);
-			starling_utils_Pool.putMatrix3D(matrix3D);
-		} else {
-			starling_utils_MatrixUtil.transformCoords(matrix,-desktopGutterPositionOffset,-desktopGutterPositionOffset + verticalAlignOffsetY,point);
-		}
-		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
-		var nativeScaleFactor = 1;
-		var scaleFactor = starling.get_contentScaleFactor() / nativeScaleFactor;
-		var starlingViewPort = starling.get_viewPort();
-		var stageTextViewPort = this.stageText.viewPort;
-		if(stageTextViewPort == null) {
-			stageTextViewPort = new openfl_geom_Rectangle();
-		}
-		var viewPortWidth = Math.round((this.actualWidth + desktopGutterDimensionsOffset) * scaleFactor * globalScaleX);
-		if(viewPortWidth < 1 || viewPortWidth != viewPortWidth) {
-			viewPortWidth = 1;
-		}
-		var viewPortHeight = Math.round((this.actualHeight + desktopGutterDimensionsOffset) * scaleFactor * globalScaleY);
-		if(viewPortHeight < 1 || viewPortHeight != viewPortHeight) {
-			viewPortHeight = 1;
-		}
-		stageTextViewPort.width = viewPortWidth;
-		stageTextViewPort.height = viewPortHeight;
-		var viewPortX = Math.round(starlingViewPort.x + point.x * scaleFactor);
-		if(viewPortX + viewPortWidth > 8191) {
-			viewPortX = 8191 - viewPortWidth;
-		}
-		if(viewPortX < -8192) {
-			viewPortX = -8192;
-		}
-		var viewPortY = Math.round(starlingViewPort.y + point.y * scaleFactor);
-		if(viewPortY + viewPortHeight > 8191) {
-			viewPortY = 8191 - viewPortHeight;
-		}
-		if(viewPortY < -8192) {
-			viewPortY = -8192;
-		}
-		stageTextViewPort.x = viewPortX;
-		stageTextViewPort.y = viewPortY;
-		this.stageText.viewPort = stageTextViewPort;
-		var fontSize = 12;
-		if(this._fontSize > 0) {
-			fontSize = this._fontSize;
-		} else if(this._fontStyles != null) {
-			var textFormat = this._fontStyles.getTextFormatForTarget(this);
-			if(textFormat != null) {
-				fontSize = textFormat.get_size() | 0;
-			}
-		}
-		var newFontSize = fontSize * scaleFactor * smallerGlobalScale | 0;
-		if(this.stageText.fontSize != newFontSize) {
-			this.stageText.fontSize = newFontSize;
-		}
-		starling_utils_Pool.putPoint(point);
-		starling_utils_Pool.putMatrix(matrix);
-	}
-	,refreshMeasureTextFieldDimensions: function() {
-		this._measureTextField.set_width(this.actualWidth + 4);
-		this._measureTextField.set_height(this.actualHeight);
-	}
-	,positionSnapshot: function() {
-		var matrix = starling_utils_Pool.getMatrix();
-		this.getTransformationMatrix(this.get_stage(),matrix);
-		var desktopGutterPositionOffset = 0;
-		if(this._stageTextIsTextField) {
-			desktopGutterPositionOffset = 2;
-		}
-		this.textSnapshot.set_x(Math.round(matrix.tx) - matrix.tx - desktopGutterPositionOffset);
-		this.textSnapshot.set_y(Math.round(matrix.ty) - matrix.ty - desktopGutterPositionOffset + this.getVerticalAlignmentOffsetY());
-		starling_utils_Pool.putMatrix(matrix);
-	}
-	,disposeStageText: function() {
-		if(this.stageText == null) {
-			return;
-		}
-		this.stageText.removeEventListener("change",$bind(this,this.stageText_changeHandler));
-		this.stageText.removeEventListener("keyDown",$bind(this,this.stageText_keyDownHandler));
-		this.stageText.removeEventListener("keyUp",$bind(this,this.stageText_keyUpHandler));
-		this.stageText.removeEventListener("focusIn",$bind(this,this.stageText_focusInHandler));
-		this.stageText.removeEventListener("focusOut",$bind(this,this.stageText_focusOutHandler));
-		this.stageText.removeEventListener("complete",$bind(this,this.stageText_completeHandler));
-		this.stageText.stage = null;
-		this.stageText.dispose();
-		this.stageText = null;
-	}
-	,createStageText: function() {
-		this._stageTextIsComplete = false;
-		var StageTextType;
-		var initOptions;
-		StageTextType = feathers_text_StageTextField;
-		initOptions = { multiline : this._multiline};
-		this.stageText = Type.createInstance(StageTextType,[initOptions]);
-		this.stageText.visible = false;
-		this.stageText.addEventListener("change",$bind(this,this.stageText_changeHandler));
-		this.stageText.addEventListener("keyDown",$bind(this,this.stageText_keyDownHandler));
-		this.stageText.addEventListener("keyUp",$bind(this,this.stageText_keyUpHandler));
-		this.stageText.addEventListener("focusIn",$bind(this,this.stageText_focusInHandler));
-		this.stageText.addEventListener("focusOut",$bind(this,this.stageText_focusOutHandler));
-		this.stageText.addEventListener("complete",$bind(this,this.stageText_completeHandler));
-		this.stageText.addEventListener("mouseFocusChange",$bind(this,this.stageText_mouseFocusChangeHandler));
-		this.invalidate();
-	}
-	,getVerticalAlignment: function() {
-		var verticalAlign = null;
-		if(this._fontStyles != null) {
-			var format = this._fontStyles.getTextFormatForTarget(this);
-			if(format != null) {
-				verticalAlign = format.get_verticalAlign();
-			}
-		}
-		if(verticalAlign == null) {
-			verticalAlign = "top";
-		}
-		return verticalAlign;
-	}
-	,getVerticalAlignmentOffsetY: function() {
-		var verticalAlign = this.getVerticalAlignment();
-		if(this._measureTextField.get_textHeight() > this.actualHeight) {
-			return 0;
-		}
-		if(verticalAlign == "bottom") {
-			return this.actualHeight - this._measureTextField.get_textHeight();
-		} else if(verticalAlign == "center") {
-			return (this.actualHeight - this._measureTextField.get_textHeight()) / 2;
-		}
-		return 0;
-	}
-	,dispatchKeyFocusChangeEvent: function(event) {
-		var focusEvent = new openfl_events_FocusEvent("keyFocusChange",true,false,null,event.shiftKey,event.keyCode);
-		this.get_stage().get_starling().get_nativeStage().dispatchEvent(focusEvent);
-	}
-	,dispatchKeyboardEventToStage: function(event) {
-		this.get_stage().get_starling().get_nativeStage().dispatchEvent(event);
-	}
-	,isParentChainVisible: function() {
-		var target = this;
-		while(true) {
-			if(!target.get_visible()) {
-				return false;
-			}
-			target = target.get_parent();
-			if(!(target != null)) {
-				break;
-			}
-		}
-		return true;
 	}
 	,textEditor_removedFromStageHandler: function(event) {
-		this.stageText.stage = null;
-	}
-	,stageText_changeHandler: function(event) {
-		if(this._ignoreStageTextChanges) {
-			return;
+		if(this.textField.parent != null) {
+			this.textField.parent.removeChild(this.textField);
 		}
-		this.set_text(this.stageText.text);
-	}
-	,stageText_completeHandler: function(event) {
-		this.stageText.removeEventListener("complete",$bind(this,this.stageText_completeHandler));
-		this.invalidate();
-		this._stageTextIsComplete = true;
-	}
-	,stageText_focusInHandler: function(event) {
-		this._stageTextHasFocus = true;
-		if(!this._isEditable) {
-			this.stageText.editable = false;
-		}
-		this.addEventListener("enterFrame",$bind(this,this.hasFocus_enterFrameHandler));
-		if(this.textSnapshot != null) {
-			this.textSnapshot.set_visible(false);
-		}
-		this.invalidate("skin");
-		this.dispatchEventWith("focusIn");
-	}
-	,stageText_focusOutHandler: function(event) {
-		this._stageTextHasFocus = false;
-		this.stageText.selectRange(1,1);
-		this.invalidate("data");
-		this.invalidate("skin");
-		this.dispatchEventWith("focusOut");
 	}
 	,hasFocus_enterFrameHandler: function(event) {
-		if(this._stageTextHasFocus) {
-			if(!this.isParentChainVisible()) {
-				this.stageText.stage.focus = null;
+		if(this.textSnapshot != null) {
+			this.textSnapshot.set_visible(!this._textFieldHasFocus);
+		}
+		this.textField.set_visible(this._textFieldHasFocus);
+		if(this._textFieldHasFocus) {
+			var target = this;
+			while(true) {
+				if(!target.get_visible()) {
+					this.clearFocus();
+					break;
+				}
+				target = target.get_parent();
+				if(!(target != null)) {
+					break;
+				}
 			}
 		} else {
 			this.removeEventListener("enterFrame",$bind(this,this.hasFocus_enterFrameHandler));
 		}
 	}
-	,stageText_mouseFocusChangeHandler: function(event) {
-		var nativeStage = this.get_stage().get_starling().get_nativeStage();
-		var point = starling_utils_Pool.getPoint(nativeStage.get_mouseX(),nativeStage.get_mouseY());
-		feathers_utils_display_FeathersUIUtils.nativeToGlobal(point,this.get_stage().get_starling(),point);
-		var result = this.get_stage().hitTest(point);
-		while(result != null) {
-			var focusResult = result;
-			if(focusResult != null) {
-				var focusOwner = focusResult.get_focusOwner();
-				if(focusOwner != null) {
-					if(((focusOwner) instanceof starling_display_DisplayObjectContainer) && (js_Boot.__cast(focusOwner , starling_display_DisplayObjectContainer)).contains(this)) {
-						event.preventDefault();
-					}
-					break;
-				} else if(focusResult.get_isFocusEnabled()) {
-					break;
-				}
-			}
-			result = result.get_parent();
+	,refreshSnapshot_enterFrameHandler: function(event) {
+		this.removeEventListener("enterFrame",$bind(this,this.refreshSnapshot_enterFrameHandler));
+		this.refreshSnapshot();
+	}
+	,stage_touchHandler: function(event) {
+		if(this._maintainTouchFocus || feathers_core_FocusManager.isEnabledForStage(this.get_stage())) {
+			return;
 		}
+		var touch = event.getTouch(this.get_stage(),"began");
+		if(touch == null) {
+			return;
+		}
+		var point = starling_utils_Pool.getPoint();
+		touch.getLocation(this.get_stage(),point);
+		var isInBounds = this.contains(this.get_stage().hitTest(point));
+		starling_utils_Pool.putPoint(point);
+		if(isInBounds) {
+			return;
+		}
+		this.clearFocus();
+	}
+	,textField_changeHandler: function(event) {
+		if(this._isHTML) {
+			this.set_text(this.textField.get_htmlText());
+		} else {
+			this.set_text(this.textField.get_text());
+		}
+	}
+	,textField_focusInHandler: function(event) {
+		this._textFieldHasFocus = true;
+		this.get_stage().addEventListener("touch",$bind(this,this.stage_touchHandler));
+		this.addEventListener("enterFrame",$bind(this,this.hasFocus_enterFrameHandler));
+		this.dispatchEventWith("focusIn");
+	}
+	,textField_focusOutHandler: function(event) {
+		this._textFieldHasFocus = false;
+		this.get_stage().removeEventListener("touch",$bind(this,this.stage_touchHandler));
+		if(this._resetScrollOnFocusOut) {
+			this.textField.set_scrollH(this.textField.set_scrollV(0));
+		}
+		this.invalidate("data");
+		this.dispatchEventWith("focusOut");
+	}
+	,textField_mouseFocusChangeHandler: function(event) {
 		if(!this._maintainTouchFocus) {
 			return;
 		}
 		event.preventDefault();
 	}
-	,stageText_keyDownHandler: function(event) {
+	,textField_keyDownHandler: function(event) {
+		if(event.keyCode == 13) {
+			this.dispatchEventWith("enter");
+		} else if(!feathers_core_FocusManager.isEnabledForStage(this.get_stage()) && event.keyCode == 9) {
+			this.clearFocus();
+		}
 	}
-	,stageText_keyUpHandler: function(event) {
+	,fontStylesSet_changeHandler: function(event) {
+		this._previousStarlingTextFormat = null;
+		feathers_core_BaseTextEditor.prototype.fontStylesSet_changeHandler.call(this,event);
 	}
-	,__class__: feathers_controls_text_StageTextTextEditor
-	,__properties__: $extend(feathers_core_BaseTextEditor.prototype.__properties__,{set_clearButtonMode:"set_clearButtonMode",get_clearButtonMode:"get_clearButtonMode",set_updateSnapshotOnScaleChange:"set_updateSnapshotOnScaleChange",get_updateSnapshotOnScaleChange:"get_updateSnapshotOnScaleChange",set_maintainTouchFocus:"set_maintainTouchFocus",get_maintainTouchFocus:"get_maintainTouchFocus",set_textAlign:"set_textAlign",get_textAlign:"get_textAlign",set_softKeyboardType:"set_softKeyboardType",get_softKeyboardType:"get_softKeyboardType",set_returnKeyLabel:"set_returnKeyLabel",get_returnKeyLabel:"get_returnKeyLabel",set_restrict:"set_restrict",get_restrict:"get_restrict",set_multiline:"set_multiline",get_multiline:"get_multiline",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_locale:"set_locale",get_locale:"get_locale",set_fontSize:"set_fontSize",get_fontSize:"get_fontSize",set_fontFamily:"set_fontFamily",get_fontFamily:"get_fontFamily",get_setTouchFocusOnEndedPhase:"get_setTouchFocusOnEndedPhase",set_isSelectable:"set_isSelectable",get_isSelectable:"get_isSelectable",set_isEditable:"set_isEditable",get_isEditable:"get_isEditable",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_disabledColor:"set_disabledColor",get_disabledColor:"get_disabledColor",set_color:"set_color",get_color:"get_color",set_autoCorrect:"set_autoCorrect",get_autoCorrect:"get_autoCorrect",set_autoCapitalize:"set_autoCapitalize",get_autoCapitalize:"get_autoCapitalize",get_baseline:"get_baseline",get_selectionEndIndex:"get_selectionEndIndex",get_selectionBeginIndex:"get_selectionBeginIndex",get_nativeFocus:"get_nativeFocus",get_isShowingFocus:"get_isShowingFocus"})
+	,__class__: feathers_controls_text_TextFieldTextEditor
+	,__properties__: $extend(feathers_core_BaseTextEditor.prototype.__properties__,{set_resetScrollOnFocusOut:"set_resetScrollOnFocusOut",get_resetScrollOnFocusOut:"get_resetScrollOnFocusOut",set_softKeyboard:"set_softKeyboard",get_softKeyboard:"get_softKeyboard",set_useSnapshotDelayWorkaround:"set_useSnapshotDelayWorkaround",get_useSnapshotDelayWorkaround:"get_useSnapshotDelayWorkaround",set_updateSnapshotOnScaleChange:"set_updateSnapshotOnScaleChange",get_updateSnapshotOnScaleChange:"get_updateSnapshotOnScaleChange",get_selectionEndIndex:"get_selectionEndIndex",get_selectionBeginIndex:"get_selectionBeginIndex",get_setTouchFocusOnEndedPhase:"get_setTouchFocusOnEndedPhase",set_useGutter:"set_useGutter",get_useGutter:"get_useGutter",set_borderColor:"set_borderColor",get_borderColor:"get_borderColor",set_border:"set_border",get_border:"get_border",set_backgroundColor:"set_backgroundColor",get_backgroundColor:"get_backgroundColor",set_background:"set_background",get_background:"get_background",set_thickness:"set_thickness",get_thickness:"get_thickness",set_sharpness:"set_sharpness",get_sharpness:"get_sharpness",set_gridFitType:"set_gridFitType",get_gridFitType:"get_gridFitType",set_antiAliasType:"set_antiAliasType",get_antiAliasType:"get_antiAliasType",set_isSelectable:"set_isSelectable",get_isSelectable:"get_isSelectable",set_isEditable:"set_isEditable",get_isEditable:"get_isEditable",set_restrict:"set_restrict",get_restrict:"get_restrict",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_alwaysShowSelection:"set_alwaysShowSelection",get_alwaysShowSelection:"get_alwaysShowSelection",set_isHTML:"set_isHTML",get_isHTML:"get_isHTML",set_multiline:"set_multiline",get_multiline:"get_multiline",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_embedFonts:"set_embedFonts",get_embedFonts:"get_embedFonts",set_disabledTextFormat:"set_disabledTextFormat",get_disabledTextFormat:"get_disabledTextFormat",set_textFormat:"set_textFormat",get_textFormat:"get_textFormat",get_currentTextFormat:"get_currentTextFormat",get_baseline:"get_baseline",get_nativeFocus:"get_nativeFocus"})
+});
+var feathers_controls_text_TextFieldTextRenderer = function() {
+	this._useSnapshotDelayWorkaround = false;
+	this._updateSnapshotOnScaleChange = false;
+	this._lastContentScaleFactor = 0;
+	this._lastGlobalScaleY = 0;
+	this._lastGlobalScaleX = 0;
+	this._useGutter = false;
+	this._maxTextureDimensions = 2048;
+	this._thickness = 0;
+	this._sharpness = 0;
+	this._gridFitType = openfl_text_GridFitType.toString(1);
+	this._displayAsPassword = false;
+	this._condenseWhite = false;
+	this._borderColor = 0;
+	this._border = false;
+	this._backgroundColor = 16777215;
+	this._background = false;
+	this._antiAliasType = openfl_text_AntiAliasType.toString(0);
+	this._pixelSnapping = true;
+	this._embedFonts = false;
+	this._verticalAlignOffsetY = 0;
+	this._isHTML = false;
+	this._hasMeasured = false;
+	this._needsNewTexture = false;
+	this._needsTextureUpdate = false;
+	this._snapshotVisibleHeight = 0;
+	this._snapshotVisibleWidth = 0;
+	this._snapshotHeight = 0;
+	this._snapshotWidth = 0;
+	this._previousActualHeight = NaN;
+	this._previousActualWidth = NaN;
+	this._textSnapshotOffsetY = 0;
+	this._textSnapshotOffsetX = 0;
+	if(this._text == null) {
+		this._text = "";
+	}
+	feathers_controls_text_BaseTextRenderer.call(this);
+	this.set_isQuickHitAreaEnabled(true);
+};
+$hxClasses["feathers.controls.text.TextFieldTextRenderer"] = feathers_controls_text_TextFieldTextRenderer;
+feathers_controls_text_TextFieldTextRenderer.__name__ = "feathers.controls.text.TextFieldTextRenderer";
+feathers_controls_text_TextFieldTextRenderer.__interfaces__ = [feathers_core_ITextRenderer];
+feathers_controls_text_TextFieldTextRenderer.globalStyleProvider = null;
+feathers_controls_text_TextFieldTextRenderer.__super__ = feathers_controls_text_BaseTextRenderer;
+feathers_controls_text_TextFieldTextRenderer.prototype = $extend(feathers_controls_text_BaseTextRenderer.prototype,{
+	textField: null
+	,textSnapshot: null
+	,textSnapshots: null
+	,_textSnapshotOffsetX: null
+	,_textSnapshotOffsetY: null
+	,_previousActualWidth: null
+	,_previousActualHeight: null
+	,_snapshotWidth: null
+	,_snapshotHeight: null
+	,_snapshotVisibleWidth: null
+	,_snapshotVisibleHeight: null
+	,_needsTextureUpdate: null
+	,_needsNewTexture: null
+	,_hasMeasured: null
+	,get_defaultStyleProvider: function() {
+		return feathers_controls_text_TextFieldTextRenderer.globalStyleProvider;
+	}
+	,set_text: function(value) {
+		if(value == null) {
+			value = "";
+		}
+		return feathers_controls_text_BaseTextRenderer.prototype.set_text.call(this,value);
+	}
+	,_isHTML: null
+	,get_isHTML: function() {
+		return this._isHTML;
+	}
+	,set_isHTML: function(value) {
+		if(this._isHTML == value) {
+			return value;
+		}
+		this._isHTML = value;
+		this.invalidate("data");
+		return this._isHTML;
+	}
+	,get_numLines: function() {
+		if(this.textField == null) {
+			return 0;
+		}
+		return this.textField.get_numLines();
+	}
+	,_currentTextFormat: null
+	,get_currentTextFormat: function() {
+		return this._currentTextFormat;
+	}
+	,_fontStylesTextFormat: null
+	,_currentVerticalAlign: null
+	,_verticalAlignOffsetY: null
+	,_textFormatForState: null
+	,_textFormat: null
+	,get_textFormat: function() {
+		return this._textFormat;
+	}
+	,set_textFormat: function(value) {
+		if(this._textFormat == value) {
+			return value;
+		}
+		this._textFormat = value;
+		this.invalidate("styles");
+		return this._textFormat;
+	}
+	,_disabledTextFormat: null
+	,get_disabledTextFormat: function() {
+		return this._disabledTextFormat;
+	}
+	,set_disabledTextFormat: function(value) {
+		if(this._disabledTextFormat == value) {
+			return value;
+		}
+		this._disabledTextFormat = value;
+		this.invalidate("styles");
+		return this._disabledTextFormat;
+	}
+	,_selectedTextFormat: null
+	,get_selectedTextFormat: function() {
+		return this._selectedTextFormat;
+	}
+	,set_selectedTextFormat: function(value) {
+		if(this._selectedTextFormat == value) {
+			return value;
+		}
+		this._selectedTextFormat = value;
+		this.invalidate("styles");
+		return this._selectedTextFormat;
+	}
+	,_styleSheet: null
+	,get_styleSheet: function() {
+		return this._styleSheet;
+	}
+	,set_styleSheet: function(value) {
+		if(this._styleSheet == value) {
+			return value;
+		}
+		this._styleSheet = value;
+		this.invalidate("styles");
+		return this._styleSheet;
+	}
+	,_embedFonts: null
+	,get_embedFonts: function() {
+		return this._embedFonts;
+	}
+	,set_embedFonts: function(value) {
+		if(this._embedFonts == value) {
+			return value;
+		}
+		this._embedFonts = value;
+		this.invalidate("styles");
+		return this._embedFonts;
+	}
+	,get_baseline: function() {
+		if(this.textField == null) {
+			return 0;
+		}
+		var gutterDimensionsOffset = 0;
+		if(this._useGutter || this._border) {
+			gutterDimensionsOffset = 2;
+		}
+		return gutterDimensionsOffset + this.textField.getLineMetrics(0).ascent;
+	}
+	,_pixelSnapping: null
+	,get_pixelSnapping: function() {
+		return this._pixelSnapping;
+	}
+	,set_pixelSnapping: function(value) {
+		if(this._pixelSnapping == value) {
+			return value;
+		}
+		this._pixelSnapping = value;
+		this.invalidate("styles");
+		return this._pixelSnapping;
+	}
+	,_antiAliasType: null
+	,get_antiAliasType: function() {
+		return this._antiAliasType;
+	}
+	,set_antiAliasType: function(value) {
+		if(this._antiAliasType == value) {
+			return value;
+		}
+		this._antiAliasType = value;
+		this.invalidate("styles");
+		return this._antiAliasType;
+	}
+	,_background: null
+	,get_background: function() {
+		return this._background;
+	}
+	,set_background: function(value) {
+		if(this._background == value) {
+			return value;
+		}
+		this._background = value;
+		this.invalidate("styles");
+		return this._background;
+	}
+	,_backgroundColor: null
+	,get_backgroundColor: function() {
+		return this._backgroundColor;
+	}
+	,set_backgroundColor: function(value) {
+		if(this._backgroundColor == value) {
+			return value;
+		}
+		this._backgroundColor = value;
+		this.invalidate("styles");
+		return this._backgroundColor;
+	}
+	,_border: null
+	,get_border: function() {
+		return this._border;
+	}
+	,set_border: function(value) {
+		if(this._border == value) {
+			return value;
+		}
+		this._border = value;
+		this.invalidate("styles");
+		return this._border;
+	}
+	,_borderColor: null
+	,get_borderColor: function() {
+		return this._borderColor;
+	}
+	,set_borderColor: function(value) {
+		if(this._borderColor == value) {
+			return value;
+		}
+		this._borderColor = value;
+		this.invalidate("styles");
+		return this._borderColor;
+	}
+	,_condenseWhite: null
+	,get_condenseWhite: function() {
+		return this._condenseWhite;
+	}
+	,set_condenseWhite: function(value) {
+		if(this._condenseWhite == value) {
+			return value;
+		}
+		this._condenseWhite = value;
+		this.invalidate("styles");
+		return this._condenseWhite;
+	}
+	,_displayAsPassword: null
+	,get_displayAsPassword: function() {
+		return this._displayAsPassword;
+	}
+	,set_displayAsPassword: function(value) {
+		if(this._displayAsPassword == value) {
+			return value;
+		}
+		this._displayAsPassword = value;
+		this.invalidate("styles");
+		return this._displayAsPassword;
+	}
+	,_gridFitType: null
+	,get_gridFitType: function() {
+		return this._gridFitType;
+	}
+	,set_gridFitType: function(value) {
+		if(this._gridFitType == value) {
+			return value;
+		}
+		this._gridFitType = value;
+		this.invalidate("styles");
+		return this._gridFitType;
+	}
+	,_sharpness: null
+	,get_sharpness: function() {
+		return this._sharpness;
+	}
+	,set_sharpness: function(value) {
+		if(this._sharpness == value) {
+			return value;
+		}
+		this._sharpness = value;
+		this.invalidate("data");
+		return this._sharpness;
+	}
+	,_thickness: null
+	,get_thickness: function() {
+		return this._thickness;
+	}
+	,set_thickness: function(value) {
+		if(this._thickness == value) {
+			return value;
+		}
+		this._thickness = value;
+		this.invalidate("styles");
+		return this._sharpness;
+	}
+	,_maxTextureDimensions: null
+	,get_maxTextureDimensions: function() {
+		return this._maxTextureDimensions;
+	}
+	,set_maxTextureDimensions: function(value) {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		if(starling.get_profile() == 1) {
+			value = starling_utils_MathUtil.getNextPowerOfTwo(value);
+		}
+		if(this._maxTextureDimensions == value) {
+			return value;
+		}
+		this._maxTextureDimensions = value;
+		this._needsNewTexture = true;
+		this.invalidate("size");
+		return this._maxTextureDimensions;
+	}
+	,_nativeFilters: null
+	,get_nativeFilters: function() {
+		return this._nativeFilters;
+	}
+	,set_nativeFilters: function(value) {
+		if(this._nativeFilters == value) {
+			return value;
+		}
+		this._nativeFilters = value;
+		this.invalidate("styles");
+		return this._nativeFilters;
+	}
+	,_useGutter: null
+	,get_useGutter: function() {
+		if(!this._useGutter) {
+			return this._border;
+		} else {
+			return true;
+		}
+	}
+	,set_useGutter: function(value) {
+		if(this._useGutter == value) {
+			return value;
+		}
+		this._useGutter = value;
+		this.invalidate("styles");
+		return this._useGutter;
+	}
+	,_lastGlobalScaleX: null
+	,_lastGlobalScaleY: null
+	,_lastContentScaleFactor: null
+	,_updateSnapshotOnScaleChange: null
+	,get_updateSnapshotOnScaleChange: function() {
+		return this._updateSnapshotOnScaleChange;
+	}
+	,set_updateSnapshotOnScaleChange: function(value) {
+		if(this._updateSnapshotOnScaleChange == value) {
+			return value;
+		}
+		this._updateSnapshotOnScaleChange = value;
+		this.invalidate("data");
+		return this._updateSnapshotOnScaleChange;
+	}
+	,_useSnapshotDelayWorkaround: null
+	,get_useSnapshotDelayWorkaround: function() {
+		return this._useSnapshotDelayWorkaround;
+	}
+	,set_useSnapshotDelayWorkaround: function(value) {
+		if(this._useSnapshotDelayWorkaround == value) {
+			return value;
+		}
+		this._useSnapshotDelayWorkaround = value;
+		this.invalidate("data");
+		return this._useSnapshotDelayWorkaround;
+	}
+	,dispose: function() {
+		if(this.textSnapshot != null) {
+			this.textSnapshot.get_texture().dispose();
+			this.removeChild(this.textSnapshot,true);
+			this.textSnapshot = null;
+		}
+		if(this.textSnapshots != null) {
+			var snapshotCount = this.textSnapshots.length;
+			var _g = 0;
+			var _g1 = snapshotCount;
+			while(_g < _g1) {
+				var i = _g++;
+				var snapshot = this.textSnapshots[i];
+				snapshot.get_texture().dispose();
+				this.removeChild(snapshot,true);
+			}
+			this.textSnapshots = null;
+		}
+		this.textField = null;
+		this._previousActualWidth = NaN;
+		this._previousActualHeight = NaN;
+		this._needsNewTexture = false;
+		this._snapshotWidth = 0;
+		this._snapshotHeight = 0;
+		feathers_controls_text_BaseTextRenderer.prototype.dispose.call(this);
+	}
+	,render: function(painter) {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		if(this._updateSnapshotOnScaleChange) {
+			this.getTransformationMatrix(this.get_stage(),feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX);
+			var matrix = feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX;
+			var a = matrix.a;
+			var b = matrix.b;
+			var globalScaleX = Math.sqrt(a * a + b * b);
+			var matrix = feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX;
+			var c = matrix.c;
+			var d = matrix.d;
+			var globalScaleY = Math.sqrt(c * c + d * d);
+			if(globalScaleX != this._lastGlobalScaleX || globalScaleY != this._lastGlobalScaleY || starling.get_contentScaleFactor() != this._lastContentScaleFactor) {
+				this.invalidate("size");
+				this.validate();
+			}
+		}
+		if(this._needsTextureUpdate) {
+			this._needsTextureUpdate = false;
+			if(this._text.length != 0) {
+				if(this._useSnapshotDelayWorkaround) {
+					this.addEventListener("enterFrame",$bind(this,this.enterFrameHandler));
+				} else {
+					this.refreshSnapshot();
+				}
+			}
+		}
+		if(this.textSnapshot != null) {
+			var scaleFactor = starling.get_contentScaleFactor();
+			var offsetX;
+			var offsetY;
+			if(this._nativeFilters == null || this._nativeFilters.length == 0) {
+				offsetX = 0;
+				offsetY = 0;
+			} else {
+				offsetX = this._textSnapshotOffsetX / scaleFactor;
+				offsetY = this._textSnapshotOffsetY / scaleFactor;
+			}
+			offsetY += this._verticalAlignOffsetY * scaleFactor;
+			var snapshotIndex = -1;
+			var snapshot;
+			var totalBitmapWidth = this._snapshotWidth;
+			var totalBitmapHeight = this._snapshotHeight;
+			var xPosition = offsetX;
+			var yPosition = offsetY;
+			while(true) {
+				var currentBitmapWidth = totalBitmapWidth;
+				if(currentBitmapWidth > this._maxTextureDimensions) {
+					currentBitmapWidth = this._maxTextureDimensions;
+				}
+				while(true) {
+					var currentBitmapHeight = totalBitmapHeight;
+					if(currentBitmapHeight > this._maxTextureDimensions) {
+						currentBitmapHeight = this._maxTextureDimensions;
+					}
+					if(snapshotIndex < 0) {
+						snapshot = this.textSnapshot;
+						snapshot.set_visible(this._text.length > 0 && this._snapshotWidth > 0 && this._snapshotHeight > 0);
+					} else {
+						snapshot = this.textSnapshots[snapshotIndex];
+					}
+					snapshot.set_pixelSnapping(this._pixelSnapping);
+					snapshot.set_x(xPosition / scaleFactor);
+					snapshot.set_y(yPosition / scaleFactor);
+					++snapshotIndex;
+					yPosition += currentBitmapHeight;
+					totalBitmapHeight -= currentBitmapHeight;
+					if(!(totalBitmapHeight > 0)) {
+						break;
+					}
+				}
+				if(!(totalBitmapWidth > 0)) {
+					break;
+				}
+			}
+		}
+		feathers_controls_text_BaseTextRenderer.prototype.render.call(this,painter);
+	}
+	,measureText: function(result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		if(!needsWidth && !needsHeight) {
+			result.x = this._explicitWidth;
+			result.y = this._explicitHeight;
+			return result;
+		}
+		if(!this._isInitialized) {
+			this.initializeNow();
+		}
+		this.commit();
+		result = this.measure(result);
+		return result;
+	}
+	,getTextFormatForState: function(state) {
+		if(this._textFormatForState == null) {
+			return null;
+		}
+		return this._textFormatForState.h[state];
+	}
+	,setTextFormatForState: function(state,textFormat) {
+		if(textFormat != null) {
+			if(this._textFormatForState == null) {
+				this._textFormatForState = new haxe_ds_StringMap();
+			}
+			this._textFormatForState.h[state] = textFormat;
+		} else {
+			var _this = this._textFormatForState;
+			if(Object.prototype.hasOwnProperty.call(_this.h,state)) {
+				delete(_this.h[state]);
+			}
+		}
+		if(this._stateContext != null && this._stateContext.get_currentState() == state) {
+			this.invalidate("state");
+		}
+	}
+	,initialize: function() {
+		if(this.textField == null) {
+			this.textField = new openfl_text_TextField();
+			var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+			var scaleFactor = starling.get_contentScaleFactor();
+			this.textField.set_scaleX(scaleFactor);
+			this.textField.set_scaleY(scaleFactor);
+			this.textField.mouseEnabled = this.textField.set_mouseWheelEnabled(false);
+			this.textField.set_selectable(false);
+			this.textField.set_multiline(true);
+		}
+	}
+	,draw: function() {
+		var sizeInvalid = this.isInvalid("size");
+		this.commit();
+		this._hasMeasured = false;
+		if(this.autoSizeIfNeeded()) {
+			sizeInvalid = true;
+		}
+		this._verticalAlignOffsetY = this.getVerticalAlignOffsetY();
+		this.layout(sizeInvalid);
+	}
+	,commit: function() {
+		var stylesInvalid = this.isInvalid("styles");
+		var dataInvalid = this.isInvalid("data");
+		var stateInvalid = this.isInvalid("state");
+		if(stylesInvalid || stateInvalid) {
+			this.refreshTextFormat();
+		}
+		if(stylesInvalid) {
+			this.textField.set_antiAliasType(openfl_text_AntiAliasType.fromString(this._antiAliasType));
+			this.textField.set_background(this._background);
+			this.textField.set_backgroundColor(this._backgroundColor);
+			this.textField.set_border(this._border);
+			this.textField.set_borderColor(this._borderColor);
+			this.textField.condenseWhite = this._condenseWhite;
+			this.textField.set_displayAsPassword(this._displayAsPassword);
+			this.textField.set_gridFitType(openfl_text_GridFitType.fromString(this._gridFitType));
+			this.textField.set_sharpness(this._sharpness);
+			this.textField.set_filters(this._nativeFilters);
+		}
+		if(dataInvalid || stylesInvalid || stateInvalid) {
+			this.textField.set_wordWrap(this._wordWrap);
+			if(this._styleSheet != null) {
+				this.textField.set_embedFonts(this._embedFonts);
+				this.textField.set_styleSheet(this._styleSheet);
+			} else {
+				if(!this._embedFonts && this._currentTextFormat == this._fontStylesTextFormat) {
+					this.textField.set_embedFonts(starling_utils_SystemUtil.isEmbeddedFont(this._currentTextFormat.font,this._currentTextFormat.bold,this._currentTextFormat.italic,openfl_text_FontType.toString(1)));
+				} else {
+					this.textField.set_embedFonts(this._embedFonts);
+				}
+				this.textField.set_styleSheet(null);
+				this.textField.set_defaultTextFormat(this._currentTextFormat);
+			}
+			if(this._isHTML) {
+				this.textField.set_htmlText(this._text);
+			} else {
+				this.textField.set_text(this._text);
+			}
+		}
+	}
+	,measure: function(result) {
+		if(result == null) {
+			result = new openfl_geom_Point();
+		}
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		this.textField.set_autoSize(1);
+		this.textField.set_wordWrap(false);
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var scaleFactor = starling.get_contentScaleFactor();
+		var gutterDimensionsOffset = 4;
+		if(this._useGutter || this._border) {
+			gutterDimensionsOffset = 0;
+		}
+		var newWidth = this._explicitWidth;
+		var newHeight = this._explicitHeight;
+		if(needsWidth) {
+			var hackWorkaround = this.textField.get_width();
+			newWidth = this.textField.get_width() / scaleFactor - gutterDimensionsOffset;
+			if(newWidth < this._explicitMinWidth) {
+				newWidth = this._explicitMinWidth;
+			} else if(newWidth > this._explicitMaxWidth) {
+				newWidth = this._explicitMaxWidth;
+			}
+		}
+		if(!needsWidth || this.textField.get_width() / scaleFactor - gutterDimensionsOffset > newWidth) {
+			this.textField.set_width(newWidth + gutterDimensionsOffset);
+			this.textField.set_wordWrap(this._wordWrap);
+		}
+		if(needsHeight) {
+			newHeight = this.textField.get_height() / scaleFactor - gutterDimensionsOffset;
+			newHeight = feathers_utils_math_MathUtils.roundUpToNearest(newHeight,0.05);
+			if(newHeight < this._explicitMinHeight) {
+				newHeight = this._explicitMinHeight;
+			} else if(newHeight > this._explicitMaxHeight) {
+				newHeight = this._explicitMaxHeight;
+			}
+		}
+		this.textField.set_autoSize(2);
+		this.textField.set_width(this.actualWidth + gutterDimensionsOffset);
+		this.textField.set_height(this.actualHeight + gutterDimensionsOffset);
+		result.x = newWidth;
+		result.y = newHeight;
+		this._hasMeasured = true;
+		return result;
+	}
+	,layout: function(sizeInvalid) {
+		var stylesInvalid = this.isInvalid("styles");
+		var dataInvalid = this.isInvalid("data");
+		var stateInvalid = this.isInvalid("state");
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var scaleFactor = starling.get_contentScaleFactor();
+		var gutterDimensionsOffset = 4;
+		if(this._useGutter || this._border) {
+			gutterDimensionsOffset = 0;
+		}
+		if(!this._hasMeasured && this._wordWrap) {
+			this.textField.set_autoSize(1);
+			this.textField.set_wordWrap(false);
+			if(this.textField.get_width() / scaleFactor - gutterDimensionsOffset > this.actualWidth) {
+				this.textField.set_wordWrap(true);
+			}
+			this.textField.set_autoSize(2);
+			this.textField.set_width(this.actualWidth + gutterDimensionsOffset);
+		}
+		if(sizeInvalid) {
+			this.textField.set_width(this.actualWidth + gutterDimensionsOffset);
+			this.textField.set_height(this.actualHeight + gutterDimensionsOffset);
+			this.calculateSnapshotDimensions();
+		}
+		if(stylesInvalid || dataInvalid || stateInvalid || this._needsNewTexture || this.actualWidth != this._previousActualWidth || this.actualHeight != this._previousActualHeight) {
+			this._previousActualWidth = this.actualWidth;
+			this._previousActualHeight = this.actualHeight;
+			this._needsTextureUpdate = true;
+			this.setRequiresRedraw();
+		}
+	}
+	,autoSizeIfNeeded: function() {
+		var needsWidth = this._explicitWidth != this._explicitWidth;
+		var needsHeight = this._explicitHeight != this._explicitHeight;
+		var needsMinWidth = this._explicitMinWidth != this._explicitMinWidth;
+		var needsMinHeight = this._explicitMinHeight != this._explicitMinHeight;
+		if(!needsWidth && !needsHeight && !needsMinWidth && !needsMinHeight) {
+			return false;
+		}
+		this.measure(feathers_controls_text_TextFieldTextRenderer.HELPER_POINT);
+		var newWidth = this._explicitWidth;
+		if(needsWidth) {
+			newWidth = feathers_controls_text_TextFieldTextRenderer.HELPER_POINT.x;
+		}
+		var newHeight = this._explicitHeight;
+		if(needsHeight) {
+			newHeight = feathers_controls_text_TextFieldTextRenderer.HELPER_POINT.y;
+		}
+		var newMinWidth = this._explicitMinWidth;
+		if(needsMinWidth) {
+			if(needsWidth) {
+				newMinWidth = 0;
+			} else {
+				newMinWidth = newWidth;
+			}
+		}
+		var newMinHeight = this._explicitMinHeight;
+		if(needsMinHeight) {
+			newMinHeight = newHeight;
+		}
+		return this.saveMeasurements(newWidth,newHeight,newMinWidth,newMinHeight);
+	}
+	,measureNativeFilters: function(bitmapData,result) {
+		if(result == null) {
+			result = new openfl_geom_Rectangle();
+		}
+		var resultX = 0;
+		var resultY = 0;
+		var resultWidth = 0;
+		var resultHeight = 0;
+		var filterCount = this._nativeFilters.length;
+		var _g = 0;
+		var _g1 = filterCount;
+		while(_g < _g1) {
+			var i = _g++;
+			var filter = this._nativeFilters[i];
+			var filterRect = bitmapData.generateFilterRect(bitmapData.rect,filter);
+			var filterX = filterRect.x;
+			var filterY = filterRect.y;
+			var filterWidth = filterRect.width;
+			var filterHeight = filterRect.height;
+			if(resultX > filterX) {
+				resultX = filterX;
+			}
+			if(resultY > filterY) {
+				resultY = filterY;
+			}
+			if(resultWidth < filterWidth) {
+				resultWidth = filterWidth;
+			}
+			if(resultHeight < filterHeight) {
+				resultHeight = filterHeight;
+			}
+		}
+		result.setTo(resultX,resultY,resultWidth,resultHeight);
+		return result;
+	}
+	,refreshTextFormat: function() {
+		var textFormat = null;
+		if(this._stateContext != null) {
+			if(this._textFormatForState != null) {
+				var currentState = this._stateContext.get_currentState();
+				if(Object.prototype.hasOwnProperty.call(this._textFormatForState.h,currentState)) {
+					textFormat = this._textFormatForState.h[currentState];
+				}
+			}
+			if(textFormat == null && this._disabledTextFormat != null && js_Boot.__implements(this._stateContext,feathers_core_IFeathersControl) && !(js_Boot.__cast(this._stateContext , feathers_core_IFeathersControl)).get_isEnabled()) {
+				textFormat = this._disabledTextFormat;
+			}
+			if(textFormat == null && this._selectedTextFormat != null && js_Boot.__implements(this._stateContext,feathers_core_IToggle) && !(js_Boot.__cast(this._stateContext , feathers_core_IToggle)).get_isSelected()) {
+				textFormat = this._selectedTextFormat;
+			}
+		} else if(!this._isEnabled && this._disabledTextFormat != null) {
+			textFormat = this._disabledTextFormat;
+		}
+		if(textFormat == null) {
+			textFormat = this._textFormat;
+		}
+		if(textFormat == null) {
+			textFormat = this.getTextFormatFromFontStyles();
+		} else {
+			this._currentVerticalAlign = "top";
+		}
+		this._currentTextFormat = textFormat;
+	}
+	,getTextFormatFromFontStyles: function() {
+		if(this.isInvalid("styles") || this.isInvalid("state")) {
+			var fontStylesFormat = null;
+			if(this._fontStyles != null) {
+				fontStylesFormat = this._fontStyles.getTextFormatForTarget(this);
+			}
+			if(fontStylesFormat != null) {
+				this._fontStylesTextFormat = fontStylesFormat.toNativeFormat(this._fontStylesTextFormat);
+				this._currentVerticalAlign = fontStylesFormat.get_verticalAlign();
+			} else if(this._fontStylesTextFormat == null) {
+				this._fontStylesTextFormat = new openfl_text_TextFormat();
+				this._currentVerticalAlign = "top";
+			}
+		}
+		return this._fontStylesTextFormat;
+	}
+	,getVerticalAlignOffsetY: function() {
+		var textFieldTextHeight = this.textField.get_textHeight();
+		if(textFieldTextHeight > this.actualHeight) {
+			return 0;
+		}
+		if(this._currentVerticalAlign == "bottom") {
+			return this.actualHeight - textFieldTextHeight;
+		} else if(this._currentVerticalAlign == "center") {
+			return (this.actualHeight - textFieldTextHeight) / 2;
+		}
+		return 0;
+	}
+	,createTextureOnRestoreCallback: function(snapshot) {
+		var self = this;
+		var texture = snapshot.get_texture();
+		texture.get_root().set_onRestore(function(tex) {
+			var starling = self.get_stage() != null ? self.get_stage().get_starling() : starling_core_Starling.get_current();
+			var scaleFactor = starling.get_contentScaleFactor();
+			feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.identity();
+			feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.scale(scaleFactor,scaleFactor);
+			var offsetY = self.getVerticalAlignOffsetY();
+			var bitmapData = self.drawTextFieldRegionToBitmapData(snapshot.get_x(),snapshot.get_y() - offsetY,texture.get_nativeWidth(),texture.get_nativeHeight());
+			texture.get_root().uploadBitmapData(bitmapData);
+			bitmapData.dispose();
+		});
+	}
+	,drawTextFieldRegionToBitmapData: function(textFieldX,textFieldY,bitmapWidth,bitmapHeight,bitmapData) {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var scaleFactor = starling.get_contentScaleFactor();
+		var clipWidth = this._snapshotVisibleWidth - textFieldX;
+		var clipHeight = this._snapshotVisibleHeight - textFieldY;
+		if(bitmapData == null || bitmapData.width != bitmapWidth || bitmapData.height != bitmapHeight) {
+			if(bitmapData != null) {
+				bitmapData.dispose();
+			}
+			bitmapData = new openfl_display_BitmapData(bitmapWidth | 0,bitmapHeight | 0,true,16711935);
+		} else {
+			bitmapData.fillRect(bitmapData.rect,16711935);
+		}
+		var gutterPositionOffset = 2 * scaleFactor;
+		if(this._useGutter || this._border) {
+			gutterPositionOffset = 0;
+		}
+		feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.tx = -(textFieldX + gutterPositionOffset) - this._textSnapshotOffsetX;
+		feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.ty = -(textFieldY + gutterPositionOffset) - this._textSnapshotOffsetY;
+		feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE.setTo(0,0,clipWidth,clipHeight);
+		bitmapData.draw(this.textField,feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX,null,null,feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE);
+		return bitmapData;
+	}
+	,calculateSnapshotDimensions: function() {
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var scaleFactor = starling.get_contentScaleFactor();
+		this._lastContentScaleFactor = scaleFactor;
+		var rectangleSnapshotWidth = Math.ceil(this.textField.get_width());
+		var rectangleSnapshotHeight = Math.ceil(this.textField.get_height());
+		if(this._updateSnapshotOnScaleChange) {
+			this.getTransformationMatrix(this.get_stage(),feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX);
+			var matrix = feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX;
+			var a = matrix.a;
+			var b = matrix.b;
+			this._lastGlobalScaleX = Math.sqrt(a * a + b * b);
+			var matrix = feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX;
+			var c = matrix.c;
+			var d = matrix.d;
+			this._lastGlobalScaleY = Math.sqrt(c * c + d * d);
+			rectangleSnapshotWidth *= this._lastGlobalScaleX;
+			rectangleSnapshotHeight *= this._lastGlobalScaleY;
+		}
+		if(rectangleSnapshotWidth >= 1 && rectangleSnapshotHeight >= 1 && this._nativeFilters != null && this._nativeFilters.length > 0) {
+			feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.identity();
+			feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.scale(scaleFactor,scaleFactor);
+			var bitmapData = new openfl_display_BitmapData(rectangleSnapshotWidth | 0,rectangleSnapshotHeight | 0,true,16711935);
+			bitmapData.draw(this.textField,feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX,null,null,feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE);
+			this.measureNativeFilters(bitmapData,feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE);
+			bitmapData.dispose();
+			bitmapData = null;
+			this._textSnapshotOffsetX = feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE.x;
+			this._textSnapshotOffsetY = feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE.y;
+			rectangleSnapshotWidth = feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE.width;
+			rectangleSnapshotHeight = feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE.height;
+		}
+		var point = starling_utils_Pool.getPoint();
+		feathers_utils_texture_TextureUtils.calculateSnapshotTextureDimensions(rectangleSnapshotWidth,rectangleSnapshotHeight,this._maxTextureDimensions,starling.get_profile() != 1,point);
+		this._snapshotWidth = point.x | 0;
+		this._snapshotHeight = point.y | 0;
+		this._snapshotVisibleWidth = rectangleSnapshotWidth | 0;
+		this._snapshotVisibleHeight = rectangleSnapshotHeight | 0;
+		starling_utils_Pool.putPoint(point);
+		var textureRoot = this.textSnapshot != null ? this.textSnapshot.get_texture().get_root() : null;
+		this._needsNewTexture = this._needsNewTexture || this.textSnapshot == null || textureRoot != null && (textureRoot.get_scale() != scaleFactor || this._snapshotWidth != textureRoot.get_nativeWidth() || this._snapshotHeight != textureRoot.get_nativeHeight());
+	}
+	,refreshSnapshot: function() {
+		if(this._snapshotWidth <= 0 || this._snapshotHeight <= 0) {
+			return;
+		}
+		var starling = this.get_stage() != null ? this.get_stage().get_starling() : starling_core_Starling.get_current();
+		var scaleFactor = starling.get_contentScaleFactor();
+		var globalScaleX = 0;
+		var globalScaleY = 0;
+		if(this._updateSnapshotOnScaleChange) {
+			this.getTransformationMatrix(this.get_stage(),feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX);
+			var matrix = feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX;
+			var a = matrix.a;
+			var b = matrix.b;
+			globalScaleX = Math.sqrt(a * a + b * b);
+			var matrix = feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX;
+			var c = matrix.c;
+			var d = matrix.d;
+			globalScaleY = Math.sqrt(c * c + d * d);
+		}
+		feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.identity();
+		feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.scale(scaleFactor,scaleFactor);
+		if(this._updateSnapshotOnScaleChange) {
+			feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX.scale(globalScaleX,globalScaleY);
+		}
+		var totalBitmapWidth = this._snapshotWidth;
+		var totalBitmapHeight = this._snapshotHeight;
+		var xPosition = 0;
+		var yPosition = 0;
+		var bitmapData = null;
+		var snapshotIndex = 0;
+		var currentBitmapWidth;
+		var currentBitmapHeight;
+		var snapshot;
+		var newTexture = null;
+		while(true) {
+			currentBitmapWidth = totalBitmapWidth;
+			if(currentBitmapWidth > this._maxTextureDimensions) {
+				currentBitmapWidth = this._maxTextureDimensions;
+			}
+			while(true) {
+				currentBitmapHeight = totalBitmapHeight;
+				if(currentBitmapHeight > this._maxTextureDimensions) {
+					currentBitmapHeight = this._maxTextureDimensions;
+				}
+				bitmapData = this.drawTextFieldRegionToBitmapData(xPosition,yPosition,currentBitmapWidth,currentBitmapHeight,bitmapData);
+				if(this.textSnapshot == null || this._needsNewTexture) {
+					newTexture = starling_textures_Texture.empty(bitmapData.width / scaleFactor,bitmapData.height / scaleFactor,true,false,false,scaleFactor);
+					newTexture.get_root().uploadBitmapData(bitmapData);
+				}
+				snapshot = null;
+				if(snapshotIndex >= 0) {
+					if(this.textSnapshots == null) {
+						this.textSnapshots = [];
+					} else if(this.textSnapshots.length > snapshotIndex) {
+						snapshot = this.textSnapshots[snapshotIndex];
+					}
+				} else {
+					snapshot = this.textSnapshot;
+				}
+				if(snapshot == null) {
+					snapshot = new starling_display_Image(newTexture);
+					snapshot.set_pixelSnapping(true);
+					this.addChild(snapshot);
+				} else if(this._needsNewTexture) {
+					snapshot.get_texture().dispose();
+					snapshot.set_texture(newTexture);
+					snapshot.readjustSize();
+				} else {
+					var existingTexture = snapshot.get_texture();
+					existingTexture.get_root().uploadBitmapData(bitmapData);
+					this.textSnapshot.setRequiresRedraw();
+				}
+				if(newTexture != null) {
+					this.createTextureOnRestoreCallback(snapshot);
+				}
+				if(snapshotIndex >= 0) {
+					this.textSnapshots[snapshotIndex] = snapshot;
+				} else {
+					this.textSnapshot = snapshot;
+				}
+				snapshot.set_x(xPosition / scaleFactor);
+				snapshot.set_y(yPosition / scaleFactor);
+				if(this._updateSnapshotOnScaleChange) {
+					snapshot.set_scaleX(1 / globalScaleX);
+					snapshot.set_scaleY(1 / globalScaleY);
+				} else {
+					snapshot.set_scale(1);
+				}
+				++snapshotIndex;
+				yPosition += currentBitmapWidth;
+				totalBitmapHeight -= currentBitmapHeight;
+				if(!(totalBitmapHeight > 0)) {
+					break;
+				}
+			}
+			xPosition += currentBitmapWidth;
+			totalBitmapWidth -= currentBitmapWidth;
+			yPosition = 0;
+			totalBitmapHeight = this._snapshotHeight;
+			if(!(totalBitmapWidth > 0)) {
+				break;
+			}
+		}
+		bitmapData.dispose();
+		if(this.textSnapshots != null) {
+			var snapshotCount = this.textSnapshots.length;
+			var _g = snapshotIndex;
+			var _g1 = snapshotCount;
+			while(_g < _g1) {
+				var i = _g++;
+				snapshot = this.textSnapshots[i];
+				snapshot.get_texture().dispose();
+				snapshot.removeFromParent(true);
+			}
+			if(snapshotIndex == 0) {
+				this.textSnapshots = null;
+			} else {
+				this.textSnapshots.length = snapshotIndex;
+			}
+		}
+		if(this._updateSnapshotOnScaleChange) {
+			this._lastGlobalScaleX = globalScaleX;
+			this._lastGlobalScaleY = globalScaleY;
+			this._lastContentScaleFactor = scaleFactor;
+		}
+		this._needsNewTexture = false;
+	}
+	,enterFrameHandler: function(event) {
+		this.removeEventListener("enterFrame",$bind(this,this.enterFrameHandler));
+		this.refreshSnapshot();
+	}
+	,__class__: feathers_controls_text_TextFieldTextRenderer
+	,__properties__: $extend(feathers_controls_text_BaseTextRenderer.prototype.__properties__,{set_useSnapshotDelayWorkaround:"set_useSnapshotDelayWorkaround",get_useSnapshotDelayWorkaround:"get_useSnapshotDelayWorkaround",set_updateSnapshotOnScaleChange:"set_updateSnapshotOnScaleChange",get_updateSnapshotOnScaleChange:"get_updateSnapshotOnScaleChange",set_useGutter:"set_useGutter",get_useGutter:"get_useGutter",set_nativeFilters:"set_nativeFilters",get_nativeFilters:"get_nativeFilters",set_maxTextureDimensions:"set_maxTextureDimensions",get_maxTextureDimensions:"get_maxTextureDimensions",set_thickness:"set_thickness",get_thickness:"get_thickness",set_sharpness:"set_sharpness",get_sharpness:"get_sharpness",set_gridFitType:"set_gridFitType",get_gridFitType:"get_gridFitType",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_condenseWhite:"set_condenseWhite",get_condenseWhite:"get_condenseWhite",set_borderColor:"set_borderColor",get_borderColor:"get_borderColor",set_border:"set_border",get_border:"get_border",set_backgroundColor:"set_backgroundColor",get_backgroundColor:"get_backgroundColor",set_background:"set_background",get_background:"get_background",set_antiAliasType:"set_antiAliasType",get_antiAliasType:"get_antiAliasType",set_pixelSnapping:"set_pixelSnapping",get_pixelSnapping:"get_pixelSnapping",get_baseline:"get_baseline",set_embedFonts:"set_embedFonts",get_embedFonts:"get_embedFonts",set_styleSheet:"set_styleSheet",get_styleSheet:"get_styleSheet",set_selectedTextFormat:"set_selectedTextFormat",get_selectedTextFormat:"get_selectedTextFormat",set_disabledTextFormat:"set_disabledTextFormat",get_disabledTextFormat:"get_disabledTextFormat",set_textFormat:"set_textFormat",get_textFormat:"get_textFormat",get_currentTextFormat:"get_currentTextFormat",get_numLines:"get_numLines",set_isHTML:"set_isHTML",get_isHTML:"get_isHTML"})
 });
 var feathers_core_IFocusManager = function() { };
 $hxClasses["feathers.core.IFocusManager"] = feathers_core_IFocusManager;
 feathers_core_IFocusManager.__name__ = "feathers.core.IFocusManager";
 feathers_core_IFocusManager.__isInterface__ = true;
+feathers_core_IFocusManager.__interfaces__ = [feathers_core_IFeathersEventDispatcher];
 feathers_core_IFocusManager.prototype = {
 	get_isEnabled: null
 	,set_isEnabled: null
@@ -23443,7 +24417,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 	}
 	,set_isEnabled: function(value) {
 		if(this._isEnabled == value) {
-			return this._isEnabled;
+			return value;
 		}
 		this._isEnabled = value;
 		if(this._isEnabled) {
@@ -23494,7 +24468,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 	}
 	,set_focus: function(value) {
 		if(this._focus == value) {
-			return this._focus;
+			return value;
 		}
 		var shouldHaveFocus = false;
 		var oldFocus = this._focus;
@@ -23519,18 +24493,18 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 			oldFocus.dispatchEventWith("focusOut");
 		}
 		if(shouldHaveFocus && this._focus != value) {
-			return this._focus;
+			return value;
 		}
 		if(this._isEnabled) {
 			if(this._focus != null) {
 				nativeFocus = null;
 				if(js_Boot.__implements(this._focus,feathers_core_INativeFocusOwner)) {
-					nativeFocus = this._focus;
+					nativeFocus = (js_Boot.__cast(this._focus , feathers_core_INativeFocusOwner)).get_nativeFocus();
 					if(((nativeFocus) instanceof openfl_display_InteractiveObject)) {
 						nativeStage.set_focus(nativeFocus);
 					} else if(nativeFocus != null) {
 						if(js_Boot.__implements(this._focus,feathers_core_IAdvancedNativeFocusOwner)) {
-							var advancedFocus = js_Boot.__cast(this._focus , feathers_core_IAdvancedNativeFocusOwner);
+							var advancedFocus = this._focus;
 							if(!advancedFocus.get_hasFocus()) {
 								advancedFocus.setFocus();
 							}
@@ -23563,12 +24537,13 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		}
 		if(((target) instanceof starling_display_DisplayObjectContainer) && !js_Boot.__implements(target,feathers_core_IFocusDisplayObject) || js_Boot.__implements(target,feathers_core_IFocusContainer) && (js_Boot.__cast(target , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
 			var container = target;
+			var child;
 			var childCount = container.get_numChildren();
 			var _g = 0;
 			var _g1 = childCount;
 			while(_g < _g1) {
 				var i = _g++;
-				var child = container.getChildAt(i);
+				child = container.getChildAt(i);
 				this.setFocusManager(child);
 			}
 			if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
@@ -23580,7 +24555,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 					var _g1 = childCount;
 					while(_g < _g1) {
 						var i = _g++;
-						var child = extras[i];
+						child = extras[i];
 						this.setFocusManager(child);
 					}
 				}
@@ -23591,7 +24566,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 					var _g1 = childCount;
 					while(_g < _g1) {
 						var i = _g++;
-						var child = extras[i];
+						child = extras[i];
 						this.setFocusManager(child);
 					}
 				}
@@ -23655,30 +24630,29 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		var child;
 		var foundChild;
 		var extras;
-		var focusContainer = null;
-		var skip;
 		var focusWithExtras = null;
+		var skip = false;
 		if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
 			focusWithExtras = container;
-			var extras1 = focusWithExtras.get_focusExtrasAfter();
-			if(extras1 != null) {
-				skip = false;
+			extras = focusWithExtras.get_focusExtrasAfter();
+			if(extras != null) {
 				if(beforeChild != null) {
-					startIndex = extras1.indexOf(beforeChild) - 1;
+					startIndex = extras.indexOf(beforeChild) - 1;
 					hasProcessedBeforeChild = startIndex >= -1;
 					skip = !hasProcessedBeforeChild;
 				} else {
-					startIndex = extras1.length - 1;
+					startIndex = extras.length - 1;
 				}
 				if(!skip) {
-					var i = startIndex;
-					while(i >= 0) {
-						child = extras1[i];
+					var _g_i = startIndex;
+					var _g_end = 0;
+					while(_g_i >= _g_end) {
+						var i = _g_i--;
+						child = extras[i];
 						foundChild = this.findPreviousChildFocus(child);
 						if(this.isValidFocus(foundChild)) {
 							return foundChild;
 						}
-						--i;
 					}
 				}
 			}
@@ -23689,14 +24663,15 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		} else {
 			startIndex = container.get_numChildren() - 1;
 		}
-		var i = startIndex;
-		while(i >= 0) {
+		var _g_i = startIndex;
+		var _g_end = 0;
+		while(_g_i >= _g_end) {
+			var i = _g_i--;
 			child = container.getChildAt(i);
 			foundChild = this.findPreviousChildFocus(child);
 			if(this.isValidFocus(foundChild)) {
 				return foundChild;
 			}
-			--i;
 		}
 		if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
 			extras = focusWithExtras.get_focusExtrasBefore();
@@ -23710,14 +24685,15 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 					startIndex = extras.length - 1;
 				}
 				if(!skip) {
-					i = startIndex;
-					while(i >= 0) {
+					var _g1_i = startIndex;
+					var _g1_end = 0;
+					while(_g1_i >= _g1_end) {
+						var i = _g1_i--;
 						child = extras[i];
 						foundChild = this.findPreviousChildFocus(child);
 						if(this.isValidFocus(foundChild)) {
 							return foundChild;
 						}
-						--i;
 					}
 				}
 			}
@@ -23742,29 +24718,28 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		var childCount;
 		var child;
 		var foundChild;
-		var extras;
-		var focusContainer = null;
-		var skip;
 		var focusWithExtras = null;
+		var extras;
+		var skip;
 		if(js_Boot.__implements(container,feathers_core_IFocusExtras)) {
 			focusWithExtras = container;
-			var extras1 = focusWithExtras.get_focusExtrasBefore();
-			if(extras1 != null) {
+			extras = focusWithExtras.get_focusExtrasBefore();
+			if(extras != null) {
 				skip = false;
 				if(afterChild != null) {
-					startIndex = extras1.indexOf(afterChild) + 1;
+					startIndex = extras.indexOf(afterChild) + 1;
 					hasProcessedAfterChild = startIndex > 0;
 					skip = !hasProcessedAfterChild;
 				} else {
 					startIndex = 0;
 				}
 				if(!skip) {
-					childCount = extras1.length;
+					childCount = extras.length;
 					var _g = startIndex;
 					var _g1 = childCount;
 					while(_g < _g1) {
 						var i = _g++;
-						child = extras1[i];
+						child = extras[i];
 						foundChild = this.findNextChildFocus(child);
 						if(this.isValidFocus(foundChild)) {
 							return foundChild;
@@ -23829,9 +24804,11 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 				return foundChild;
 			}
 		}
-		var childWithFocus = child;
-		if(this.isValidFocus(childWithFocus)) {
-			return childWithFocus;
+		if(js_Boot.__implements(child,feathers_core_IFocusDisplayObject)) {
+			var childWithFocus = child;
+			if(this.isValidFocus(childWithFocus)) {
+				return childWithFocus;
+			}
 		}
 		return null;
 	}
@@ -23855,7 +24832,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		var focusableObjects = [];
 		this.findAllFocusableObjects(container,focusableObjects);
 		if(this._focus == null) {
-			if(focusableObjects.length > 0) {
+			if(focusableObjects.length != 0) {
 				return focusableObjects[0];
 			}
 			return null;
@@ -23871,7 +24848,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 			if(focusableObject == this._focus) {
 				continue;
 			}
-			if(feathers_utils_focus_FeathersFocusUtils.isBetterFocusForRelativePosition(focusableObject,result,focusedRect,position)) {
+			if(feathers_utils_focus_FocusUtils.isBetterFocusForRelativePosition(focusableObject,result,focusedRect,position)) {
 				result = focusableObject;
 			}
 		}
@@ -23893,7 +24870,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		var extras;
 		var focusExtras = null;
 		if(js_Boot.__implements(child,feathers_core_IFocusExtras)) {
-			focusExtras = js_Boot.__cast(child , feathers_core_IFocusExtras);
+			focusExtras = child;
 			extras = focusExtras.get_focusExtrasBefore();
 			count = extras.length;
 			var _g = 0;
@@ -23963,7 +24940,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		event.preventDefault();
 	}
 	,stage_keyDownHandler: function(event) {
-		if(event.get_keyCode() != 38 && event.get_keyCode() != 40 && event.get_keyCode() != 37 && event.get_keyCode() != 39) {
+		if(event.keyCode != 38 && event.keyCode != 40 && event.keyCode != 37 && event.keyCode != 39) {
 			return;
 		}
 		if(event.isDefaultPrevented()) {
@@ -23975,7 +24952,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 			newFocus = currentFocus.get_focusOwner();
 		} else {
 			var position = "right";
-			switch(event.get_keyCode()) {
+			switch(event.keyCode) {
 			case 37:
 				position = "left";
 				if(currentFocus != null && currentFocus.get_nextLeftFocus() != null) {
@@ -24026,7 +25003,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 				if(currentFocus.get_previousTabFocus() != null) {
 					newFocus = currentFocus.get_previousTabFocus();
 				} else {
-					newFocus = this.findPreviousContainerFocus(currentFocus.get_parent(),js_Boot.__cast(currentFocus , starling_display_DisplayObject),true);
+					newFocus = this.findPreviousContainerFocus(currentFocus.get_parent(),currentFocus,true);
 				}
 			}
 			if(newFocus == null) {
@@ -24037,9 +25014,9 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 				if(currentFocus.get_nextTabFocus() != null) {
 					newFocus = currentFocus.get_nextTabFocus();
 				} else if(js_Boot.__implements(currentFocus,feathers_core_IFocusContainer) && (js_Boot.__cast(currentFocus , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
-					newFocus = this.findNextContainerFocus(js_Boot.__cast(currentFocus , starling_display_DisplayObjectContainer),null,true);
+					newFocus = this.findNextContainerFocus(currentFocus,null,true);
 				} else {
-					newFocus = this.findNextContainerFocus(currentFocus.get_parent(),js_Boot.__cast(currentFocus , starling_display_DisplayObject),true);
+					newFocus = this.findNextContainerFocus(currentFocus.get_parent(),currentFocus,true);
 				}
 			}
 			if(newFocus == null) {
@@ -24055,10 +25032,10 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		}
 	}
 	,topLevelContainer_addedHandler: function(event) {
-		this.setFocusManager(js_Boot.__cast(event.target , starling_display_DisplayObject));
+		this.setFocusManager(event.target);
 	}
 	,topLevelContainer_removedHandler: function(event) {
-		this.clearFocusManager(js_Boot.__cast(event.target , starling_display_DisplayObject));
+		this.clearFocusManager(event.target);
 	}
 	,topLevelContainer_touchHandler: function(event) {
 		var label = lime_system_System.get_platformLabel();
@@ -24074,10 +25051,9 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 		}
 		var focusTarget = null;
 		var target = touch.get_target();
-		var tempFocusTarget;
 		while(true) {
 			if(js_Boot.__implements(target,feathers_core_IFocusDisplayObject)) {
-				tempFocusTarget = js_Boot.__cast(target , feathers_core_IFocusDisplayObject);
+				var tempFocusTarget = target;
 				if(this.isValidFocus(tempFocusTarget)) {
 					if(focusTarget == null || !js_Boot.__implements(tempFocusTarget,feathers_core_IFocusContainer) || !(js_Boot.__cast(tempFocusTarget , feathers_core_IFocusContainer)).get_isChildFocusEnabled()) {
 						focusTarget = tempFocusTarget;
@@ -24094,7 +25070,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 			if(focusOwner == focusTarget) {
 				return;
 			}
-			var result = js_Boot.__cast(focusTarget , starling_display_DisplayObject);
+			var result = focusTarget;
 			while(result != null) {
 				var focusResult = result;
 				if(focusResult != null) {
@@ -24125,7 +25101,7 @@ feathers_core_DefaultFocusManager.prototype = $extend(starling_events_EventDispa
 				return;
 			}
 			if(((nativeFocus) instanceof openfl_display_InteractiveObject)) {
-				nativeStage.set_focus(js_Boot.__cast(nativeFocus , openfl_display_InteractiveObject));
+				nativeStage.set_focus(nativeFocus);
 			} else {
 				(js_Boot.__cast(this._focus , feathers_core_IAdvancedNativeFocusOwner)).setFocus();
 			}
@@ -24149,92 +25125,230 @@ feathers_core_NativeFocusTarget.prototype = $extend(openfl_display_Sprite.protot
 	referenceCount: null
 	,__class__: feathers_core_NativeFocusTarget
 });
-var feathers_core_FunctionMap = function() {
-	this._keys = [];
-	this._values = [];
+var haxe_Exception = function(message,previous,native) {
+	Error.call(this,message);
+	this.message = message;
+	this.__previousException = previous;
+	this.__nativeException = native != null ? native : this;
+	this.__skipStack = 0;
+	var old = Error.prepareStackTrace;
+	Error.prepareStackTrace = function(e) { return e.stack; }
+	if(((native) instanceof Error)) {
+		this.stack = native.stack;
+	} else {
+		var e = null;
+		if(Error.captureStackTrace) {
+			Error.captureStackTrace(this,haxe_Exception);
+			e = this;
+		} else {
+			e = new Error();
+			if(typeof(e.stack) == "undefined") {
+				try { throw e; } catch(_) {}
+				this.__skipStack++;
+			}
+		}
+		this.stack = e.stack;
+	}
+	Error.prepareStackTrace = old;
 };
-$hxClasses["feathers.core.FunctionMap"] = feathers_core_FunctionMap;
-feathers_core_FunctionMap.__name__ = "feathers.core.FunctionMap";
-feathers_core_FunctionMap.__interfaces__ = [haxe_IMap];
-feathers_core_FunctionMap.prototype = {
-	_keys: null
-	,_values: null
-	,get: function(k) {
-		var keyIndex = this.index(k);
-		if(keyIndex < 0) {
-			return null;
-		} else {
-			return this._values[keyIndex];
-		}
+$hxClasses["haxe.Exception"] = haxe_Exception;
+haxe_Exception.__name__ = "haxe.Exception";
+haxe_Exception.caught = function(value) {
+	if(((value) instanceof haxe_Exception)) {
+		return value;
+	} else if(((value) instanceof Error)) {
+		return new haxe_Exception(value.message,null,value);
+	} else {
+		return new haxe_ValueException(value,null,value);
 	}
-	,set: function(k,v) {
-		var keyIndex = this.index(k);
-		if(keyIndex < 0) {
-			this._keys.push(k);
-			this._values.push(v);
-		} else {
-			this._values[keyIndex] = v;
-		}
+};
+haxe_Exception.thrown = function(value) {
+	if(((value) instanceof haxe_Exception)) {
+		return value.get_native();
+	} else if(((value) instanceof Error)) {
+		return value;
+	} else {
+		var e = new haxe_ValueException(value);
+		e.__skipStack++;
+		return e;
 	}
-	,exists: function(k) {
-		return this.index(k) >= 0;
-	}
-	,remove: function(k) {
-		var keyIndex = this.index(k);
-		if(keyIndex < 0) {
-			return false;
-		} else {
-			this._keys.splice(keyIndex,1);
-			this._values.splice(keyIndex,1);
-			return true;
-		}
-	}
-	,keys: function() {
-		return new haxe_iterators_ArrayIterator(this._keys);
-	}
-	,iterator: function() {
-		return new haxe_iterators_ArrayIterator(this._values);
+};
+haxe_Exception.__super__ = Error;
+haxe_Exception.prototype = $extend(Error.prototype,{
+	__skipStack: null
+	,__nativeException: null
+	,__previousException: null
+	,unwrap: function() {
+		return this.__nativeException;
 	}
 	,toString: function() {
-		var s_b = "";
-		s_b += "{";
-		var _g = 0;
-		var _g1 = this._keys.length;
-		while(_g < _g1) {
-			var i = _g++;
-			s_b += "<function>";
-			s_b += " => ";
-			s_b += Std.string(Std.string(this._values[i]));
-			if(i < this._keys.length - 1) {
-				s_b += ", ";
-			}
+		return this.get_message();
+	}
+	,__shiftStack: function() {
+		this.__skipStack++;
+	}
+	,get_message: function() {
+		return this.message;
+	}
+	,get_native: function() {
+		return this.__nativeException;
+	}
+	,get_stack: function() {
+		var _g = this.__exceptionStack;
+		if(_g == null) {
+			var value = haxe_NativeStackTrace.toHaxe(haxe_NativeStackTrace.normalize(this.stack),this.__skipStack);
+			this.setProperty("__exceptionStack",value);
+			return value;
+		} else {
+			var s = _g;
+			return s;
 		}
-		s_b += "}";
-		return s_b;
 	}
-	,index: function(key) {
-		var _g = 0;
-		var _g1 = this._keys.length;
-		while(_g < _g1) {
-			var i = _g++;
-			if(Reflect.compareMethods(key,this._keys[i])) {
-				return i;
-			}
+	,setProperty: function(name,value) {
+		try {
+			Object.defineProperty(this,name,{ value : value});
+		} catch( _g ) {
+			this[name] = value;
 		}
-		return -1;
 	}
-	,keyValueIterator: function() {
-		var a = [];
-		return new haxe_iterators_ArrayIterator(a);
+	,__class__: haxe_Exception
+	,__properties__: {get_native:"get_native",get_stack:"get_stack",get_message:"get_message"}
+});
+var openfl_errors_Error = function(message,id) {
+	if(id == null) {
+		id = 0;
 	}
-	,copy: function() {
+	if(message == null) {
+		message = "";
+	}
+	haxe_Exception.call(this,message);
+	this.errorID = id;
+	this.name = "Error";
+	this.__skipStack++;
+};
+$hxClasses["openfl.errors.Error"] = openfl_errors_Error;
+openfl_errors_Error.__name__ = "openfl.errors.Error";
+openfl_errors_Error.__super__ = haxe_Exception;
+openfl_errors_Error.prototype = $extend(haxe_Exception.prototype,{
+	errorID: null
+	,name: null
+	,getStackTrace: function() {
+		return haxe_CallStack.toString(haxe_CallStack.exceptionStack());
+	}
+	,toString: function() {
+		if(this.get_message() != null) {
+			return this.get_message();
+		} else {
+			return "Error";
+		}
+	}
+	,__class__: openfl_errors_Error
+});
+var openfl_errors_ArgumentError = function(message) {
+	if(message == null) {
+		message = "";
+	}
+	openfl_errors_Error.call(this,message);
+	this.name = "ArgumentError";
+	this.__skipStack++;
+};
+$hxClasses["openfl.errors.ArgumentError"] = openfl_errors_ArgumentError;
+openfl_errors_ArgumentError.__name__ = "openfl.errors.ArgumentError";
+openfl_errors_ArgumentError.__super__ = openfl_errors_Error;
+openfl_errors_ArgumentError.prototype = $extend(openfl_errors_Error.prototype,{
+	__class__: openfl_errors_ArgumentError
+});
+var feathers_core_FocusManager = function() { };
+$hxClasses["feathers.core.FocusManager"] = feathers_core_FocusManager;
+feathers_core_FocusManager.__name__ = "feathers.core.FocusManager";
+feathers_core_FocusManager.__properties__ = {set_focus:"set_focus",get_focus:"get_focus"};
+feathers_core_FocusManager.getFocusManagerForStage = function(stage) {
+	var stack = feathers_core_FocusManager.STAGE_TO_STACK.h[stage.__id__];
+	if(stack == null || stack.length == 0) {
 		return null;
 	}
-	,clear: function() {
-		this._keys = [];
-		this._values = [];
+	return stack[stack.length - 1];
+};
+feathers_core_FocusManager.defaultFocusManagerFactory = function(root) {
+	return new feathers_core_DefaultFocusManager(root);
+};
+feathers_core_FocusManager.isEnabledForStage = function(stage) {
+	return feathers_core_FocusManager.STAGE_TO_STACK.h.__keys__[stage.__id__] != null;
+};
+feathers_core_FocusManager.setEnabledForStage = function(stage,isEnabled) {
+	var stack = feathers_core_FocusManager.STAGE_TO_STACK.h[stage.__id__];
+	if(isEnabled && stack != null || !isEnabled && stack == null) {
+		return;
 	}
-	,__class__: feathers_core_FunctionMap
+	if(isEnabled) {
+		var this1 = feathers_core_FocusManager.STAGE_TO_STACK;
+		var v = [];
+		this1.set(stage,v);
+		feathers_core_FocusManager.pushFocusManager(stage);
+	} else {
+		while(stack.length > 0) stack.pop().set_isEnabled(false);
+		feathers_core_FocusManager.STAGE_TO_STACK.remove(stage);
+	}
+};
+feathers_core_FocusManager.get_focus = function() {
+	var manager = feathers_core_FocusManager.getFocusManagerForStage(starling_core_Starling.get_current().get_stage());
+	if(manager != null) {
+		return manager.get_focus();
+	}
+	return null;
+};
+feathers_core_FocusManager.set_focus = function(value) {
+	var manager = feathers_core_FocusManager.getFocusManagerForStage(starling_core_Starling.get_current().get_stage());
+	if(manager == null) {
+		throw new openfl_errors_Error("The specified action is not permitted when the focus manager is not enabled.");
+	}
+	return manager.set_focus(value);
+};
+feathers_core_FocusManager.pushFocusManager = function(root) {
+	var stage = root.get_stage();
+	if(stage == null) {
+		throw new openfl_errors_ArgumentError("A focus manager may not be added or removed for a display object that is not on stage.");
+	}
+	var stack = feathers_core_FocusManager.STAGE_TO_STACK.h[stage.__id__];
+	if(stack == null) {
+		throw new openfl_errors_Error("The specified action is not permitted when the focus manager is not enabled.");
+	}
+	var manager = feathers_core_FocusManager.focusManagerFactory(root);
+	manager.set_isEnabled(true);
+	if(stack.length != 0) {
+		var oldManager = stack[stack.length - 1];
+		oldManager.set_isEnabled(false);
+	}
+	stack.push(manager);
+	return manager;
+};
+feathers_core_FocusManager.removeFocusManager = function(manager) {
+	var stage = manager.get_root().get_stage().get_stage();
+	var stack = feathers_core_FocusManager.STAGE_TO_STACK.h[stage.__id__];
+	if(stack == null) {
+		throw new openfl_errors_Error("The specified action is not permitted when the focus manager is not enabled.");
+	}
+	var index = stack.indexOf(manager);
+	if(index == -1) {
+		return;
+	}
+	manager.set_isEnabled(false);
+	stack.splice(index,1);
+	if(index != 0 && index == stack.length) {
+		manager = stack[index - 1];
+		manager.set_isEnabled(true);
+	}
+};
+feathers_core_FocusManager.prototype = {
+	disableAll: function() {
+		var stack = feathers_core_FocusManager.STAGE_TO_STACK.iterator();
+		while(stack.hasNext()) {
+			var stack1 = stack.next();
+			while(stack1.length > 0) stack1.pop().set_isEnabled(false);
+		}
+		feathers_core_FocusManager.STAGE_TO_STACK.h = { __keys__ : { }};
+	}
+	,__class__: feathers_core_FocusManager
 };
 var feathers_core_IAdvancedNativeFocusOwner = function() { };
 $hxClasses["feathers.core.IAdvancedNativeFocusOwner"] = feathers_core_IAdvancedNativeFocusOwner;
@@ -24268,16 +25382,7 @@ feathers_core_IToggle.prototype = {
 	,__class__: feathers_core_IToggle
 	,__properties__: {set_isSelected:"set_isSelected",get_isSelected:"get_isSelected"}
 };
-var feathers_core_PropertyProxy = function(onChangeCallback) {
-	this._storage = new haxe_ds_StringMap();
-	this._names = [];
-	this._onChangeCallbacks = [];
-	if(onChangeCallback != null) {
-		this._onChangeCallbacks[this._onChangeCallbacks.length] = onChangeCallback;
-	}
-};
-$hxClasses["feathers.core.PropertyProxy"] = feathers_core_PropertyProxy;
-feathers_core_PropertyProxy.__name__ = "feathers.core.PropertyProxy";
+var feathers_core_PropertyProxy = {};
 feathers_core_PropertyProxy.fromObject = function(source,onChangeCallback) {
 	var fields;
 	if(js_Boot.__instanceof(source,Dynamic)) {
@@ -24285,10 +25390,37 @@ feathers_core_PropertyProxy.fromObject = function(source,onChangeCallback) {
 	} else {
 		fields = Type.getInstanceFields(js_Boot.getClass(source));
 	}
-	var newValue = new feathers_core_PropertyProxy(onChangeCallback);
+	var this1 = new feathers_core_PropertyProxyReal(onChangeCallback);
+	var newValue = this1;
+	var _g = 0;
+	while(_g < fields.length) {
+		var field = fields[_g];
+		++_g;
+		newValue.setProperty(field,Reflect.getProperty(source,field));
+	}
 	return newValue;
 };
-feathers_core_PropertyProxy.prototype = {
+feathers_core_PropertyProxy._new = function(onChangeCallback) {
+	var this1 = new feathers_core_PropertyProxyReal(onChangeCallback);
+	return this1;
+};
+feathers_core_PropertyProxy.getProp = function(this1,name) {
+	return this1.getProperty(name);
+};
+feathers_core_PropertyProxy.setProp = function(this1,name,value) {
+	this1.setProperty(name,value);
+};
+var feathers_core_PropertyProxyReal = function(onChangeCallback) {
+	this._storage = new haxe_ds_StringMap();
+	this._names = [];
+	this._onChangeCallbacks = [];
+	if(onChangeCallback != null) {
+		this._onChangeCallbacks[this._onChangeCallbacks.length] = onChangeCallback;
+	}
+};
+$hxClasses["feathers.core.PropertyProxyReal"] = feathers_core_PropertyProxyReal;
+feathers_core_PropertyProxyReal.__name__ = "feathers.core.PropertyProxyReal";
+feathers_core_PropertyProxyReal.prototype = {
 	_subProxyName: null
 	,_onChangeCallbacks: null
 	,_names: null
@@ -24299,10 +25431,14 @@ feathers_core_PropertyProxy.prototype = {
 	,iterator: function() {
 		return new haxe_iterators_ArrayIterator(this._names);
 	}
+	,namesIterator: function() {
+		return new haxe_iterators_ArrayIterator(this._names);
+	}
 	,getProperty: function(name) {
 		if(!Object.prototype.hasOwnProperty.call(this._storage.h,name)) {
-			var subProxy = new feathers_core_PropertyProxy($bind(this,this.subProxy_onChange));
-			subProxy._subProxyName = name;
+			var this1 = new feathers_core_PropertyProxyReal($bind(this,this.subProxy_onChange));
+			var subProxy = this1;
+			subProxy.setProperty("_subProxyName",name);
 			this._storage.h[name] = subProxy;
 			this._names[this._names.length] = name;
 			this.fireOnChangeCallback(name);
@@ -24392,7 +25528,7 @@ feathers_core_PropertyProxy.prototype = {
 	,dispose: function() {
 		this._storage.h = Object.create(null);
 	}
-	,__class__: feathers_core_PropertyProxy
+	,__class__: feathers_core_PropertyProxyReal
 };
 var feathers_core_TokenList = function() {
 	this.names = [];
@@ -24413,13 +25549,13 @@ feathers_core_TokenList.prototype = $extend(starling_events_EventDispatcher.prot
 	}
 	,set_value: function(value) {
 		if(this.get_value() == value) {
-			return this.get_value();
+			return value;
 		}
 		this._joinedNames = value;
-		this.names = [];
+		this.names.length = 0;
 		this.names = value.split(" ");
 		this.dispatchEventWith("change");
-		return this.get_value();
+		return value;
 	}
 	,get_length: function() {
 		return this.names.length;
@@ -24438,12 +25574,11 @@ feathers_core_TokenList.prototype = $extend(starling_events_EventDispatcher.prot
 		if(this._joinedNames != null) {
 			this._joinedNames += " " + name;
 		}
-		this.names[this.names.length] = name;
+		this.names.push(name);
 		this.dispatchEventWith("change");
 	}
 	,remove: function(name) {
 		var index = this.names.indexOf(name);
-		this.removeAt(index);
 	}
 	,toggle: function(name) {
 		var index = this.names.indexOf(name);
@@ -24451,7 +25586,7 @@ feathers_core_TokenList.prototype = $extend(starling_events_EventDispatcher.prot
 			if(this._joinedNames != null) {
 				this._joinedNames += " " + name;
 			}
-			this.names[this.names.length] = name;
+			this.names.push(name);
 			this.dispatchEventWith("change");
 		} else {
 			this.removeAt(index);
@@ -24495,9 +25630,19 @@ feathers_core_ValidationQueue.forStarling = function(starling) {
 	if(queue == null) {
 		var this1 = feathers_core_ValidationQueue.STARLING_TO_VALIDATION_QUEUE;
 		queue = new feathers_core_ValidationQueue(starling);
-		this1.set(starling,queue);
+		var v = queue;
+		this1.set(starling,v);
 	}
 	return queue;
+};
+feathers_core_ValidationQueue.queueSortFunction = function(first,second) {
+	var difference = second.get_depth() - first.get_depth();
+	if(difference > 0) {
+		return -1;
+	} else if(difference < 0) {
+		return 1;
+	}
+	return 0;
 };
 feathers_core_ValidationQueue.prototype = {
 	_starling: null
@@ -24516,23 +25661,26 @@ feathers_core_ValidationQueue.prototype = {
 		if(!this._starling.get_juggler().contains(this)) {
 			this._starling.get_juggler().add(this);
 		}
-		if(this._queue.indexOf(control) >= 0) {
+		if(this._queue.indexOf(control) != -1) {
 			return;
 		}
 		var queueLength = this._queue.length;
 		if(this._isValidating) {
 			var depth = control.get_depth();
-			var i = queueLength - 1;
-			while(i >= 0) {
-				var otherControl = js_Boot.__cast(this._queue[i] , feathers_core_IValidating);
+			var idx = 0;
+			var _g_i = queueLength - 1;
+			var _g_end = 0;
+			while(_g_i >= _g_end) {
+				var i = _g_i--;
+				idx = i;
+				var otherControl = this._queue[i];
 				var otherDepth = otherControl.get_depth();
 				if(depth >= otherDepth) {
 					break;
 				}
-				--i;
 			}
-			++i;
-			this._queue.splice(i,0,control);
+			++idx;
+			this._queue.splice(idx,0,control);
 		} else {
 			this._queue[queueLength] = control;
 		}
@@ -24547,9 +25695,9 @@ feathers_core_ValidationQueue.prototype = {
 		}
 		this._isValidating = true;
 		if(queueLength > 1) {
-			this._queue.sort($bind(this,this.queueSortFunction));
+			this._queue.sort(feathers_core_ValidationQueue.queueSortFunction);
 		}
-		while(this._queue.length > 0) {
+		while(this._queue.length != 0) {
 			var item = this._queue.shift();
 			if(item.get_depth() < 0) {
 				continue;
@@ -24557,15 +25705,6 @@ feathers_core_ValidationQueue.prototype = {
 			item.validate();
 		}
 		this._isValidating = false;
-	}
-	,queueSortFunction: function(first,second) {
-		var difference = second.get_depth() - first.get_depth();
-		if(difference > 0) {
-			return -1;
-		} else if(difference < 0) {
-			return 1;
-		}
-		return 0;
 	}
 	,__class__: feathers_core_ValidationQueue
 	,__properties__: {get_isValidating:"get_isValidating"}
@@ -24679,30 +25818,12 @@ var feathers_layout_AnchorLayoutData = function(top,right,bottom,left,horizontal
 	this._percentHeight = NaN;
 	this._percentWidth = NaN;
 	starling_events_EventDispatcher.call(this);
-	if(top == null) {
-		top = NaN;
-	}
-	if(right == null) {
-		right = NaN;
-	}
-	if(bottom == null) {
-		bottom = NaN;
-	}
-	if(left == null) {
-		left = NaN;
-	}
-	if(horizontalCenter == null) {
-		horizontalCenter = NaN;
-	}
-	if(verticalCenter == null) {
-		verticalCenter = NaN;
-	}
-	this.set_top(top);
-	this.set_right(right);
-	this.set_bottom(bottom);
-	this.set_left(left);
-	this.set_horizontalCenter(horizontalCenter);
-	this.set_verticalCenter(verticalCenter);
+	this.set_top(top != null ? top : NaN);
+	this.set_right(right != null ? right : NaN);
+	this.set_bottom(bottom != null ? bottom : NaN);
+	this.set_left(left != null ? left : NaN);
+	this.set_horizontalCenter(horizontalCenter != null ? horizontalCenter : NaN);
+	this.set_verticalCenter(verticalCenter != null ? verticalCenter : NaN);
 };
 $hxClasses["feathers.layout.AnchorLayoutData"] = feathers_layout_AnchorLayoutData;
 feathers_layout_AnchorLayoutData.__name__ = "feathers.layout.AnchorLayoutData";
@@ -24715,7 +25836,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_percentWidth: function(value) {
 		if(this._percentWidth == value) {
-			return this._percentWidth;
+			return value;
 		}
 		this._percentWidth = value;
 		this.dispatchEventWith("change");
@@ -24727,7 +25848,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_percentHeight: function(value) {
 		if(this._percentHeight == value) {
-			return this._percentHeight;
+			return value;
 		}
 		this._percentHeight = value;
 		this.dispatchEventWith("change");
@@ -24739,7 +25860,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_topAnchorDisplayObject: function(value) {
 		if(this._topAnchorDisplayObject == value) {
-			return this._topAnchorDisplayObject;
+			return value;
 		}
 		this._topAnchorDisplayObject = value;
 		this.dispatchEventWith("change");
@@ -24751,7 +25872,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_top: function(value) {
 		if(this._top == value) {
-			return this._top;
+			return value;
 		}
 		this._top = value;
 		this.dispatchEventWith("change");
@@ -24763,7 +25884,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_rightAnchorDisplayObject: function(value) {
 		if(this._rightAnchorDisplayObject == value) {
-			return this._rightAnchorDisplayObject;
+			return value;
 		}
 		this._rightAnchorDisplayObject = value;
 		this.dispatchEventWith("change");
@@ -24775,7 +25896,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_right: function(value) {
 		if(this._right == value) {
-			return this._right;
+			return value;
 		}
 		this._right = value;
 		this.dispatchEventWith("change");
@@ -24787,7 +25908,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_bottomAnchorDisplayObject: function(value) {
 		if(this._bottomAnchorDisplayObject == value) {
-			return this._bottomAnchorDisplayObject;
+			return value;
 		}
 		this._bottomAnchorDisplayObject = value;
 		this.dispatchEventWith("change");
@@ -24799,7 +25920,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_bottom: function(value) {
 		if(this._bottom == value) {
-			return this._bottom;
+			return value;
 		}
 		this._bottom = value;
 		this.dispatchEventWith("change");
@@ -24811,7 +25932,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_leftAnchorDisplayObject: function(value) {
 		if(this._leftAnchorDisplayObject == value) {
-			return this._leftAnchorDisplayObject;
+			return value;
 		}
 		this._leftAnchorDisplayObject = value;
 		this.dispatchEventWith("change");
@@ -24823,7 +25944,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_left: function(value) {
 		if(this._left == value) {
-			return this._left;
+			return value;
 		}
 		this._left = value;
 		this.dispatchEventWith("change");
@@ -24835,7 +25956,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_horizontalCenterAnchorDisplayObject: function(value) {
 		if(this._horizontalCenterAnchorDisplayObject == value) {
-			return this._horizontalCenterAnchorDisplayObject;
+			return value;
 		}
 		this._horizontalCenterAnchorDisplayObject = value;
 		this.dispatchEventWith("change");
@@ -24847,7 +25968,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_horizontalCenter: function(value) {
 		if(this._horizontalCenter == value) {
-			return this._horizontalCenter;
+			return value;
 		}
 		this._horizontalCenter = value;
 		this.dispatchEventWith("change");
@@ -24859,7 +25980,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_verticalCenterAnchorDisplayObject: function(value) {
 		if(this._verticalCenterAnchorDisplayObject == value) {
-			return this._verticalCenterAnchorDisplayObject;
+			return value;
 		}
 		this._verticalCenterAnchorDisplayObject = value;
 		this.dispatchEventWith("change");
@@ -24871,7 +25992,7 @@ feathers_layout_AnchorLayoutData.prototype = $extend(starling_events_EventDispat
 	}
 	,set_verticalCenter: function(value) {
 		if(this._verticalCenter == value) {
-			return this._verticalCenter;
+			return value;
 		}
 		this._verticalCenter = value;
 		this.dispatchEventWith("change");
@@ -25234,17 +26355,20 @@ var feathers_text_BitmapFontTextFormat = function(font,size,color,align,leading)
 	if(leading == null) {
 		leading = 0;
 	}
-	if(align == null) {
-		align = "left";
-	}
 	if(color == null) {
 		color = 16777215;
 	}
 	this.isKerningEnabled = true;
-	this.align = "left";
+	this.align = openfl_text_TextFormatAlign.toString(3);
 	this.letterSpacing = 0;
+	if(size == null) {
+		size = NaN;
+	}
+	if(align == null) {
+		align = openfl_text_TextFormatAlign.toString(3);
+	}
 	if(typeof(font) == "string") {
-		font = starling_text_TextField.getBitmapFont(js_Boot.__cast(font , String));
+		font = starling_text_TextField.getBitmapFont(font);
 	}
 	if(!((font) instanceof starling_text_BitmapFont)) {
 		throw new openfl_errors_ArgumentError("BitmapFontTextFormat font must be a BitmapFont instance or a String representing the name of a registered bitmap font.");
@@ -25290,7 +26414,7 @@ feathers_text_FontStylesSet.prototype = $extend(starling_events_EventDispatcher.
 	}
 	,set_format: function(value) {
 		if(this._format == value) {
-			return this._format;
+			return value;
 		}
 		if(this._format != null) {
 			this._format.removeEventListener("change",$bind(this,this.format_changeHandler));
@@ -25308,7 +26432,7 @@ feathers_text_FontStylesSet.prototype = $extend(starling_events_EventDispatcher.
 	}
 	,set_disabledFormat: function(value) {
 		if(this._disabledFormat == value) {
-			return this._disabledFormat;
+			return value;
 		}
 		if(this._disabledFormat != null) {
 			this._disabledFormat.removeEventListener("change",$bind(this,this.format_changeHandler));
@@ -25326,7 +26450,7 @@ feathers_text_FontStylesSet.prototype = $extend(starling_events_EventDispatcher.
 	}
 	,set_selectedFormat: function(value) {
 		if(this._selectedFormat == value) {
-			return this._selectedFormat;
+			return value;
 		}
 		if(this._selectedFormat != null) {
 			this._selectedFormat.removeEventListener("change",$bind(this,this.format_changeHandler));
@@ -25342,14 +26466,18 @@ feathers_text_FontStylesSet.prototype = $extend(starling_events_EventDispatcher.
 		this.set_format(null);
 		this.set_disabledFormat(null);
 		this.set_selectedFormat(null);
-		var h = this._stateToFormat.h;
-		var state_h = h;
-		var state_keys = Object.keys(h);
-		var state_length = state_keys.length;
-		var state_current = 0;
-		while(state_current < state_length) {
-			var state = state_keys[state_current++];
-			this.setFormatForState(state,null);
+		if(this._stateToFormat != null) {
+			var h = this._stateToFormat.h;
+			var format_h = h;
+			var format_keys = Object.keys(h);
+			var format_length = format_keys.length;
+			var format_current = 0;
+			while(format_current < format_length) {
+				var format = format_h[format_keys[format_current++]];
+				format.removeEventListener("change",$bind(this,this.format_changeHandler));
+			}
+			this._stateToFormat.h = Object.create(null);
+			this._stateToFormat = null;
 		}
 	}
 	,getFormatForState: function(state) {
@@ -25391,9 +26519,7 @@ feathers_text_FontStylesSet.prototype = $extend(starling_events_EventDispatcher.
 		if(stateContext != null) {
 			if(this._stateToFormat != null) {
 				var currentState = stateContext.get_currentState();
-				if(Object.prototype.hasOwnProperty.call(this._stateToFormat.h,currentState)) {
-					textFormat = this._stateToFormat.h[currentState];
-				}
+				textFormat = this._stateToFormat.h[currentState];
 			}
 			if(textFormat == null && this._disabledFormat != null && js_Boot.__implements(stateContext,feathers_core_IFeathersControl) && !(js_Boot.__cast(stateContext , feathers_core_IFeathersControl)).get_isEnabled()) {
 				textFormat = this._disabledFormat;
@@ -25415,269 +26541,44 @@ feathers_text_FontStylesSet.prototype = $extend(starling_events_EventDispatcher.
 	,__class__: feathers_text_FontStylesSet
 	,__properties__: {set_selectedFormat:"set_selectedFormat",get_selectedFormat:"get_selectedFormat",set_disabledFormat:"set_disabledFormat",get_disabledFormat:"get_disabledFormat",set_format:"set_format",get_format:"get_format"}
 });
-var feathers_text_StageTextField = function(initOptions) {
-	this._viewPort = new openfl_geom_Rectangle();
-	this._textAlign = 5;
-	this._softKeyboardType = "default";
-	this._returnKeyLabel = "default";
-	this._locale = "en";
-	this._fontFamily = null;
-	this._color = 0;
-	this._autoCorrect = false;
-	this._autoCapitalize = "none";
-	this._isComplete = false;
-	openfl_events_EventDispatcher.call(this);
-	this.initialize(initOptions);
+var feathers_utils_ReverseIterator = function(start,end) {
+	this.i = start;
+	this.end = end;
 };
-$hxClasses["feathers.text.StageTextField"] = feathers_text_StageTextField;
-feathers_text_StageTextField.__name__ = "feathers.text.StageTextField";
-feathers_text_StageTextField.__super__ = openfl_events_EventDispatcher;
-feathers_text_StageTextField.prototype = $extend(openfl_events_EventDispatcher.prototype,{
-	_textField: null
-	,_textFormat: null
-	,_isComplete: null
-	,_autoCapitalize: null
-	,get_autoCapitalize: function() {
-		return this._autoCapitalize;
+$hxClasses["feathers.utils.ReverseIterator"] = feathers_utils_ReverseIterator;
+feathers_utils_ReverseIterator.__name__ = "feathers.utils.ReverseIterator";
+feathers_utils_ReverseIterator.prototype = {
+	end: null
+	,i: null
+	,hasNext: function() {
+		return this.i >= this.end;
 	}
-	,set_autoCapitalize: function(value) {
-		this._autoCapitalize = value;
-		return this.get_autoCapitalize();
+	,next: function() {
+		return this.i--;
 	}
-	,_autoCorrect: null
-	,get_autoCorrect: function() {
-		return this._autoCorrect;
+	,__class__: feathers_utils_ReverseIterator
+};
+var feathers_utils_display_DisplayUtils = function() { };
+$hxClasses["feathers.utils.display.DisplayUtils"] = feathers_utils_display_DisplayUtils;
+feathers_utils_display_DisplayUtils.__name__ = "feathers.utils.display.DisplayUtils";
+feathers_utils_display_DisplayUtils.calculateScaleRatioToFill = function(originalWidth,originalHeight,targetWidth,targetHeight) {
+	var widthRatio = targetWidth / originalWidth;
+	var heightRatio = targetHeight / originalHeight;
+	if(widthRatio > heightRatio) {
+		return widthRatio;
 	}
-	,set_autoCorrect: function(value) {
-		this._autoCorrect = value;
-		return this.get_autoCorrect();
+	return heightRatio;
+};
+feathers_utils_display_DisplayUtils.calculateScaleRatioToFit = function(originalWidth,originalHeight,targetWidth,targetHeight) {
+	var widthRatio = targetWidth / originalWidth;
+	var heightRatio = targetHeight / originalHeight;
+	if(widthRatio < heightRatio) {
+		return widthRatio;
 	}
-	,_color: null
-	,get_color: function() {
-		return this._textFormat.color;
-	}
-	,set_color: function(value) {
-		if(this._textFormat.color == value) {
-			return this.get_color();
-		}
-		this._textFormat.color = value;
-		this._textField.set_defaultTextFormat(this._textFormat);
-		this._textField.setTextFormat(this._textFormat);
-		return this.get_color();
-	}
-	,get_displayAsPassword: function() {
-		return this._textField.get_displayAsPassword();
-	}
-	,set_displayAsPassword: function(value) {
-		this._textField.set_displayAsPassword(value);
-		return this.get_displayAsPassword();
-	}
-	,get_editable: function() {
-		return this._textField.get_type() == 1;
-	}
-	,set_editable: function(value) {
-		this._textField.set_type(value ? 1 : 0);
-		return this.get_editable();
-	}
-	,_fontFamily: null
-	,get_fontFamily: function() {
-		return this._textFormat.font;
-	}
-	,set_fontFamily: function(value) {
-		if(this._textFormat.font == value) {
-			return this.get_fontFamily();
-		}
-		this._textFormat.font = value;
-		this._textField.set_defaultTextFormat(this._textFormat);
-		this._textField.setTextFormat(this._textFormat);
-		return this.get_fontFamily();
-	}
-	,get_fontSize: function() {
-		return this._textFormat.size | 0;
-	}
-	,set_fontSize: function(value) {
-		if(this._textFormat.size == value) {
-			return this.get_fontSize();
-		}
-		this._textFormat.size = value;
-		this._textField.set_defaultTextFormat(this._textFormat);
-		this._textField.setTextFormat(this._textFormat);
-		return this.get_fontSize();
-	}
-	,_locale: null
-	,get_locale: function() {
-		return this._locale;
-	}
-	,set_locale: function(value) {
-		this._locale = value;
-		return this.get_locale();
-	}
-	,get_maxChars: function() {
-		return this._textField.get_maxChars();
-	}
-	,set_maxChars: function(value) {
-		this._textField.set_maxChars(value);
-		return this.get_maxChars();
-	}
-	,get_multiline: function() {
-		return this._textField.get_multiline();
-	}
-	,get_restrict: function() {
-		return this._textField.get_restrict();
-	}
-	,set_restrict: function(value) {
-		this._textField.set_restrict(value);
-		return this.get_restrict();
-	}
-	,_returnKeyLabel: null
-	,get_returnKeyLabel: function() {
-		return this._returnKeyLabel;
-	}
-	,set_returnKeyLabel: function(value) {
-		this._returnKeyLabel = value;
-		return this.get_returnKeyLabel();
-	}
-	,get_selectionActiveIndex: function() {
-		return this._textField.get_selectionBeginIndex();
-	}
-	,get_selectionAnchorIndex: function() {
-		return this._textField.get_selectionEndIndex();
-	}
-	,_softKeyboardType: null
-	,get_softKeyboardType: function() {
-		return this._softKeyboardType;
-	}
-	,set_softKeyboardType: function(value) {
-		this._softKeyboardType = value;
-		return this.get_softKeyboardType();
-	}
-	,get_stage: function() {
-		return this._textField.stage;
-	}
-	,set_stage: function(value) {
-		if(this._textField.stage == value) {
-			return this.get_stage();
-		}
-		if(this._textField.stage != null) {
-			this._textField.parent.removeChild(this._textField);
-		}
-		if(value != null) {
-			value.addChild(this._textField);
-			this.dispatchCompleteIfPossible();
-		}
-		return this.get_stage();
-	}
-	,get_text: function() {
-		return this._textField.get_text();
-	}
-	,set_text: function(value) {
-		this._textField.set_text(value);
-		return this.get_text();
-	}
-	,_textAlign: null
-	,get_textAlign: function() {
-		return this._textAlign;
-	}
-	,set_textAlign: function(value) {
-		if(this._textAlign == value) {
-			return this.get_textAlign();
-		}
-		this._textAlign = value;
-		if(value == 5) {
-			value = 3;
-		} else if(value == 1) {
-			value = 4;
-		}
-		this._textFormat.align = value;
-		this._textField.set_defaultTextFormat(this._textFormat);
-		this._textField.setTextFormat(this._textFormat);
-		return this.get_textAlign();
-	}
-	,_viewPort: null
-	,get_viewPort: function() {
-		return this._viewPort;
-	}
-	,set_viewPort: function(value) {
-		if(value == null || value.width < 0 || value.height < 0) {
-			throw new openfl_errors_RangeError("The Rectangle value is not valid.");
-		}
-		this._viewPort = value;
-		this._textField.set_x(this._viewPort.x);
-		this._textField.set_y(this._viewPort.y);
-		this._textField.set_width(this._viewPort.width);
-		this._textField.set_height(this._viewPort.height);
-		this.dispatchCompleteIfPossible();
-		return this.get_viewPort();
-	}
-	,get_visible: function() {
-		return this._textField.get_visible();
-	}
-	,set_visible: function(value) {
-		this._textField.set_visible(value);
-		return this.get_visible();
-	}
-	,assignFocus: function() {
-		if(this._textField.parent == null) {
-			return;
-		}
-		this._textField.stage.set_focus(this._textField);
-	}
-	,dispose: function() {
-		this.set_stage(null);
-		this._textField = null;
-		this._textFormat = null;
-	}
-	,drawViewPortToBitmapData: function(bitmap) {
-		if(bitmap == null) {
-			throw new openfl_errors_Error("The bitmap is null.");
-		}
-		if(bitmap.width != this._viewPort.width || bitmap.height != this._viewPort.height) {
-			throw new openfl_errors_ArgumentError("The bitmap's width or height is different from view port's width or height.");
-		}
-		bitmap.draw(this._textField);
-	}
-	,selectRange: function(anchorIndex,activeIndex) {
-		this._textField.setSelection(anchorIndex,activeIndex);
-	}
-	,dispatchCompleteIfPossible: function() {
-		if(this._textField.stage == null || this._viewPort.isEmpty()) {
-			this._isComplete = false;
-		}
-		if(this._textField.stage != null && !this._viewPort.isEmpty()) {
-			this._isComplete = true;
-			this.dispatchEvent(new openfl_events_Event("complete"));
-		}
-	}
-	,initialize: function(initOptions) {
-		this._textField = new openfl_text_TextField();
-		this._textField.set_type(1);
-		var isMultiline = initOptions && initOptions.hasOwnProperty("multiline") && initOptions.multiline;
-		this._textField.set_multiline(isMultiline);
-		this._textField.set_wordWrap(isMultiline);
-		this._textField.addEventListener("change",$bind(this,this.textField_eventHandler));
-		this._textField.addEventListener("focusIn",$bind(this,this.textField_eventHandler));
-		this._textField.addEventListener("focusOut",$bind(this,this.textField_eventHandler));
-		this._textField.addEventListener("keyDown",$bind(this,this.textField_eventHandler));
-		this._textField.addEventListener("keyUp",$bind(this,this.textField_eventHandler));
-		this._textFormat = new openfl_text_TextFormat(null,11,0,false,false,false);
-		this._textField.set_defaultTextFormat(this._textFormat);
-	}
-	,textField_eventHandler: function(event) {
-		this.dispatchEvent(event);
-	}
-	,textField_keyFocusChangeHandler: function(event) {
-		event.preventDefault();
-		event.stopImmediatePropagation();
-		event.stopPropagation();
-	}
-	,__class__: feathers_text_StageTextField
-	,__properties__: {set_visible:"set_visible",get_visible:"get_visible",set_viewPort:"set_viewPort",get_viewPort:"get_viewPort",set_textAlign:"set_textAlign",get_textAlign:"get_textAlign",set_text:"set_text",get_text:"get_text",set_stage:"set_stage",get_stage:"get_stage",set_softKeyboardType:"set_softKeyboardType",get_softKeyboardType:"get_softKeyboardType",get_selectionAnchorIndex:"get_selectionAnchorIndex",get_selectionActiveIndex:"get_selectionActiveIndex",set_returnKeyLabel:"set_returnKeyLabel",get_returnKeyLabel:"get_returnKeyLabel",set_restrict:"set_restrict",get_restrict:"get_restrict",get_multiline:"get_multiline",set_maxChars:"set_maxChars",get_maxChars:"get_maxChars",set_locale:"set_locale",get_locale:"get_locale",set_fontSize:"set_fontSize",get_fontSize:"get_fontSize",set_fontFamily:"set_fontFamily",get_fontFamily:"get_fontFamily",set_editable:"set_editable",get_editable:"get_editable",set_displayAsPassword:"set_displayAsPassword",get_displayAsPassword:"get_displayAsPassword",set_color:"set_color",get_color:"get_color",set_autoCorrect:"set_autoCorrect",get_autoCorrect:"get_autoCorrect",set_autoCapitalize:"set_autoCapitalize",get_autoCapitalize:"get_autoCapitalize"}
-});
-var feathers_utils_display_FeathersDisplayUtil = function() { };
-$hxClasses["feathers.utils.display.FeathersDisplayUtil"] = feathers_utils_display_FeathersDisplayUtil;
-feathers_utils_display_FeathersDisplayUtil.__name__ = "feathers.utils.display.FeathersDisplayUtil";
-feathers_utils_display_FeathersDisplayUtil.getDisplayObjectDepthFromStage = function(target) {
-	if(target.get_stage() != null) {
+	return heightRatio;
+};
+feathers_utils_display_DisplayUtils.getDisplayObjectDepthFromStage = function(target) {
+	if(target.get_stage() == null) {
 		return -1;
 	}
 	var count = 0;
@@ -25687,10 +26588,7 @@ feathers_utils_display_FeathersDisplayUtil.getDisplayObjectDepthFromStage = func
 	}
 	return count;
 };
-var feathers_utils_display_FeathersUIUtils = function() { };
-$hxClasses["feathers.utils.display.FeathersUIUtils"] = feathers_utils_display_FeathersUIUtils;
-feathers_utils_display_FeathersUIUtils.__name__ = "feathers.utils.display.FeathersUIUtils";
-feathers_utils_display_FeathersUIUtils.nativeToGlobal = function(nativePosition,starling,result) {
+feathers_utils_display_DisplayUtils.nativeToGlobal = function(nativePosition,starling,result) {
 	if(starling == null) {
 		starling = starling_core_Starling.get_current();
 	}
@@ -25709,18 +26607,28 @@ feathers_utils_display_FeathersUIUtils.nativeToGlobal = function(nativePosition,
 	}
 	return result;
 };
-var feathers_utils_focus_FeathersFocusUtils = function() { };
-$hxClasses["feathers.utils.focus.FeathersFocusUtils"] = feathers_utils_focus_FeathersFocusUtils;
-feathers_utils_focus_FeathersFocusUtils.__name__ = "feathers.utils.focus.FeathersFocusUtils";
-feathers_utils_focus_FeathersFocusUtils.isBetterFocusForRelativePosition = function(object1,object2,focusedRect,relativePosition) {
+feathers_utils_display_DisplayUtils.stageToSttarling = function(stage) {
+	var starling = starling_core_Starling.get_all().iterator();
+	while(starling.hasNext()) {
+		var starling1 = starling.next();
+		if(starling1.get_stage() == stage) {
+			return starling1;
+		}
+	}
+	return null;
+};
+var feathers_utils_focus_FocusUtils = function() { };
+$hxClasses["feathers.utils.focus.FocusUtils"] = feathers_utils_focus_FocusUtils;
+feathers_utils_focus_FocusUtils.__name__ = "feathers.utils.focus.FocusUtils";
+feathers_utils_focus_FocusUtils.isBetterFocusForRelativePosition = function(object1,object2,focusedRect,relativePosition) {
 	var rect = object1.getBounds(object1.get_stage(),starling_utils_Pool.getRectangle());
-	var minPrimaryDistance1 = feathers_utils_focus_FeathersFocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+	var minPrimaryDistance1 = feathers_utils_focus_FocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
 	if(minPrimaryDistance1 == Infinity) {
 		return false;
 	}
-	var maxPrimaryDistance1 = feathers_utils_focus_FeathersFocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
-	var secondaryDistance1 = feathers_utils_focus_FeathersFocusUtils.calculateSecondaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
-	var onSameAxis1 = feathers_utils_focus_FeathersFocusUtils.itemsAreOnSameAxis(focusedRect,rect,relativePosition);
+	var maxPrimaryDistance1 = feathers_utils_focus_FocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+	var secondaryDistance1 = feathers_utils_focus_FocusUtils.calculateSecondaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+	var onSameAxis1 = feathers_utils_focus_FocusUtils.itemsAreOnSameAxis(focusedRect,rect,relativePosition);
 	var minPrimaryDistance2;
 	var maxPrimaryDistance2;
 	var secondaryDistance2;
@@ -25732,13 +26640,13 @@ feathers_utils_focus_FeathersFocusUtils.isBetterFocusForRelativePosition = funct
 		onSameAxis2 = false;
 	} else {
 		object2.getBounds(object2.get_stage(),rect);
-		minPrimaryDistance2 = feathers_utils_focus_FeathersFocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
-		maxPrimaryDistance2 = feathers_utils_focus_FeathersFocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
-		secondaryDistance2 = feathers_utils_focus_FeathersFocusUtils.calculateSecondaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
-		onSameAxis2 = feathers_utils_focus_FeathersFocusUtils.itemsAreOnSameAxis(focusedRect,rect,relativePosition);
+		minPrimaryDistance2 = feathers_utils_focus_FocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+		maxPrimaryDistance2 = feathers_utils_focus_FocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+		secondaryDistance2 = feathers_utils_focus_FocusUtils.calculateSecondaryAxisDistanceForRelativePosition(focusedRect,rect,relativePosition);
+		onSameAxis2 = feathers_utils_focus_FocusUtils.itemsAreOnSameAxis(focusedRect,rect,relativePosition);
 	}
 	starling_utils_Pool.putRectangle(rect);
-	if(onSameAxis1 != null && onSameAxis2 != null) {
+	if(onSameAxis1 && onSameAxis2) {
 		if(minPrimaryDistance1 > 0) {
 			return minPrimaryDistance1 < minPrimaryDistance2;
 		} else {
@@ -25767,13 +26675,13 @@ feathers_utils_focus_FeathersFocusUtils.isBetterFocusForRelativePosition = funct
 	var weightedDistance2 = 13 * minPrimaryDistance2 * minPrimaryDistance2 + secondaryDistance2 * secondaryDistance2;
 	return weightedDistance1 < weightedDistance2;
 };
-feathers_utils_focus_FeathersFocusUtils.calculateSecondaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
+feathers_utils_focus_FocusUtils.calculateSecondaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
 	if(position == "top" || position == "bottom") {
 		return Math.abs(globalRect1.x + globalRect1.width / 2 - (globalRect2.x + globalRect2.width / 2));
 	}
 	return Math.abs(globalRect1.y + globalRect1.height / 2 - (globalRect2.y + globalRect2.height / 2));
 };
-feathers_utils_focus_FeathersFocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
+feathers_utils_focus_FocusUtils.calculateMaxPrimaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
 	var result;
 	switch(position) {
 	case "bottom":
@@ -25811,7 +26719,7 @@ feathers_utils_focus_FeathersFocusUtils.calculateMaxPrimaryAxisDistanceForRelati
 	}
 	return Infinity;
 };
-feathers_utils_focus_FeathersFocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
+feathers_utils_focus_FocusUtils.calculateMinPrimaryAxisDistanceForRelativePosition = function(globalRect1,globalRect2,position) {
 	var result;
 	switch(position) {
 	case "bottom":
@@ -25849,7 +26757,7 @@ feathers_utils_focus_FeathersFocusUtils.calculateMinPrimaryAxisDistanceForRelati
 	}
 	return Infinity;
 };
-feathers_utils_focus_FeathersFocusUtils.itemsAreOnSameAxis = function(globalRect1,globalRect2,position) {
+feathers_utils_focus_FocusUtils.itemsAreOnSameAxis = function(globalRect1,globalRect2,position) {
 	if(position == "top" || position == "bottom") {
 		if(globalRect1.x <= globalRect2.get_right()) {
 			return globalRect2.x <= globalRect1.get_right();
@@ -25863,23 +26771,23 @@ feathers_utils_focus_FeathersFocusUtils.itemsAreOnSameAxis = function(globalRect
 		return false;
 	}
 };
-var feathers_utils_geom_FeathersGeomUtils = function() { };
-$hxClasses["feathers.utils.geom.FeathersGeomUtils"] = feathers_utils_geom_FeathersGeomUtils;
-feathers_utils_geom_FeathersGeomUtils.__name__ = "feathers.utils.geom.FeathersGeomUtils";
-feathers_utils_geom_FeathersGeomUtils.matrixToScaleX = function(matrix) {
+var feathers_utils_geom_GeomUtils = function() { };
+$hxClasses["feathers.utils.geom.GeomUtils"] = feathers_utils_geom_GeomUtils;
+feathers_utils_geom_GeomUtils.__name__ = "feathers.utils.geom.GeomUtils";
+feathers_utils_geom_GeomUtils.matrixToRotation = function(matrix) {
+	var c = matrix.c;
+	var d = matrix.d;
+	return -Math.atan(c / d);
+};
+feathers_utils_geom_GeomUtils.matrixToScaleX = function(matrix) {
 	var a = matrix.a;
 	var b = matrix.b;
 	return Math.sqrt(a * a + b * b);
 };
-feathers_utils_geom_FeathersGeomUtils.matrixToScaleY = function(matrix) {
+feathers_utils_geom_GeomUtils.matrixToScaleY = function(matrix) {
 	var c = matrix.c;
 	var d = matrix.d;
 	return Math.sqrt(c * c + d * d);
-};
-feathers_utils_geom_FeathersGeomUtils.matrixToRotation = function(matrix) {
-	var c = matrix.c;
-	var d = matrix.d;
-	return -Math.atan(c / d);
 };
 var feathers_utils_keyboard_KeyToEvent = function(target,keyCode,eventType) {
 	if(keyCode == null) {
@@ -25985,14 +26893,14 @@ feathers_utils_keyboard_KeyToEvent.prototype = {
 		if(event.currentTarget != this._stage) {
 			return;
 		}
-		if(event.get_keyCode() == this._cancelKeyCode) {
+		if((UInt.toFloat(event.get_keyCode()) | 0) == this._cancelKeyCode) {
 			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
 			return;
 		}
-		if(event.get_keyCode() != this._keyCode) {
+		if((UInt.toFloat(event.get_keyCode()) | 0) != this._keyCode) {
 			return;
 		}
-		if(this._keyLocation != 999999999 && !(event.get_keyLocation() == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
+		if(this._keyLocation != 999999999 && !((UInt.toFloat(event.get_keyLocation()) | 0) == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
 			return;
 		}
 		this._stage.addEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
@@ -26001,10 +26909,10 @@ feathers_utils_keyboard_KeyToEvent.prototype = {
 		if(!this._isEnabled) {
 			return;
 		}
-		if(event.get_keyCode() != this._keyCode) {
+		if((UInt.toFloat(event.get_keyCode()) | 0) != this._keyCode) {
 			return;
 		}
-		if(this._keyLocation != 999999999 && !(event.get_keyLocation() == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
+		if(this._keyLocation != 999999999 && !((UInt.toFloat(event.get_keyLocation()) | 0) == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
 			return;
 		}
 		var stage = event.currentTarget;
@@ -26070,7 +26978,7 @@ feathers_utils_keyboard_KeyToState.prototype = {
 	}
 	,set_callback: function(value) {
 		if(this._callback == value) {
-			return this._callback;
+			return value;
 		}
 		this._callback = value;
 		if(this._callback != null) {
@@ -26104,8 +27012,7 @@ feathers_utils_keyboard_KeyToState.prototype = {
 		return this._isEnabled;
 	}
 	,set_isEnabled: function(value) {
-		this._isEnabled = value;
-		return this._isEnabled;
+		return this._isEnabled = value;
 	}
 	,_currentState: null
 	,get_currentState: function() {
@@ -26165,15 +27072,15 @@ feathers_utils_keyboard_KeyToState.prototype = {
 		if(event.currentTarget != this._stage) {
 			return;
 		}
-		if(event.get_keyCode() == this._cancelKeyCode) {
+		if((UInt.toFloat(event.get_keyCode()) | 0) == this._cancelKeyCode) {
 			this._stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
 			this.changeState(this._upState);
 			return;
 		}
-		if(event.get_keyCode() != this._keyCode) {
+		if((UInt.toFloat(event.get_keyCode()) | 0) != this._keyCode) {
 			return;
 		}
-		if(this._keyLocation != 999999999 && !(event.get_keyLocation() == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
+		if(this._keyLocation != 999999999 && !((UInt.toFloat(event.get_keyLocation()) | 0) == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
 			return;
 		}
 		this._stage.addEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
@@ -26183,13 +27090,13 @@ feathers_utils_keyboard_KeyToState.prototype = {
 		if(!this._isEnabled) {
 			return;
 		}
-		if(event.get_keyCode() != this._keyCode) {
+		if((UInt.toFloat(event.get_keyCode()) | 0) != this._keyCode) {
 			return;
 		}
-		if(this._keyLocation != 2147483647 && !(event.get_keyLocation() == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
+		if(this._keyLocation != 999999999 && !((UInt.toFloat(event.get_keyLocation()) | 0) == this._keyLocation || this._keyLocation == 4 && feathers_system_DeviceCapabilities.simulateDPad)) {
 			return;
 		}
-		var stage = js_Boot.__cast(event.currentTarget , starling_display_Stage);
+		var stage = event.currentTarget;
 		stage.removeEventListener("keyUp",$bind(this,this.stage_keyUpHandler));
 		if(this._stage != stage) {
 			return;
@@ -26232,12 +27139,7 @@ feathers_utils_math_MathUtils.roundDownToNearest = function(number,nearest) {
 	if(nearest == 0) {
 		return number;
 	}
-	var precision = 10;
-	if(precision == null) {
-		precision = 0;
-	}
-	var decimalPlaces = Math.pow(10,precision);
-	return Math.floor(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+	return Math.floor(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
 };
 feathers_utils_math_MathUtils.roundToNearest = function(number,nearest) {
 	if(nearest == null) {
@@ -26246,18 +27148,8 @@ feathers_utils_math_MathUtils.roundToNearest = function(number,nearest) {
 	if(nearest == 0) {
 		return number;
 	}
-	var precision = 10;
-	if(precision == null) {
-		precision = 0;
-	}
-	var decimalPlaces = Math.pow(10,precision);
-	var roundedNumber = Math.round(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
-	var precision = 10;
-	if(precision == null) {
-		precision = 0;
-	}
-	var decimalPlaces = Math.pow(10,precision);
-	return Math.round(decimalPlaces * roundedNumber) / decimalPlaces;
+	var roundedNumber = Math.round(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
+	return feathers_utils_math_MathUtils.roundToPrecision(roundedNumber,10);
 };
 feathers_utils_math_MathUtils.roundToPrecision = function(number,precision) {
 	if(precision == null) {
@@ -26273,12 +27165,7 @@ feathers_utils_math_MathUtils.roundUpToNearest = function(number,nearest) {
 	if(nearest == 0) {
 		return number;
 	}
-	var precision = 10;
-	if(precision == null) {
-		precision = 0;
-	}
-	var decimalPlaces = Math.pow(10,precision);
-	return Math.ceil(Math.round(decimalPlaces * (number / nearest)) / decimalPlaces) * nearest;
+	return Math.ceil(feathers_utils_math_MathUtils.roundToPrecision(number / nearest,10)) * nearest;
 };
 var feathers_utils_skins_SkinsUtils = function() { };
 $hxClasses["feathers.utils.skins.SkinsUtils"] = feathers_utils_skins_SkinsUtils;
@@ -26299,34 +27186,60 @@ feathers_utils_skins_SkinsUtils.resetFluidChildDimensionsForMeasurement = functi
 	} else {
 		child.set_height(parentExplicitHeight);
 	}
-	var measureChild = js_Boot.__cast(child , feathers_core_IMeasureDisplayObject);
-	var compilerWorkaround;
+	var measureChild = js_Boot.__implements(child,feathers_core_IMeasureDisplayObject) ? child : null;
 	if(measureChild != null) {
 		var childMinWidth = parentExplicitMinWidth;
-		compilerWorkaround = childMinWidth;
 		if(childMinWidth != childMinWidth || childExplicitMinWidth > childMinWidth) {
 			childMinWidth = childExplicitMinWidth;
 		}
 		measureChild.set_minWidth(childMinWidth);
 		var childMinHeight = parentExplicitMinHeight;
-		compilerWorkaround = childMinHeight;
 		if(childMinHeight != childMinHeight || childExplicitMinHeight > childMinHeight) {
 			childMinHeight = childExplicitMinHeight;
 		}
 		measureChild.set_minHeight(childMinHeight);
 		var childMaxWidth = parentExplicitMaxWidth;
-		compilerWorkaround = childMaxWidth;
 		if(childMaxWidth != childMaxWidth || childExplicitMaxWidth < childMaxWidth) {
 			childMaxWidth = childExplicitMaxWidth;
 		}
 		measureChild.set_maxWidth(childMaxWidth);
 		var childMaxHeight = parentExplicitMaxHeight;
-		compilerWorkaround = childMaxHeight;
 		if(childMaxHeight != childMaxHeight || childExplicitMaxHeight < childMaxHeight) {
 			childMaxHeight = childExplicitMaxHeight;
 		}
 		measureChild.set_maxHeight(childMaxHeight);
 	}
+};
+var feathers_utils_texture_TextureUtils = function() { };
+$hxClasses["feathers.utils.texture.TextureUtils"] = feathers_utils_texture_TextureUtils;
+feathers_utils_texture_TextureUtils.__name__ = "feathers.utils.texture.TextureUtils";
+feathers_utils_texture_TextureUtils.calculateSnapshotTextureDimensions = function(width,height,maximum,supportsRectangleTexture,result) {
+	var snapshotWidth = width;
+	var snapshotHeight = height;
+	if(!supportsRectangleTexture) {
+		if(snapshotWidth > maximum) {
+			snapshotWidth = (snapshotWidth / maximum | 0) * maximum + starling_utils_MathUtil.getNextPowerOfTwo(snapshotWidth % maximum);
+		} else {
+			snapshotWidth = starling_utils_MathUtil.getNextPowerOfTwo(snapshotWidth);
+		}
+	} else if(snapshotWidth > maximum) {
+		snapshotWidth = (snapshotWidth / maximum | 0) * maximum + snapshotWidth % maximum;
+	}
+	if(!supportsRectangleTexture) {
+		if(snapshotHeight > maximum) {
+			snapshotHeight = (snapshotHeight / maximum | 0) * maximum + starling_utils_MathUtil.getNextPowerOfTwo(snapshotHeight % maximum);
+		} else {
+			snapshotHeight = starling_utils_MathUtil.getNextPowerOfTwo(snapshotHeight);
+		}
+	} else if(snapshotHeight > maximum) {
+		snapshotHeight = (snapshotHeight / maximum | 0) * maximum + snapshotHeight % maximum;
+	}
+	if(result == null) {
+		result = new openfl_geom_Point(snapshotWidth,snapshotHeight);
+	} else {
+		result.setTo(snapshotWidth,snapshotHeight);
+	}
+	return result;
 };
 var feathers_utils_touch_LongPress = function(target) {
 	this._isEnabled = true;
@@ -26344,7 +27257,7 @@ feathers_utils_touch_LongPress.prototype = {
 	}
 	,set_target: function(value) {
 		if(this._target == value) {
-			return this._target;
+			return value;
 		}
 		if(this._target != null) {
 			this._target.removeEventListener("touch",$bind(this,this.target_touchHandler));
@@ -26373,7 +27286,7 @@ feathers_utils_touch_LongPress.prototype = {
 	}
 	,set_isEnabled: function(value) {
 		if(this._isEnabled == value) {
-			return this._isEnabled;
+			return value;
 		}
 		if(!value) {
 			this._touchPointID = -1;
@@ -26427,13 +27340,13 @@ feathers_utils_touch_LongPress.prototype = {
 			}
 			return;
 		} else {
-			touch = event.getTouch(js_Boot.__cast(this._target , starling_display_DisplayObject),"began");
+			touch = event.getTouch(this._target,"began");
 			if(touch == null) {
 				return;
 			}
 			if(this._customHitTest != null) {
 				var point = starling_utils_Pool.getPoint();
-				touch.getLocation(js_Boot.__cast(this._target , starling_display_DisplayObject),point);
+				touch.getLocation(this._target,point);
 				var isInBounds = this._customHitTest(point);
 				starling_utils_Pool.putPoint(point);
 				if(!isInBounds) {
@@ -26449,9 +27362,9 @@ feathers_utils_touch_LongPress.prototype = {
 	}
 	,target_enterFrameHandler: function(event) {
 		var accumulatedTime = new Date().getTime() / 1000 - this._touchBeginTime;
-		var isInBounds;
 		if(accumulatedTime >= this._longPressDuration) {
 			this._target.removeEventListener("enterFrame",$bind(this,this.target_enterFrameHandler));
+			var isInBounds;
 			var stage = this._target.get_stage();
 			if(((this._target) instanceof starling_display_DisplayObjectContainer)) {
 				isInBounds = (js_Boot.__cast(this._target , starling_display_DisplayObjectContainer)).contains(stage.hitTest(this._touchLastGlobalPosition));
@@ -26542,8 +27455,8 @@ feathers_utils_touch_TapToEvent.prototype = {
 			return;
 		}
 		var touch;
-		var isInBounds;
 		var point;
+		var isInBounds;
 		if(this._touchPointID >= 0) {
 			touch = event.getTouch(this._target,null,this._touchPointID);
 			if(touch == null) {
@@ -26646,9 +27559,9 @@ feathers_utils_touch_TapToSelect.prototype = {
 			this._touchPointID = -1;
 			return;
 		}
-		var isInBounds;
 		var touch;
 		var point;
+		var isInBounds;
 		if(this._touchPointID >= 0) {
 			touch = event.getTouch(this._target,null,this._touchPointID);
 			if(touch == null) {
@@ -26662,7 +27575,7 @@ feathers_utils_touch_TapToSelect.prototype = {
 					if(((this._target) instanceof starling_display_DisplayObjectContainer)) {
 						isInBounds = (js_Boot.__cast(this._target , starling_display_DisplayObjectContainer)).contains(stage.hitTest(point));
 					} else {
-						isInBounds = this._target == js_Boot.__cast(stage.hitTest(point) , feathers_core_IToggle);
+						isInBounds = js_Boot.__cast(this._target , starling_display_DisplayObject) == stage.hitTest(point);
 					}
 					starling_utils_Pool.putPoint(point);
 					if(isInBounds) {
@@ -26683,7 +27596,7 @@ feathers_utils_touch_TapToSelect.prototype = {
 			}
 			if(this._customHitTest != null) {
 				point = starling_utils_Pool.getPoint();
-				touch.getLocation(js_Boot.__cast(this._target , starling_display_DisplayObject),point);
+				touch.getLocation(this._target,point);
 				isInBounds = this._customHitTest(point);
 				starling_utils_Pool.putPoint(point);
 				if(!isInBounds) {
@@ -26726,7 +27639,7 @@ feathers_utils_touch_TouchToState.prototype = {
 	}
 	,set_target: function(value) {
 		if(this._target == value) {
-			return this._target;
+			return value;
 		}
 		if(this._target != null) {
 			this._target.removeEventListener("touch",$bind(this,this.target_touchHandler));
@@ -26747,7 +27660,7 @@ feathers_utils_touch_TouchToState.prototype = {
 	}
 	,set_callback: function(value) {
 		if(this._callback == value) {
-			return this._callback;
+			return value;
 		}
 		this._callback = value;
 		if(this._callback != null) {
@@ -26848,14 +27761,14 @@ feathers_utils_touch_TouchToState.prototype = {
 		var touch;
 		if(this._touchPointID >= 0) {
 			touch = event.getTouch(this._target,null,this._touchPointID);
-			if(touch != null) {
+			if(touch == null) {
 				return;
 			}
 			var stage = this._target.get_stage();
-			var isInBounds;
 			if(stage != null) {
 				var point = starling_utils_Pool.getPoint();
 				touch.getLocation(stage,point);
+				var isInBounds;
 				if(((this._target) instanceof starling_display_DisplayObjectContainer)) {
 					isInBounds = (js_Boot.__cast(this._target , starling_display_DisplayObjectContainer)).contains(stage.hitTest(point));
 				} else {
@@ -30331,95 +31244,6 @@ haxe_CallStack.itemToString = function(b,s) {
 		break;
 	}
 };
-var haxe_Exception = function(message,previous,native) {
-	Error.call(this,message);
-	this.message = message;
-	this.__previousException = previous;
-	this.__nativeException = native != null ? native : this;
-	this.__skipStack = 0;
-	var old = Error.prepareStackTrace;
-	Error.prepareStackTrace = function(e) { return e.stack; }
-	if(((native) instanceof Error)) {
-		this.stack = native.stack;
-	} else {
-		var e = null;
-		if(Error.captureStackTrace) {
-			Error.captureStackTrace(this,haxe_Exception);
-			e = this;
-		} else {
-			e = new Error();
-			if(typeof(e.stack) == "undefined") {
-				try { throw e; } catch(_) {}
-				this.__skipStack++;
-			}
-		}
-		this.stack = e.stack;
-	}
-	Error.prepareStackTrace = old;
-};
-$hxClasses["haxe.Exception"] = haxe_Exception;
-haxe_Exception.__name__ = "haxe.Exception";
-haxe_Exception.caught = function(value) {
-	if(((value) instanceof haxe_Exception)) {
-		return value;
-	} else if(((value) instanceof Error)) {
-		return new haxe_Exception(value.message,null,value);
-	} else {
-		return new haxe_ValueException(value,null,value);
-	}
-};
-haxe_Exception.thrown = function(value) {
-	if(((value) instanceof haxe_Exception)) {
-		return value.get_native();
-	} else if(((value) instanceof Error)) {
-		return value;
-	} else {
-		var e = new haxe_ValueException(value);
-		e.__skipStack++;
-		return e;
-	}
-};
-haxe_Exception.__super__ = Error;
-haxe_Exception.prototype = $extend(Error.prototype,{
-	__skipStack: null
-	,__nativeException: null
-	,__previousException: null
-	,unwrap: function() {
-		return this.__nativeException;
-	}
-	,toString: function() {
-		return this.get_message();
-	}
-	,__shiftStack: function() {
-		this.__skipStack++;
-	}
-	,get_message: function() {
-		return this.message;
-	}
-	,get_native: function() {
-		return this.__nativeException;
-	}
-	,get_stack: function() {
-		var _g = this.__exceptionStack;
-		if(_g == null) {
-			var value = haxe_NativeStackTrace.toHaxe(haxe_NativeStackTrace.normalize(this.stack),this.__skipStack);
-			this.setProperty("__exceptionStack",value);
-			return value;
-		} else {
-			var s = _g;
-			return s;
-		}
-	}
-	,setProperty: function(name,value) {
-		try {
-			Object.defineProperty(this,name,{ value : value});
-		} catch( _g ) {
-			this[name] = value;
-		}
-	}
-	,__class__: haxe_Exception
-	,__properties__: {get_native:"get_native",get_stack:"get_stack",get_message:"get_message"}
-});
 var haxe__$Int64__$_$_$Int64 = function(high,low) {
 	this.high = high;
 	this.low = low;
@@ -32700,6 +33524,18 @@ haxe_iterators_MapKeyValueIterator.prototype = {
 	}
 	,__class__: haxe_iterators_MapKeyValueIterator
 };
+var haxe_macro_Error = function(message,pos,previous) {
+	haxe_Exception.call(this,message,previous);
+	this.pos = pos;
+	this.__skipStack++;
+};
+$hxClasses["haxe.macro.Error"] = haxe_macro_Error;
+haxe_macro_Error.__name__ = "haxe.macro.Error";
+haxe_macro_Error.__super__ = haxe_Exception;
+haxe_macro_Error.prototype = $extend(haxe_Exception.prototype,{
+	pos: null
+	,__class__: haxe_macro_Error
+});
 var haxe_xml_XmlParserException = function(message,xml,position) {
 	this.xml = xml;
 	this.message = message;
@@ -50406,7 +51242,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 932464;
+	this.version = 964974;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -90160,50 +90996,6 @@ openfl_display3D_textures_VideoTexture.prototype = $extend(openfl_display3D_text
 	}
 	,__class__: openfl_display3D_textures_VideoTexture
 });
-var openfl_errors_Error = function(message,id) {
-	if(id == null) {
-		id = 0;
-	}
-	if(message == null) {
-		message = "";
-	}
-	haxe_Exception.call(this,message);
-	this.errorID = id;
-	this.name = "Error";
-	this.__skipStack++;
-};
-$hxClasses["openfl.errors.Error"] = openfl_errors_Error;
-openfl_errors_Error.__name__ = "openfl.errors.Error";
-openfl_errors_Error.__super__ = haxe_Exception;
-openfl_errors_Error.prototype = $extend(haxe_Exception.prototype,{
-	errorID: null
-	,name: null
-	,getStackTrace: function() {
-		return haxe_CallStack.toString(haxe_CallStack.exceptionStack());
-	}
-	,toString: function() {
-		if(this.get_message() != null) {
-			return this.get_message();
-		} else {
-			return "Error";
-		}
-	}
-	,__class__: openfl_errors_Error
-});
-var openfl_errors_ArgumentError = function(message) {
-	if(message == null) {
-		message = "";
-	}
-	openfl_errors_Error.call(this,message);
-	this.name = "ArgumentError";
-	this.__skipStack++;
-};
-$hxClasses["openfl.errors.ArgumentError"] = openfl_errors_ArgumentError;
-openfl_errors_ArgumentError.__name__ = "openfl.errors.ArgumentError";
-openfl_errors_ArgumentError.__super__ = openfl_errors_Error;
-openfl_errors_ArgumentError.prototype = $extend(openfl_errors_Error.prototype,{
-	__class__: openfl_errors_ArgumentError
-});
 var openfl_errors_IOError = function(message) {
 	if(message == null) {
 		message = "";
@@ -91278,6 +92070,9 @@ openfl_events_UncaughtErrorEvents.prototype = $extend(openfl_events_EventDispatc
 			useCapture = false;
 		}
 		openfl_events_EventDispatcher.prototype.addEventListener.call(this,type,listener,useCapture,priority,useWeakReference);
+		if(Object.prototype.hasOwnProperty.call(this.__eventMap.h,"uncaughtError")) {
+			this.__enabled = true;
+		}
 	}
 	,removeEventListener: function(type,listener,useCapture) {
 		if(useCapture == null) {
@@ -101469,7 +102264,7 @@ var starling_animation_Juggler = function() {
 	this.__elapsedTime = 0;
 	this.__timeScale = 1.0;
 	this.__objects = openfl_Vector.toObjectVector(null);
-	this.__objectIDs = new haxe_ds_ObjectMap();
+	this.__objectIDs = openfl_Vector.toIntVector(null);
 };
 $hxClasses["starling.animation.Juggler"] = starling_animation_Juggler;
 starling_animation_Juggler.__name__ = "starling.animation.Juggler";
@@ -101487,45 +102282,44 @@ starling_animation_Juggler.prototype = {
 		return this.addWithID(object,starling_animation_Juggler.getNextID());
 	}
 	,addWithID: function(object,objectID) {
-		if(object != null && this.__objectIDs.h.__keys__[object.__id__] == null) {
+		if(object != null && !this.contains(object)) {
 			var dispatcher = ((object) instanceof starling_events_EventDispatcher) ? object : null;
 			if(dispatcher != null) {
-				dispatcher.addEventListener("removeFromJuggler",$bind(this,this.onRemove));
+				dispatcher.addEventListener("removeFromJuggler",$bind(this,this.onRemoveRequested));
 			}
 			this.__objects.set(this.__objects.get_length(),object);
-			this.__objectIDs.set(object,objectID);
+			this.__objectIDs.set(this.__objectIDs.get_length(),objectID);
 			return objectID;
 		} else {
 			return 0;
 		}
 	}
 	,contains: function(object) {
-		return this.__objectIDs.h.__keys__[object.__id__] != null;
+		return this.__objects.indexOf(object,0) != -1;
 	}
 	,remove: function(object) {
-		var objectID = 0;
-		if(object != null && this.__objectIDs.h.__keys__[object.__id__] != null) {
-			var dispatcher = ((object) instanceof starling_events_EventDispatcher) ? object : null;
-			if(dispatcher != null) {
-				dispatcher.removeEventListener("removeFromJuggler",$bind(this,this.onRemove));
-			}
-			var index = this.__objects.indexOf(object,0);
-			this.__objects.set(index,null);
-			objectID = this.__objectIDs.h[object.__id__];
-			this.__objectIDs.remove(object);
+		var objectIndex = this.__objects.indexOf(object,0);
+		if(objectIndex != -1) {
+			return this.removeByIndex(objectIndex);
+		}
+		return 0;
+	}
+	,removeByIndex: function(index) {
+		var object = this.__objects.get(index);
+		var objectID = this.__objectIDs.get(index);
+		this.__objects.set(index,null);
+		this.__objectIDs.set(index,0);
+		var dispatcher = ((object) instanceof starling_events_EventDispatcher) ? object : null;
+		if(dispatcher != null) {
+			dispatcher.removeEventListener("removeFromJuggler",$bind(this,this.onRemoveRequested));
+			dispatcher.dispatchEventWith("removedFromJuggler");
 		}
 		return objectID;
 	}
 	,removeByID: function(objectID) {
-		var object;
-		var i = this.__objects.get_length() - 1;
-		while(i >= 0) {
-			object = this.__objects.get(i);
-			if(this.__objectIDs.h[object.__id__] == objectID) {
-				this.remove(object);
-				return objectID;
-			}
-			--i;
+		var objectIndex = this.__objectIDs.indexOf(objectID,0);
+		if(objectIndex != -1) {
+			return this.removeByIndex(objectIndex);
 		}
 		return 0;
 	}
@@ -101537,9 +102331,7 @@ starling_animation_Juggler.prototype = {
 		while(i >= 0) {
 			var tween = ((this.__objects.get(i)) instanceof starling_animation_Tween) ? this.__objects.get(i) : null;
 			if(tween != null && tween.get_target() == target) {
-				tween.removeEventListener("removeFromJuggler",$bind(this,this.onRemove));
-				this.__objects.set(i,null);
-				this.__objectIDs.remove(tween);
+				this.removeByIndex(i);
 			}
 			--i;
 		}
@@ -101553,9 +102345,7 @@ starling_animation_Juggler.prototype = {
 		while(i >= 0) {
 			delayedCall = ((this.__objects.get(i)) instanceof starling_animation_DelayedCall) ? this.__objects.get(i) : null;
 			if(delayedCall != null && delayedCall.__callback == callback) {
-				delayedCall.removeEventListener("removeFromJuggler",$bind(this,this.onRemove));
-				this.__objects.set(i,null);
-				this.__objectIDs.remove(delayedCall);
+				this.removeByIndex(i);
 			}
 			--i;
 		}
@@ -101593,15 +102383,7 @@ starling_animation_Juggler.prototype = {
 		var dispatcher;
 		var i = this.__objects.get_length() - 1;
 		while(i >= 0) {
-			object = this.__objects.get(i);
-			if(object != null) {
-				dispatcher = ((object) instanceof starling_events_EventDispatcher) ? object : null;
-				if(dispatcher != null) {
-					dispatcher.removeEventListener("removeFromJuggler",$bind(this,this.onRemove));
-				}
-				this.__objects.set(i,null);
-				this.__objectIDs.remove(object);
-			}
+			this.removeByIndex(i);
 			--i;
 		}
 	}
@@ -101613,7 +102395,7 @@ starling_animation_Juggler.prototype = {
 			args = [];
 		}
 		var delayedCall = starling_animation_DelayedCall.fromPool(call,delay,args);
-		delayedCall.addEventListener("removeFromJuggler",$bind(this,this.onPooledDelayedCallComplete));
+		delayedCall.addEventListener("removeFromJuggler",$bind(this,this.onPooledDelayedCallRemovedFromJuggler));
 		return this.add(delayedCall);
 	}
 	,repeatCall: function(call,interval,repeatCount,args) {
@@ -101628,10 +102410,10 @@ starling_animation_Juggler.prototype = {
 		}
 		var delayedCall = starling_animation_DelayedCall.fromPool(call,interval,args);
 		delayedCall.set_repeatCount(repeatCount);
-		delayedCall.addEventListener("removeFromJuggler",$bind(this,this.onPooledDelayedCallComplete));
+		delayedCall.addEventListener("removeFromJuggler",$bind(this,this.onPooledDelayedCallRemovedFromJuggler));
 		return this.add(delayedCall);
 	}
-	,onPooledDelayedCallComplete: function(event) {
+	,onPooledDelayedCallRemovedFromJuggler: function(event) {
 		starling_animation_DelayedCall.toPool(js_Boot.__cast(event.target , starling_animation_DelayedCall));
 	}
 	,tween: function(target,time,properties) {
@@ -101657,10 +102439,10 @@ starling_animation_Juggler.prototype = {
 				throw new openfl_errors_ArgumentError("Invalid property: " + property);
 			}
 		}
-		tween.addEventListener("removeFromJuggler",$bind(this,this.onPooledTweenComplete));
+		tween.addEventListener("removeFromJuggler",$bind(this,this.onPooledTweenRemovedFromJuggler));
 		return this.add(tween);
 	}
-	,onPooledTweenComplete: function(event) {
+	,onPooledTweenRemovedFromJuggler: function(event) {
 		starling_animation_Tween.toPool(js_Boot.__cast(event.target , starling_animation_Tween));
 	}
 	,advanceTime: function(time) {
@@ -101678,7 +102460,9 @@ starling_animation_Juggler.prototype = {
 			if(object != null) {
 				if(currentIndex != i) {
 					this.__objects.set(currentIndex,object);
+					this.__objectIDs.set(currentIndex,this.__objectIDs.get(i));
 					this.__objects.set(i,null);
+					this.__objectIDs.set(i,0);
 				}
 				object.advanceTime(time);
 				++currentIndex;
@@ -101687,11 +102471,17 @@ starling_animation_Juggler.prototype = {
 		}
 		if(currentIndex != i) {
 			numObjects = this.__objects.get_length();
-			while(i < numObjects) this.__objects.set(currentIndex++,this.__objects.get(i++));
+			while(i < numObjects) {
+				this.__objects.set(currentIndex,this.__objects.get(i));
+				this.__objectIDs.set(currentIndex,this.__objectIDs.get(i));
+				++currentIndex;
+				++i;
+			}
 			this.__objects.set_length(currentIndex);
+			this.__objectIDs.set_length(currentIndex);
 		}
 	}
-	,onRemove: function(event) {
+	,onRemoveRequested: function(event) {
 		var objectID = this.remove(js_Boot.__cast(event.target , starling_animation_IAnimatable));
 		if(objectID != 0) {
 			var tween = ((event.target) instanceof starling_animation_Tween) ? event.target : null;
@@ -101703,6 +102493,9 @@ starling_animation_Juggler.prototype = {
 	,get_elapsedTime: function() {
 		return this.__elapsedTime;
 	}
+	,get_isEmpty: function() {
+		return this.__objects.get_length() == 0;
+	}
 	,get_timeScale: function() {
 		return this.__timeScale;
 	}
@@ -101713,7 +102506,7 @@ starling_animation_Juggler.prototype = {
 		return this.__objects;
 	}
 	,__class__: starling_animation_Juggler
-	,__properties__: {get_objects:"get_objects",set_timeScale:"set_timeScale",get_timeScale:"get_timeScale",get_elapsedTime:"get_elapsedTime"}
+	,__properties__: {get_objects:"get_objects",set_timeScale:"set_timeScale",get_timeScale:"get_timeScale",get_isEmpty:"get_isEmpty",get_elapsedTime:"get_elapsedTime"}
 };
 var starling_animation_Transitions = function() { };
 $hxClasses["starling.animation.Transitions"] = starling_animation_Transitions;
@@ -102282,6 +103075,7 @@ var starling_core_Starling = function(rootClass,stage,viewPort,stage3D,renderMod
 	this.__touchProcessor.set_discardSystemGestures(!starling_utils_SystemUtil.get_isDesktop());
 	this.__juggler = new starling_animation_Juggler();
 	this.__antiAliasing = 0;
+	this.__defaultTextureSmoothing = "bilinear";
 	this.__supportHighResolutions = false;
 	this.__painter = new starling_rendering_Painter(stage3D,sharedContext);
 	this.__frameTimestamp = openfl_Lib.getTimer() / 1000.0;
@@ -102296,7 +103090,7 @@ var starling_core_Starling = function(rootClass,stage,viewPort,stage3D,renderMod
 	this.__supportsCursor = tmp;
 	this.__statsDisplayAlign = { };
 	this.setMultitouchEnabled(openfl_ui_Multitouch.inputMode == 2,true);
-	this.__nativeOverlayBlocksTouches = true;
+	this.set_nativeOverlayBlocksTouches(true);
 	stage.set_scaleMode(2);
 	stage.align = 6;
 	stage.addEventListener("enterFrame",$bind(this,this.onEnterFrame),false,0,true);
@@ -102319,13 +103113,34 @@ var starling_core_Starling = function(rootClass,stage,viewPort,stage3D,renderMod
 };
 $hxClasses["starling.core.Starling"] = starling_core_Starling;
 starling_core_Starling.__name__ = "starling.core.Starling";
-starling_core_Starling.__properties__ = {set_multitouchEnabled:"set_multitouchEnabled",get_multitouchEnabled:"get_multitouchEnabled",get_all:"get_all",get_current:"get_current"};
+starling_core_Starling.__properties__ = {get_DefaultTextureSmoothing:"get_DefaultTextureSmoothing",get_currentFrameID:"get_currentFrameID",set_multitouchEnabled:"set_multitouchEnabled",get_multitouchEnabled:"get_multitouchEnabled",get_currentContentScaleFactor:"get_currentContentScaleFactor",get_currentJuggler:"get_currentJuggler",get_currentContext:"get_currentContext",get_all:"get_all",get_current:"get_current"};
 starling_core_Starling.sCurrent = null;
 starling_core_Starling.get_current = function() {
 	return starling_core_Starling.sCurrent;
 };
 starling_core_Starling.get_all = function() {
 	return starling_core_Starling.sAll;
+};
+starling_core_Starling.get_currentContext = function() {
+	if(starling_core_Starling.sCurrent != null) {
+		return starling_core_Starling.sCurrent.get_context();
+	} else {
+		return null;
+	}
+};
+starling_core_Starling.get_currentJuggler = function() {
+	if(starling_core_Starling.sCurrent != null) {
+		return starling_core_Starling.sCurrent.__juggler;
+	} else {
+		return null;
+	}
+};
+starling_core_Starling.get_currentContentScaleFactor = function() {
+	if(starling_core_Starling.sCurrent != null) {
+		return starling_core_Starling.sCurrent.get_contentScaleFactor();
+	} else {
+		return 1.0;
+	}
 };
 starling_core_Starling.get_multitouchEnabled = function() {
 	var enabled = openfl_ui_Multitouch.inputMode == 2;
@@ -102338,7 +103153,7 @@ starling_core_Starling.get_multitouchEnabled = function() {
 		}
 	}
 	if(outOfSync) {
-		haxe_Log.trace("[Starling] Warning: multitouch settings are out of sync. Always set " + "'Starling.multitouchEnabled' instead of 'Multitouch.inputMode'.",{ fileName : "starling/core/Starling.hx", lineNumber : 1296, className : "starling.core.Starling", methodName : "get_multitouchEnabled"});
+		haxe_Log.trace("[Starling] Warning: multitouch settings are out of sync. Always set " + "'Starling.multitouchEnabled' instead of 'Multitouch.inputMode'.",{ fileName : "starling/core/Starling.hx", lineNumber : 1321, className : "starling.core.Starling", methodName : "get_multitouchEnabled"});
 	}
 	return enabled;
 };
@@ -102355,6 +103170,20 @@ starling_core_Starling.set_multitouchEnabled = function(value) {
 	}
 	return value;
 };
+starling_core_Starling.get_currentFrameID = function() {
+	if(starling_core_Starling.sCurrent != null) {
+		return starling_core_Starling.sCurrent.__frameID;
+	} else {
+		return 0;
+	}
+};
+starling_core_Starling.get_DefaultTextureSmoothing = function() {
+	if(starling_core_Starling.sCurrent != null) {
+		return starling_core_Starling.sCurrent.__defaultTextureSmoothing;
+	} else {
+		return "bilinear";
+	}
+};
 starling_core_Starling.__super__ = starling_events_EventDispatcher;
 starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.prototype,{
 	__stage: null
@@ -102363,6 +103192,7 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 	,__juggler: null
 	,__painter: null
 	,__touchProcessor: null
+	,__defaultTextureSmoothing: null
 	,__antiAliasing: null
 	,__frameTimestamp: null
 	,__frameID: null
@@ -102483,12 +103313,11 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 			if(!shareContext) {
 				this.__painter.present();
 			}
+		} else {
+			this.dispatchEventWith("skipFrame");
 		}
 		if(this.__statsDisplay != null) {
 			this.__statsDisplay.set_drawCount(this.__painter.get_drawCount());
-			if(!doRedraw) {
-				this.__statsDisplay.markFrameAsSkipped();
-			}
 		}
 	}
 	,updateViewPort: function(forceUpdate) {
@@ -102542,7 +103371,7 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 		this.get_nativeOverlay().addChild(background);
 		this.get_nativeOverlay().addChild(textField);
 		this.stop(true);
-		haxe_Log.trace("[Starling]",{ fileName : "starling/core/Starling.hx", lineNumber : 616, className : "starling.core.Starling", methodName : "stopWithFatalError", customParams : [message]});
+		haxe_Log.trace("[Starling]",{ fileName : "starling/core/Starling.hx", lineNumber : 624, className : "starling.core.Starling", methodName : "stopWithFatalError", customParams : [message]});
 		this.dispatchEventWith("fatalError",false,message);
 	}
 	,makeCurrent: function() {
@@ -102573,12 +103402,13 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 	,onContextCreated: function(event) {
 		this.get_stage3D().removeEventListener("context3DCreate",$bind(this,this.onContextCreated));
 		this.get_stage3D().addEventListener("context3DCreate",$bind(this,this.onContextRestored),false,10,true);
-		haxe_Log.trace("[Starling] Context ready. Display Driver: " + this.get_context().driverInfo,{ fileName : "starling/core/Starling.hx", lineNumber : 682, className : "starling.core.Starling", methodName : "onContextCreated"});
+		haxe_Log.trace("[Starling] Context ready. Display Driver: " + this.get_context().driverInfo,{ fileName : "starling/core/Starling.hx", lineNumber : 690, className : "starling.core.Starling", methodName : "onContextCreated"});
 		this.initialize();
 	}
 	,onContextRestored: function(event) {
-		haxe_Log.trace("[Starling] Context restored.",{ fileName : "starling/core/Starling.hx", lineNumber : 688, className : "starling.core.Starling", methodName : "onContextRestored"});
+		haxe_Log.trace("[Starling] Context restored.",{ fileName : "starling/core/Starling.hx", lineNumber : 696, className : "starling.core.Starling", methodName : "onContextRestored"});
 		this.updateViewPort(true);
+		this.__painter.setupContextDefaults();
 		this.dispatchEventWith("context3DCreate",false,this.get_context());
 	}
 	,onEnterFrame: function(event) {
@@ -102787,6 +103617,15 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 		}
 		return value;
 	}
+	,get_defaultTextureSmoothing: function() {
+		return this.__defaultTextureSmoothing;
+	}
+	,set_defaultTextureSmoothing: function(value) {
+		if(!starling_textures_TextureSmoothing.isValid(value)) {
+			throw new openfl_errors_ArgumentError("Invalid texture smoothing: " + value);
+		}
+		return this.__defaultTextureSmoothing = value;
+	}
 	,get_viewPort: function() {
 		return this.__viewPort;
 	}
@@ -102807,7 +103646,7 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 		if(value != this.__nativeOverlayBlocksTouches) {
 			this.__touchProcessor.set_occlusionTest(value ? $bind(this,this.hitTestNativeOverlay) : null);
 		}
-		return value;
+		return this.__nativeOverlayBlocksTouches = value;
 	}
 	,get_showStats: function() {
 		return this.__showStats;
@@ -102815,23 +103654,9 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 	,set_showStats: function(value) {
 		this.__showStats = value;
 		if(value) {
-			var h = Object.prototype.hasOwnProperty.call(this.__statsDisplayAlign,"horizontal") ? openfl_utils_Object.__get(this.__statsDisplayAlign,"horizontal") : null;
-			var v = Object.prototype.hasOwnProperty.call(this.__statsDisplayAlign,"vertical") ? openfl_utils_Object.__get(this.__statsDisplayAlign,"vertical") : null;
-			var tmp;
-			if(h != null) {
-				var this1 = h;
-				tmp = this1 == null ? null : Std.string(this1);
-			} else {
-				tmp = "left";
-			}
-			var tmp1;
-			if(v != null) {
-				var this1 = v;
-				tmp1 = this1 == null ? null : Std.string(this1);
-			} else {
-				tmp1 = "top";
-			}
-			this.showStatsAt(tmp,tmp1);
+			var h = Object.prototype.hasOwnProperty.call(this.__statsDisplayAlign,"horizontal") ? Reflect.field(this.__statsDisplayAlign,"horizontal") : null;
+			var v = Object.prototype.hasOwnProperty.call(this.__statsDisplayAlign,"vertical") ? Reflect.field(this.__statsDisplayAlign,"vertical") : null;
+			this.showStatsAt(h != null ? h : "left",v != null ? v : "top");
 		} else if(this.__statsDisplay != null) {
 			this.__statsDisplay.removeFromParent();
 		}
@@ -102856,14 +103681,8 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 			_gthis.removeEventListener("rootCreated",onRootCreated);
 		};
 		this.__showStats = true;
-		var this1 = this.__statsDisplayAlign;
-		if(this1 != null) {
-			Reflect.setProperty(this1,"horizontal",horizontalAlign);
-		}
-		var this1 = this.__statsDisplayAlign;
-		if(this1 != null) {
-			Reflect.setProperty(this1,"vertical",verticalAlign);
-		}
+		this.__statsDisplayAlign["horizontal"] = horizontalAlign;
+		this.__statsDisplayAlign["vertical"] = verticalAlign;
 		if(this.get_context() == null) {
 			this.addEventListener("rootCreated",onRootCreated);
 		} else {
@@ -102873,6 +103692,7 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 			}
 			this.__stage.addChild(this.__statsDisplay);
 			this.__statsDisplay.set_scaleX(this.__statsDisplay.set_scaleY(scale));
+			this.__statsDisplay.set_showSkipped(this.__skipUnchangedFrames);
 			this.updateClippedViewPort();
 			this.updateStatsDisplayPosition();
 		}
@@ -102881,10 +103701,8 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 		if(!this.__showStats || this.__statsDisplay == null) {
 			return;
 		}
-		var this1 = openfl_utils_Object.__get(this.__statsDisplayAlign,"horizontal");
-		var horizontalAlign = this1 == null ? null : Std.string(this1);
-		var this1 = openfl_utils_Object.__get(this.__statsDisplayAlign,"vertical");
-		var verticalAlign = this1 == null ? null : Std.string(this1);
+		var horizontalAlign = Object.prototype.hasOwnProperty.call(this.__statsDisplayAlign,"horizontal") ? Reflect.field(this.__statsDisplayAlign,"horizontal") : null;
+		var verticalAlign = Object.prototype.hasOwnProperty.call(this.__statsDisplayAlign,"vertical") ? Reflect.field(this.__statsDisplayAlign,"vertical") : null;
 		var scaleX = this.__viewPort.width / this.__stage.get_stageWidth();
 		var scaleY = this.__viewPort.height / this.__stage.get_stageHeight();
 		var clipping = starling_utils_Pool.getRectangle(this.__viewPort.x < 0 ? -this.__viewPort.x / scaleX : 0.0,this.__viewPort.y < 0 ? -this.__viewPort.y / scaleY : 0.0,this.__clippedViewPort.width / scaleX,this.__clippedViewPort.height / scaleY);
@@ -102973,6 +103791,9 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 	,set_skipUnchangedFrames: function(value) {
 		this.__skipUnchangedFrames = value;
 		this.__nativeStageEmpty = false;
+		if(this.__statsDisplay != null) {
+			this.__statsDisplay.set_showSkipped(value);
+		}
 		return value;
 	}
 	,get_touchProcessor: function() {
@@ -103020,9 +103841,10 @@ starling_core_Starling.prototype = $extend(starling_events_EventDispatcher.proto
 		}
 	}
 	,__class__: starling_core_Starling
-	,__properties__: {get_contextValid:"get_contextValid",get_frameID:"get_frameID",set_discardSystemGestures:"set_discardSystemGestures",get_discardSystemGestures:"get_discardSystemGestures",set_touchProcessor:"set_touchProcessor",get_touchProcessor:"get_touchProcessor",set_skipUnchangedFrames:"set_skipUnchangedFrames",get_skipUnchangedFrames:"get_skipUnchangedFrames",set_supportBrowserZoom:"set_supportBrowserZoom",get_supportBrowserZoom:"get_supportBrowserZoom",set_supportHighResolutions:"set_supportHighResolutions",get_supportHighResolutions:"get_supportHighResolutions",get_profile:"get_profile",set_shareContext:"set_shareContext",get_shareContext:"get_shareContext",set_rootClass:"set_rootClass",get_rootClass:"get_rootClass",get_root:"get_root",get_nativeStage:"get_nativeStage",get_stage3D:"get_stage3D",get_stage:"get_stage",set_showStats:"set_showStats",get_showStats:"get_showStats",set_nativeOverlayBlocksTouches:"set_nativeOverlayBlocksTouches",get_nativeOverlayBlocksTouches:"get_nativeOverlayBlocksTouches",get_nativeOverlay:"get_nativeOverlay",get_contentScaleFactor:"get_contentScaleFactor",set_viewPort:"set_viewPort",get_viewPort:"get_viewPort",set_antiAliasing:"set_antiAliasing",get_antiAliasing:"get_antiAliasing",set_enableErrorChecking:"set_enableErrorChecking",get_enableErrorChecking:"get_enableErrorChecking",set_simulateMultitouch:"set_simulateMultitouch",get_simulateMultitouch:"get_simulateMultitouch",get_context:"get_context",get_painter:"get_painter",get_juggler:"get_juggler",get_isStarted:"get_isStarted",get_mustAlwaysRender:"get_mustAlwaysRender"}
+	,__properties__: {get_contextValid:"get_contextValid",get_frameID:"get_frameID",set_discardSystemGestures:"set_discardSystemGestures",get_discardSystemGestures:"get_discardSystemGestures",set_touchProcessor:"set_touchProcessor",get_touchProcessor:"get_touchProcessor",set_skipUnchangedFrames:"set_skipUnchangedFrames",get_skipUnchangedFrames:"get_skipUnchangedFrames",set_supportBrowserZoom:"set_supportBrowserZoom",get_supportBrowserZoom:"get_supportBrowserZoom",set_supportHighResolutions:"set_supportHighResolutions",get_supportHighResolutions:"get_supportHighResolutions",get_profile:"get_profile",set_shareContext:"set_shareContext",get_shareContext:"get_shareContext",set_rootClass:"set_rootClass",get_rootClass:"get_rootClass",get_root:"get_root",get_nativeStage:"get_nativeStage",get_stage3D:"get_stage3D",get_stage:"get_stage",set_showStats:"set_showStats",get_showStats:"get_showStats",set_nativeOverlayBlocksTouches:"set_nativeOverlayBlocksTouches",get_nativeOverlayBlocksTouches:"get_nativeOverlayBlocksTouches",get_nativeOverlay:"get_nativeOverlay",get_contentScaleFactor:"get_contentScaleFactor",set_viewPort:"set_viewPort",get_viewPort:"get_viewPort",set_defaultTextureSmoothing:"set_defaultTextureSmoothing",get_defaultTextureSmoothing:"get_defaultTextureSmoothing",set_antiAliasing:"set_antiAliasing",get_antiAliasing:"get_antiAliasing",set_enableErrorChecking:"set_enableErrorChecking",get_enableErrorChecking:"get_enableErrorChecking",set_simulateMultitouch:"set_simulateMultitouch",get_simulateMultitouch:"get_simulateMultitouch",get_context:"get_context",get_painter:"get_painter",get_juggler:"get_juggler",get_isStarted:"get_isStarted",get_mustAlwaysRender:"get_mustAlwaysRender"}
 });
 var starling_core_StatsDisplay = function() {
+	this.__showSkipped = false;
 	this.__skipCount = 0;
 	this.__drawCount = 0;
 	this.__gpuMemory = 0;
@@ -103035,17 +103857,16 @@ var starling_core_StatsDisplay = function() {
 	var fontSize = -1;
 	var fontColor = 16777215;
 	var width = 90;
-	var height = this.get_supportsGpuMem() ? 35 : 27;
-	var gpuLabel = this.get_supportsGpuMem() ? "\ngpu memory:" : "";
-	var labels = "frames/sec:\nstd memory:" + gpuLabel + "\ndraw calls:";
-	this.__labels = new starling_text_TextField(width,height,labels);
-	this.__labels.get_format().setTo(fontName,fontSize,fontColor,"left");
+	var height = 45;
+	this.__labels = new starling_text_TextField(width,height);
+	this.__labels.get_format().setTo(fontName,fontSize,fontColor,"left","top");
 	this.__labels.set_batchable(true);
 	this.__labels.set_x(2);
 	this.__values = new starling_text_TextField(width - 1,height,"");
-	this.__values.get_format().setTo(fontName,fontSize,fontColor,"right");
+	this.__values.get_format().setTo(fontName,fontSize,fontColor,"right","top");
 	this.__values.set_batchable(true);
 	this.__background = new starling_display_Quad(width,height,0);
+	this.updateLabels();
 	if(this.__background.get_style().get_type() != starling_styles_MeshStyle) {
 		this.__background.set_style(new starling_styles_MeshStyle());
 	}
@@ -103075,13 +103896,16 @@ starling_core_StatsDisplay.prototype = $extend(starling_display_Sprite.prototype
 	,__gpuMemory: null
 	,__drawCount: null
 	,__skipCount: null
+	,__showSkipped: null
 	,onAddedToStage: function(e) {
 		this.addEventListener("enterFrame",$bind(this,this.onEnterFrame));
+		starling_core_Starling.get_current().addEventListener("skipFrame",$bind(this,this.onSkipFrame));
 		this.__totalTime = this.__frameCount = this.__skipCount = 0;
 		this.update();
 	}
 	,onRemovedFromStage: function(e) {
 		this.removeEventListener("enterFrame",$bind(this,this.onEnterFrame));
+		starling_core_Starling.get_current().removeEventListener("skipFrame",$bind(this,this.onSkipFrame));
 	}
 	,onEnterFrame: function(e) {
 		var event = js_Boot.__cast(e , starling_events_EnterFrameEvent);
@@ -103093,19 +103917,34 @@ starling_core_StatsDisplay.prototype = $extend(starling_display_Sprite.prototype
 			this.__totalTime = 0;
 		}
 	}
+	,onSkipFrame: function() {
+		this.__skipCount += 1;
+	}
 	,update: function() {
 		this.__background.set_color(this.__skipCount > this.__frameCount / 2 ? 16128 : 0);
 		this.__fps = this.__totalTime > 0 ? this.__frameCount / this.__totalTime : 0;
 		this.__memory = openfl_system_System.get_totalMemory() * 9.5367431640625e-007;
-		this.__gpuMemory = this.get_supportsGpuMem() ? Reflect.field(starling_core_Starling.get_current().get_context(),"totalGPUMemory") * 9.5367431640625e-007 : -1;
+		this.__gpuMemory = this.get_supportsGpuMem() ? starling_core_Starling.get_current().get_context().get_totalGPUMemory() * 9.5367431640625e-007 : -1;
+		var skippedPerSec = this.__totalTime > 0 ? this.__skipCount / this.__totalTime : 0;
+		var skippedText = this.__showSkipped ? starling_utils_MathUtil.toFixed(skippedPerSec,skippedPerSec < 100 ? 1 : 0) : "";
 		var fpsText = starling_utils_MathUtil.toFixed(this.__fps,this.__fps < 100 ? 1 : 0);
 		var memText = starling_utils_MathUtil.toFixed(this.__memory,this.__memory < 100 ? 1 : 0);
 		var gpuMemText = starling_utils_MathUtil.toFixed(this.__gpuMemory,this.__gpuMemory < 100 ? 1 : 0);
 		var drwText = Std.string(this.__totalTime > 0 ? this.__drawCount - 2 : this.__drawCount);
-		this.__values.set_text(fpsText + "\n" + memText + "\n" + (this.__gpuMemory >= 0 ? gpuMemText + "\n" : "") + drwText);
+		this.__values.set_text(fpsText + "\n" + (this.__showSkipped ? skippedText + "\n" : "") + memText + "\n" + (this.__gpuMemory >= 0 ? gpuMemText + "\n" : "") + drwText);
 	}
-	,markFrameAsSkipped: function() {
-		this.__skipCount += 1;
+	,updateLabels: function() {
+		var labels = ["frames/sec:"];
+		if(this.__showSkipped) {
+			labels.splice(labels.length,0,"skipped/sec:");
+		}
+		labels.splice(labels.length,0,"std memory:");
+		if(this.get_supportsGpuMem()) {
+			labels.splice(labels.length,0,"gpu memory:");
+		}
+		labels.splice(labels.length,0,"draw calls:");
+		this.__labels.set_text(labels.join("\n"));
+		this.__background.set_height(this.__labels.get_textBounds().height + 4);
 	}
 	,render: function(painter) {
 		painter.excludeFromCache(this);
@@ -103142,8 +103981,17 @@ starling_core_StatsDisplay.prototype = $extend(starling_display_Sprite.prototype
 	,set_gpuMemory: function(value) {
 		return this.__gpuMemory = value;
 	}
+	,get_showSkipped: function() {
+		return this.__showSkipped;
+	}
+	,set_showSkipped: function(value) {
+		this.__showSkipped = value;
+		this.updateLabels();
+		this.update();
+		return this.__showSkipped;
+	}
 	,__class__: starling_core_StatsDisplay
-	,__properties__: $extend(starling_display_Sprite.prototype.__properties__,{set_gpuMemory:"set_gpuMemory",get_gpuMemory:"get_gpuMemory",set_memory:"set_memory",get_memory:"get_memory",set_fps:"set_fps",get_fps:"get_fps",set_drawCount:"set_drawCount",get_drawCount:"get_drawCount",get_supportsGpuMem:"get_supportsGpuMem"})
+	,__properties__: $extend(starling_display_Sprite.prototype.__properties__,{set_showSkipped:"set_showSkipped",get_showSkipped:"get_showSkipped",set_gpuMemory:"set_gpuMemory",get_gpuMemory:"get_gpuMemory",set_memory:"set_memory",get_memory:"get_memory",set_fps:"set_fps",get_fps:"get_fps",set_drawCount:"set_drawCount",get_drawCount:"get_drawCount",get_supportsGpuMem:"get_supportsGpuMem"})
 });
 var starling_display_BlendMode = function(name,sourceFactor,destinationFactor) {
 	this.__name = name;
@@ -103202,6 +104050,27 @@ starling_display_BlendMode.registerDefaults = function() {
 	starling_display_BlendMode.register("mask",9,7);
 	starling_display_BlendMode.register("below",3,0);
 };
+starling_display_BlendMode.getAll = function(out) {
+	if(out == null) {
+		out = [];
+	}
+	if(starling_display_BlendMode.sBlendModes == null) {
+		starling_display_BlendMode.registerDefaults();
+	}
+	var h = starling_display_BlendMode.sBlendModes.h;
+	var blendMode_h = h;
+	var blendMode_keys = Object.keys(h);
+	var blendMode_length = blendMode_keys.length;
+	var blendMode_current = 0;
+	while(blendMode_current < blendMode_length) {
+		var blendMode = blendMode_h[blendMode_keys[blendMode_current++]];
+		out.splice(0,0,blendMode);
+	}
+	return out;
+};
+starling_display_BlendMode.isRegistered = function(modeName) {
+	return Object.prototype.hasOwnProperty.call(starling_display_BlendMode.sBlendModes.h,modeName);
+};
 starling_display_BlendMode.prototype = {
 	__name: null
 	,__sourceFactor: null
@@ -103227,6 +104096,13 @@ starling_display_BlendMode.prototype = {
 var starling_display_ButtonState = function() { };
 $hxClasses["starling.display.ButtonState"] = starling_display_ButtonState;
 starling_display_ButtonState.__name__ = "starling.display.ButtonState";
+starling_display_ButtonState.isValid = function(state) {
+	if(!(state == "up" || state == "down" || state == "over")) {
+		return state == "disabled";
+	} else {
+		return true;
+	}
+};
 var starling_rendering_VertexDataFormat = function() {
 	this._attributes = openfl_Vector.toObjectVector(null);
 };
@@ -103554,7 +104430,7 @@ starling_rendering_Effect.prototype = {
 };
 var starling_rendering_FilterEffect = function() {
 	starling_rendering_Effect.call(this);
-	this._textureSmoothing = "bilinear";
+	this._textureSmoothing = starling_core_Starling.get_DefaultTextureSmoothing();
 };
 $hxClasses["starling.rendering.FilterEffect"] = starling_rendering_FilterEffect;
 starling_rendering_FilterEffect.__name__ = "starling.rendering.FilterEffect";
@@ -103684,7 +104560,7 @@ starling_rendering_MeshEffect.prototype = $extend(starling_rendering_FilterEffec
 });
 var starling_styles_MeshStyle = function() {
 	starling_events_EventDispatcher.call(this);
-	this._textureSmoothing = "bilinear";
+	this._textureSmoothing = starling_core_Starling.get_DefaultTextureSmoothing();
 	this._type = js_Boot.getClass(this);
 };
 $hxClasses["starling.styles.MeshStyle"] = starling_styles_MeshStyle;
@@ -103948,20 +104824,6 @@ var starling_display_Mesh = function(vertexData,indexData,style) {
 $hxClasses["starling.display.Mesh"] = starling_display_Mesh;
 starling_display_Mesh.__name__ = "starling.display.Mesh";
 starling_display_Mesh.__properties__ = {set_defaultStyleFactory:"set_defaultStyleFactory",get_defaultStyleFactory:"get_defaultStyleFactory",set_defaultStyle:"set_defaultStyle",get_defaultStyle:"get_defaultStyle"};
-starling_display_Mesh.createDefaultStyle = function(instance) {
-	var meshStyle = null;
-	if(starling_display_Mesh.sDefaultStyleFactory != null) {
-		if(instance == null) {
-			meshStyle = starling_display_Mesh.sDefaultStyleFactory();
-		} else {
-			meshStyle = starling_display_Mesh.sDefaultStyleFactory(instance);
-		}
-	}
-	if(meshStyle == null) {
-		meshStyle = Type.createInstance(starling_display_Mesh.sDefaultStyle,[]);
-	}
-	return meshStyle;
-};
 starling_display_Mesh.get_defaultStyle = function() {
 	return starling_display_Mesh.sDefaultStyle;
 };
@@ -104015,7 +104877,7 @@ starling_display_Mesh.prototype = $extend(starling_display_DisplayObject.prototy
 			mergeWithPredecessor = true;
 		}
 		if(meshStyle == null) {
-			meshStyle = starling_display_Mesh.createDefaultStyle(this);
+			meshStyle = this.createDefaultStyle(this);
 		} else if(meshStyle == this.__style) {
 			return;
 		} else if(meshStyle.get_target() != null) {
@@ -104030,6 +104892,20 @@ starling_display_Mesh.prototype = $extend(starling_display_DisplayObject.prototy
 		this.__style = meshStyle;
 		this.__style.setTarget(this,this.__vertexData,this.__indexData);
 		this.setRequiresRedraw();
+	}
+	,createDefaultStyle: function(instance) {
+		var meshStyle = null;
+		if(starling_display_Mesh.sDefaultStyleFactory != null) {
+			if(instance == null) {
+				meshStyle = starling_display_Mesh.sDefaultStyleFactory();
+			} else {
+				meshStyle = starling_display_Mesh.sDefaultStyleFactory(instance);
+			}
+		}
+		if(meshStyle == null) {
+			meshStyle = Type.createInstance(starling_display_Mesh.sDefaultStyle,[]);
+		}
+		return meshStyle;
 	}
 	,setVertexDataChanged: function() {
 		this.setRequiresRedraw();
@@ -104875,6 +105751,21 @@ starling_display_MeshBatch.prototype = $extend(starling_display_Mesh.prototype,{
 		if(alpha == null) {
 			alpha = 1.0;
 		}
+		this.addMeshAt(mesh,-1,-1,matrix,alpha,subset,ignoreTransformations);
+	}
+	,addMeshAt: function(mesh,indexID,vertexID,matrix,alpha,subset,ignoreTransformations) {
+		if(ignoreTransformations == null) {
+			ignoreTransformations = false;
+		}
+		if(alpha == null) {
+			alpha = 1.0;
+		}
+		if(vertexID == null) {
+			vertexID = -1;
+		}
+		if(indexID == null) {
+			indexID = -1;
+		}
 		if(ignoreTransformations) {
 			matrix = null;
 		} else if(matrix == null) {
@@ -104883,34 +105774,17 @@ starling_display_MeshBatch.prototype = $extend(starling_display_Mesh.prototype,{
 		if(subset == null) {
 			subset = starling_display_MeshBatch.sFullMeshSubset;
 		}
-		var targetVertexID = this.__vertexData.get_numVertices();
-		var targetIndexID = this.__indexData.get_numIndices();
+		var oldNumVertices = this.__vertexData.get_numVertices();
+		var targetVertexID = vertexID >= 0 ? vertexID : oldNumVertices;
+		var targetIndexID = indexID >= 0 ? indexID : this.__indexData.get_numIndices();
 		var meshStyle = mesh.__style;
-		if(targetVertexID == 0) {
+		if(oldNumVertices == 0) {
 			this.__setupFor(mesh);
 		}
 		meshStyle.batchVertexData(this.__style,targetVertexID,matrix,subset.vertexID,subset.numVertices);
 		meshStyle.batchIndexData(this.__style,targetIndexID,targetVertexID - subset.vertexID,subset.indexID,subset.numIndices);
 		if(alpha != 1.0) {
 			this.__vertexData.scaleAlphas("color",alpha,targetVertexID,subset.numVertices);
-		}
-		if(this.__parent != null) {
-			this.setRequiresRedraw();
-		}
-		this.__indexSyncRequired = this.__vertexSyncRequired = true;
-	}
-	,addMeshAt: function(mesh,indexID,vertexID) {
-		var numIndices = mesh.get_numIndices();
-		var numVertices = mesh.get_numVertices();
-		var matrix = mesh.get_transformationMatrix();
-		var meshStyle = mesh.__style;
-		if(this.__vertexData.get_numVertices() == 0) {
-			this.__setupFor(mesh);
-		}
-		meshStyle.batchVertexData(this.__style,vertexID,matrix,0,numVertices);
-		meshStyle.batchIndexData(this.__style,indexID,vertexID,0,numIndices);
-		if(this.get_alpha() != 1.0) {
-			this.__vertexData.scaleAlphas("color",this.get_alpha(),vertexID,numVertices);
 		}
 		if(this.__parent != null) {
 			this.setRequiresRedraw();
@@ -105967,7 +106841,7 @@ var starling_events_TouchPhase = function() { };
 $hxClasses["starling.events.TouchPhase"] = starling_events_TouchPhase;
 starling_events_TouchPhase.__name__ = "starling.events.TouchPhase";
 var starling_events_TouchProcessor = function(stage) {
-	this.__systemGestureMargins = [10,10,0,0];
+	this.__systemGestureMargins = [15,15,15,0];
 	this.__systemGestureTouchID = -1;
 	this.__multitapDistance = 25;
 	this.__multitapTime = 0.3;
@@ -106077,13 +106951,13 @@ starling_events_TouchProcessor.prototype = {
 	}
 	,processTouches: function(touches,shiftDown,ctrlDown) {
 		var touch;
-		starling_events_TouchProcessor.sHoveringTouchData.set_length(0);
+		starling_events_TouchProcessor.sHoveringTouchData.length = 0;
 		this.__touchEvent.resetTo("touch",this.__currentTouches,shiftDown,ctrlDown);
 		var touch = touches.iterator();
 		while(touch.hasNext()) {
 			var touch1 = touch.next();
 			if(touch1.get_phase() == "hover" && touch1.get_target() != null) {
-				starling_events_TouchProcessor.sHoveringTouchData.set(starling_events_TouchProcessor.sHoveringTouchData.get_length(),{ touch : touch1, target : touch1.get_target(), bubbleChain : touch1.get_bubbleChain()});
+				starling_events_TouchProcessor.sHoveringTouchData[starling_events_TouchProcessor.sHoveringTouchData.length] = { touch : touch1, target : touch1.get_target(), bubbleChain : touch1.get_bubbleChain()};
 			}
 			if(touch1.get_phase() == "hover" || touch1.get_phase() == "began") {
 				starling_events_TouchProcessor.sHelperPoint.setTo(touch1.get_globalX(),touch1.get_globalY());
@@ -106094,11 +106968,13 @@ starling_events_TouchProcessor.prototype = {
 				}
 			}
 		}
-		var touchData = starling_events_TouchProcessor.sHoveringTouchData.iterator();
-		while(touchData.hasNext()) {
-			var touchData1 = touchData.next();
-			if(openfl_utils_Object.__neq((js_Boot.__cast(openfl_utils_Object.__get(touchData1,"touch") , starling_events_Touch)).get_target(),openfl_utils_Object.__get(touchData1,"target"))) {
-				this.__touchEvent.dispatch(openfl_utils_Object.__get(touchData1,"bubbleChain"));
+		var _g = 0;
+		var _g1 = starling_events_TouchProcessor.sHoveringTouchData;
+		while(_g < _g1.length) {
+			var touchData = _g1[_g];
+			++_g;
+			if((js_Boot.__cast(Reflect.field(touchData,"touch") , starling_events_Touch)).get_target() != Reflect.field(touchData,"target")) {
+				this.__touchEvent.dispatch(Reflect.field(touchData,"bubbleChain"));
 			}
 		}
 		var touch = touches.iterator();
@@ -106205,6 +107081,7 @@ starling_events_TouchProcessor.prototype = {
 			this.processTouches(this.__currentTouches,this.__shiftDown,this.__ctrlDown);
 		}
 		this.__currentTouches.set_length(0);
+		this.__systemGestureTouchID = -1;
 		while(this.__queue.get_length() > 0) starling_events_TouchData.toPool(this.__queue.pop());
 	}
 	,createOrUpdateTouch: function(touchData) {
@@ -106600,7 +107477,7 @@ var starling_filters_FragmentFilter = function() {
 	starling_events_EventDispatcher.call(this);
 	this._resolution = 1.0;
 	this._textureFormat = openfl_display3D_Context3DTextureFormat.toString(1);
-	this._textureSmoothing = "bilinear";
+	this._textureSmoothing = starling_core_Starling.get_DefaultTextureSmoothing();
 	starling_core_Starling.get_current().get_stage3D().addEventListener("context3DCreate",$bind(this,this.onContextCreated),false,0,true);
 };
 $hxClasses["starling.filters.FragmentFilter"] = starling_filters_FragmentFilter;
@@ -107096,11 +107973,12 @@ starling_geom_Polygon.prototype = {
 		}
 	}
 	,contains: function(x,y) {
+		var numVertices = this.get_numVertices();
 		var i;
-		var j = this.get_numVertices() - 1;
+		var j = numVertices - 1;
 		var oddNodes = 0;
 		var _g = 0;
-		var _g1 = this.get_numVertices();
+		var _g1 = numVertices;
 		while(_g < _g1) {
 			var i = _g++;
 			var ix = this.__coords.get(i * 2);
@@ -107522,7 +108400,7 @@ starling_rendering_BatchProcessor.prototype = {
 			}
 			var matrix = state != null ? state._modelviewMatrix : null;
 			var alpha = state != null ? state._alpha : 1.0;
-			this._currentBatch.addMesh(mesh,matrix,alpha,subset,ignoreTransformations);
+			this._currentBatch.addMeshAt(mesh,-1,-1,matrix,alpha,subset,ignoreTransformations);
 			this._cacheToken.vertexID += subset.numVertices;
 			this._cacheToken.indexID += subset.numIndices;
 		}
@@ -108976,9 +109854,6 @@ var starling_rendering_VertexData = function(format,initialCapacity) {
 };
 $hxClasses["starling.rendering.VertexData"] = starling_rendering_VertexData;
 starling_rendering_VertexData.__name__ = "starling.rendering.VertexData";
-starling_rendering_VertexData.switchEndian = function(value) {
-	return (value & 255) << 24 | (value >>> 8 & 255) << 16 | (value >>> 16 & 255) << 8 | value >>> 24 & 255;
-};
 starling_rendering_VertexData.premultiplyAlpha = function(rgba) {
 	var alpha = rgba & 255;
 	if(alpha == 255) {
@@ -109271,11 +110146,12 @@ starling_rendering_VertexData.prototype = {
 		}
 		var offset = attrName == "color" ? this._colOffset : this.getAttribute(attrName).offset;
 		this._rawData.position = vertexID * this._vertexSize + offset;
-		var value = this._rawData.readUnsignedInt();
-		var rgba = (value & 255) << 24 | (value >>> 8 & 255) << 16 | (value >>> 16 & 255) << 8 | value >>> 24 & 255;
+		this._rawData.__endian = 0;
+		var rgba = this._rawData.readUnsignedInt();
 		if(this._premultipliedAlpha) {
 			rgba = starling_rendering_VertexData.unmultiplyAlpha(rgba);
 		}
+		this._rawData.__endian = 1;
 		return rgba >>> 8 & 16777215;
 	}
 	,setColor: function(vertexID,attrName,color) {
@@ -109290,10 +110166,8 @@ starling_rendering_VertexData.prototype = {
 			attrName = "color";
 		}
 		var offset = attrName == "color" ? this._colOffset : this.getAttribute(attrName).offset;
-		this._rawData.position = vertexID * this._vertexSize + offset;
-		var value = this._rawData.readUnsignedInt();
-		var rgba = (value & 255) << 24 | (value >>> 8 & 255) << 16 | (value >>> 16 & 255) << 8 | value >>> 24 & 255;
-		return UInt.toFloat(rgba & 255) / 255.0;
+		var position = vertexID * this._vertexSize + offset + 3;
+		return this._rawData.b[position] / 255.0;
 	}
 	,setAlpha: function(vertexID,attrName,alpha) {
 		if(this._numVertices < vertexID + 1) {
@@ -109459,6 +110333,7 @@ starling_rendering_VertexData.prototype = {
 	}
 	,setPremultipliedAlpha: function(value,updateData) {
 		if(updateData && value != this._premultipliedAlpha) {
+			this._rawData.__endian = 0;
 			var _g = 0;
 			var _g1 = this._numAttributes;
 			while(_g < _g1) {
@@ -109473,15 +110348,15 @@ starling_rendering_VertexData.prototype = {
 					while(_g2 < _g3) {
 						var j = _g2++;
 						this._rawData.position = pos;
-						var value1 = this._rawData.readUnsignedInt();
-						oldColor = (value1 & 255) << 24 | (value1 >>> 8 & 255) << 16 | (value1 >>> 16 & 255) << 8 | value1 >>> 24 & 255;
+						oldColor = this._rawData.readUnsignedInt();
 						newColor = value ? starling_rendering_VertexData.premultiplyAlpha(oldColor) : starling_rendering_VertexData.unmultiplyAlpha(oldColor);
 						this._rawData.position = pos;
-						this._rawData.writeUnsignedInt((newColor & 255) << 24 | (newColor >>> 8 & 255) << 16 | (newColor >>> 16 & 255) << 8 | newColor >>> 24 & 255);
+						this._rawData.writeUnsignedInt(newColor);
 						pos += this._vertexSize;
 					}
 				}
 			}
+			this._rawData.__endian = 1;
 		}
 		this._premultipliedAlpha = value;
 	}
@@ -109569,6 +110444,7 @@ starling_rendering_VertexData.prototype = {
 			numVertices = this._numVertices - vertexID;
 		}
 		this._tinted = true;
+		this._rawData.__endian = 0;
 		var i;
 		var offset = attrName == "color" ? this._colOffset : this.getAttribute(attrName).offset;
 		var colorPos = vertexID * this._vertexSize + offset;
@@ -109593,15 +110469,15 @@ starling_rendering_VertexData.prototype = {
 				this1.b[alphaPos] = value & 255;
 			} else {
 				this._rawData.position = colorPos;
-				var value1 = this._rawData.readUnsignedInt();
-				rgba = starling_rendering_VertexData.unmultiplyAlpha((value1 & 255) << 24 | (value1 >>> 8 & 255) << 16 | (value1 >>> 16 & 255) << 8 | value1 >>> 24 & 255);
+				rgba = starling_rendering_VertexData.unmultiplyAlpha(this._rawData.readUnsignedInt());
 				rgba = rgba & -256 | (alpha * 255.0 | 0) & 255;
 				rgba = starling_rendering_VertexData.premultiplyAlpha(rgba);
 				this._rawData.position = colorPos;
-				this._rawData.writeUnsignedInt((rgba & 255) << 24 | (rgba >>> 8 & 255) << 16 | (rgba >>> 16 & 255) << 8 | rgba >>> 24 & 255);
+				this._rawData.writeUnsignedInt(rgba);
 			}
 			colorPos += this._vertexSize;
 		}
+		this._rawData.__endian = 1;
 	}
 	,colorize: function(attrName,color,alpha,vertexID,numVertices) {
 		if(numVertices == null) {
@@ -109640,12 +110516,14 @@ starling_rendering_VertexData.prototype = {
 			rgba = starling_rendering_VertexData.premultiplyAlpha(rgba);
 		}
 		this._rawData.position = vertexID * this._vertexSize + offset;
-		this._rawData.writeUnsignedInt((rgba & 255) << 24 | (rgba >>> 8 & 255) << 16 | (rgba >>> 16 & 255) << 8 | rgba >>> 24 & 255);
+		this._rawData.__endian = 0;
+		this._rawData.writeUnsignedInt(rgba);
 		while(pos < endPos) {
 			this._rawData.position = pos;
-			this._rawData.writeUnsignedInt((rgba & 255) << 24 | (rgba >>> 8 & 255) << 16 | (rgba >>> 16 & 255) << 8 | rgba >>> 24 & 255);
+			this._rawData.writeUnsignedInt(rgba);
 			pos += this._vertexSize;
 		}
+		this._rawData.__endian = 1;
 	}
 	,getFormat: function(attrName) {
 		return this.getAttribute(attrName).format;
@@ -110743,7 +111621,7 @@ starling_text_TrueTypeCompositor.prototype = {
 	}
 	,__class__: starling_text_TrueTypeCompositor
 };
-var starling_text_TextField = function(width,height,text,format) {
+var starling_text_TextField = function(width,height,text,format,options) {
 	if(text == null) {
 		text = "";
 	}
@@ -110754,7 +111632,7 @@ var starling_text_TextField = function(width,height,text,format) {
 	this._compositor = starling_text_TextField.sDefaultCompositor;
 	this._format = format != null ? format.clone() : new starling_text_TextFormat();
 	this._format.addEventListener("change",$bind(this,this.setRequiresRecomposition));
-	this._options = this.get_options() != null ? this.get_options().clone() : new starling_text_TextOptions();
+	this._options = options != null ? options.clone() : new starling_text_TextOptions();
 	this._options.addEventListener("change",$bind(this,this.setRequiresRecomposition));
 	this._meshBatch = new starling_display_MeshBatch();
 	this._meshBatch.set_touchable(false);
@@ -111073,6 +111951,12 @@ starling_text_TextField.prototype = $extend(starling_display_DisplayObjectContai
 	,set_isHtmlText: function(value) {
 		return this._options.set_isHtmlText(value);
 	}
+	,get_padding: function() {
+		return this._options.get_padding();
+	}
+	,set_padding: function(value) {
+		return this._options.set_padding(value);
+	}
 	,get_pixelSnapping: function() {
 		return this._meshBatch.get_pixelSnapping();
 	}
@@ -111091,7 +111975,7 @@ starling_text_TextField.prototype = $extend(starling_display_DisplayObjectContai
 		return value;
 	}
 	,__class__: starling_text_TextField
-	,__properties__: $extend(starling_display_DisplayObjectContainer.prototype.__properties__,{set_style:"set_style",get_style:"get_style",set_pixelSnapping:"set_pixelSnapping",get_pixelSnapping:"get_pixelSnapping",set_isHtmlText:"set_isHtmlText",get_isHtmlText:"get_isHtmlText",set_batchable:"set_batchable",get_batchable:"get_batchable",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_autoSize:"set_autoSize",get_autoSize:"get_autoSize",set_autoScale:"set_autoScale",get_autoScale:"get_autoScale",set_border:"set_border",get_border:"get_border",get_options:"get_options",set_format:"set_format",get_format:"get_format",set_text:"set_text",get_text:"get_text",get_textBounds:"get_textBounds",get_isVerticalAutoSize:"get_isVerticalAutoSize",get_isHorizontalAutoSize:"get_isHorizontalAutoSize"})
+	,__properties__: $extend(starling_display_DisplayObjectContainer.prototype.__properties__,{set_style:"set_style",get_style:"get_style",set_pixelSnapping:"set_pixelSnapping",get_pixelSnapping:"get_pixelSnapping",set_padding:"set_padding",get_padding:"get_padding",set_isHtmlText:"set_isHtmlText",get_isHtmlText:"get_isHtmlText",set_batchable:"set_batchable",get_batchable:"get_batchable",set_wordWrap:"set_wordWrap",get_wordWrap:"get_wordWrap",set_autoSize:"set_autoSize",get_autoSize:"get_autoSize",set_autoScale:"set_autoScale",get_autoScale:"get_autoScale",set_border:"set_border",get_border:"get_border",get_options:"get_options",set_format:"set_format",get_format:"get_format",set_text:"set_text",get_text:"get_text",get_textBounds:"get_textBounds",get_isVerticalAutoSize:"get_isVerticalAutoSize",get_isHorizontalAutoSize:"get_isHorizontalAutoSize"})
 });
 var starling_text_BitmapFont = function(texture,fontData) {
 	if(texture == null && fontData == null) {
@@ -111275,7 +112159,7 @@ starling_text_BitmapFont.prototype = {
 			this.__helperImage.set_x(charLocation.x);
 			this.__helperImage.set_y(charLocation.y);
 			this.__helperImage.set_scale(charLocation.scale);
-			meshBatch.addMesh(this.__helperImage);
+			meshBatch.addMeshAt(this.__helperImage);
 		}
 		starling_text_BitmapCharLocation.rechargePool();
 	}
@@ -114237,6 +115121,139 @@ starling_utils_AssetManager.prototype = $extend(starling_events_EventDispatcher.
 	,__class__: starling_utils_AssetManager
 	,__properties__: {set_registerBitmapFontsWithFontFace:"set_registerBitmapFontsWithFontFace",get_registerBitmapFontsWithFontFace:"get_registerBitmapFontsWithFontFace",set_numConnections:"set_numConnections",get_numConnections:"get_numConnections",set_keepFontXmls:"set_keepFontXmls",get_keepFontXmls:"get_keepFontXmls",set_keepAtlasXmls:"set_keepAtlasXmls",get_keepAtlasXmls:"get_keepAtlasXmls",set_checkPolicyFile:"set_checkPolicyFile",get_checkPolicyFile:"get_checkPolicyFile",set_forcePotTextures:"set_forcePotTextures",get_forcePotTextures:"get_forcePotTextures",set_textureFormat:"set_textureFormat",get_textureFormat:"get_textureFormat",set_scaleFactor:"set_scaleFactor",get_scaleFactor:"get_scaleFactor",set_useMipMaps:"set_useMipMaps",get_useMipMaps:"get_useMipMaps",get_isLoading:"get_isLoading",set_verbose:"set_verbose",get_verbose:"get_verbose",get_numQueuedAssets:"get_numQueuedAssets",get_queue:"get_queue"}
 });
+var starling_utils_ButtonBehavior = function(target,onStateChange,minHitAreaSize,abortDistance) {
+	if(abortDistance == null) {
+		abortDistance = 50;
+	}
+	if(minHitAreaSize == null) {
+		minHitAreaSize = 44;
+	}
+	if(target == null) {
+		throw new openfl_errors_ArgumentError("target cannot be null");
+	}
+	if(onStateChange == null) {
+		throw new openfl_errors_ArgumentError("onStateChange cannot be null");
+	}
+	this.__target = target;
+	this.__target.addEventListener("touch",$bind(this,this.onTouch));
+	this.__onStateChange = onStateChange;
+	this.__minHitAreaSize = minHitAreaSize;
+	this.__abortDistance = abortDistance;
+	this.__triggerBounds = new openfl_geom_Rectangle();
+	this.__state = "up";
+	this.__useHandCursor = true;
+	this.__enabled = true;
+};
+$hxClasses["starling.utils.ButtonBehavior"] = starling_utils_ButtonBehavior;
+starling_utils_ButtonBehavior.__name__ = "starling.utils.ButtonBehavior";
+starling_utils_ButtonBehavior.prototype = {
+	__state: null
+	,__target: null
+	,__triggerBounds: null
+	,__minHitAreaSize: null
+	,__abortDistance: null
+	,__onStateChange: null
+	,__useHandCursor: null
+	,__enabled: null
+	,onTouch: function(event) {
+		openfl_ui_Mouse.set_cursor(this.__useHandCursor && this.__enabled && event.interactsWith(this.__target) ? "button" : "auto");
+		var touch = event.getTouch(this.__target);
+		var isWithinBounds;
+		if(this.__enabled) {
+			if(touch == null) {
+				this.set_state("up");
+			} else if(touch.get_phase() == "hover") {
+				this.set_state("over");
+			} else if(touch.get_phase() == "began" && this.__state != "down") {
+				this.__triggerBounds = this.__target.getBounds(this.__target.get_stage(),this.__triggerBounds);
+				this.__triggerBounds.inflate(this.__abortDistance,this.__abortDistance);
+				this.set_state("down");
+			} else if(touch.get_phase() == "moved") {
+				isWithinBounds = this.__triggerBounds.contains(touch.get_globalX(),touch.get_globalY());
+				if(this.__state == "down" && !isWithinBounds) {
+					this.set_state("up");
+				} else if(this.__state == "up" && isWithinBounds) {
+					this.set_state("down");
+				}
+			} else if(touch.get_phase() == "ended" && this.__state == "down") {
+				this.set_state("up");
+				if(!touch.get_cancelled()) {
+					this.__target.dispatchEventWith("triggered",true);
+				}
+			}
+		}
+	}
+	,hitTest: function(localPoint) {
+		if(!this.__target.get_visible() || !this.__target.get_touchable() || !this.__target.hitTestMask(localPoint)) {
+			return null;
+		}
+		this.__target.getBounds(this.__target,starling_utils_ButtonBehavior.sBounds);
+		if(starling_utils_ButtonBehavior.sBounds.width < this.__minHitAreaSize) {
+			starling_utils_ButtonBehavior.sBounds.inflate((this.__minHitAreaSize - starling_utils_ButtonBehavior.sBounds.width) / 2,0);
+		}
+		if(starling_utils_ButtonBehavior.sBounds.height < this.__minHitAreaSize) {
+			starling_utils_ButtonBehavior.sBounds.inflate(0,(this.__minHitAreaSize - starling_utils_ButtonBehavior.sBounds.height) / 2);
+		}
+		if(starling_utils_ButtonBehavior.sBounds.containsPoint(localPoint)) {
+			return this.__target;
+		} else {
+			return null;
+		}
+	}
+	,get_state: function() {
+		return this.__state;
+	}
+	,set_state: function(value) {
+		if(this.__state != value) {
+			if(starling_display_ButtonState.isValid(value)) {
+				this.__state = value;
+				starling_utils_Execute.execute(this.__onStateChange,[value]);
+			} else {
+				throw new openfl_errors_ArgumentError("Invalid button state: " + value);
+			}
+		}
+		return value;
+	}
+	,get_target: function() {
+		return this.__target;
+	}
+	,get_onStateChange: function() {
+		return this.__onStateChange;
+	}
+	,set_onStateChange: function(value) {
+		return this.__onStateChange = value;
+	}
+	,get_useHandCursor: function() {
+		return this.__useHandCursor;
+	}
+	,set_useHandCursor: function(value) {
+		return this.__useHandCursor = value;
+	}
+	,get_enabled: function() {
+		return this.__enabled;
+	}
+	,set_enabled: function(value) {
+		if(this.__enabled != value) {
+			this.__enabled = value;
+			this.set_state(value ? "up" : "disabled");
+		}
+		return this.__enabled;
+	}
+	,get_minHitAreaSize: function() {
+		return this.__minHitAreaSize;
+	}
+	,set_minHitAreaSize: function(value) {
+		return this.__minHitAreaSize = value;
+	}
+	,get_abortDistance: function() {
+		return this.__abortDistance;
+	}
+	,set_abortDistance: function(value) {
+		return this.__abortDistance = value;
+	}
+	,__class__: starling_utils_ButtonBehavior
+	,__properties__: {set_abortDistance:"set_abortDistance",get_abortDistance:"get_abortDistance",set_minHitAreaSize:"set_minHitAreaSize",get_minHitAreaSize:"get_minHitAreaSize",set_enabled:"set_enabled",get_enabled:"get_enabled",set_useHandCursor:"set_useHandCursor",get_useHandCursor:"get_useHandCursor",set_onStateChange:"set_onStateChange",get_onStateChange:"get_onStateChange",get_target:"get_target",set_state:"set_state",get_state:"get_state"}
+};
 var starling_utils_Color = function() { };
 $hxClasses["starling.utils.Color"] = starling_utils_Color;
 starling_utils_Color.__name__ = "starling.utils.Color";
@@ -114269,6 +115286,157 @@ starling_utils_Color.rgb = function(red,green,blue) {
 };
 starling_utils_Color.argb = function(alpha,red,green,blue) {
 	return alpha << 24 | red << 16 | green << 8 | blue;
+};
+starling_utils_Color.hsv = function(hue,saturation,value) {
+	var r = 0;
+	var g = 0;
+	var b = 0;
+	var i = Math.floor(hue * 6);
+	var f = hue * 6 - i;
+	var p = value * (1 - saturation);
+	var q = value * (1 - f * saturation);
+	var t = value * (1 - (1 - f) * saturation);
+	switch(i % 6 | 0) {
+	case 0:
+		r = value;
+		g = t;
+		b = p;
+		break;
+	case 1:
+		r = q;
+		g = value;
+		b = p;
+		break;
+	case 2:
+		r = p;
+		g = value;
+		b = t;
+		break;
+	case 3:
+		r = p;
+		g = q;
+		b = value;
+		break;
+	case 4:
+		r = t;
+		g = p;
+		b = value;
+		break;
+	case 5:
+		r = value;
+		g = p;
+		b = q;
+		break;
+	}
+	return starling_utils_Color.rgb(Math.ceil(r * 255),Math.ceil(g * 255),Math.ceil(b * 255));
+};
+starling_utils_Color.hsl = function(hue,saturation,lightness) {
+	var r = 0;
+	var g = 0;
+	var b = 0;
+	var c = (1.0 - Math.abs(2.0 * lightness - 1.0)) * saturation;
+	var h2 = hue * 6.0;
+	var x = c * (1.0 - Math.abs(h2 % 2 - 1.0));
+	var m = lightness - c / 2.0;
+	switch(h2 % 6 | 0) {
+	case 0:
+		r = c + m;
+		g = x + m;
+		b = m;
+		break;
+	case 1:
+		r = x + m;
+		g = c + m;
+		b = m;
+		break;
+	case 2:
+		r = m;
+		g = c + m;
+		b = x + m;
+		break;
+	case 3:
+		r = m;
+		g = x + m;
+		b = c + m;
+		break;
+	case 4:
+		r = x + m;
+		g = m;
+		b = c + m;
+		break;
+	case 5:
+		r = c + m;
+		g = m;
+		b = x + m;
+		break;
+	}
+	return starling_utils_Color.rgb(Math.ceil(r * 255),Math.ceil(g * 255),Math.ceil(b * 255));
+};
+starling_utils_Color.rgbToHsv = function(rgb,hsv) {
+	if(hsv == null) {
+		hsv = openfl_Vector.toFloatVector(null,3,true);
+	}
+	var r = starling_utils_Color.getRed(rgb) / 255.0;
+	var g = starling_utils_Color.getGreen(rgb) / 255.0;
+	var b = starling_utils_Color.getBlue(rgb) / 255.0;
+	var t = Math.max(r,g);
+	var cMax = Math.max(t,b);
+	t = Math.min(r,g);
+	var cMin = Math.min(t,b);
+	var delta = cMax - cMin;
+	if(delta == 0) {
+		hsv.set(0,0);
+	} else if(cMax == r) {
+		hsv.set(0,(g - b) / delta % 6 / 6.0);
+	} else if(cMax == g) {
+		hsv.set(0,((b - r) / delta + 2) / 6.0);
+	} else if(cMax == b) {
+		hsv.set(0,((r - g) / delta + 4) / 6.0);
+	}
+	while(hsv.get(0) < 0.0) {
+		var _g = hsv;
+		_g.set(0,_g.get(0) + 1.0);
+	}
+	while(hsv.get(0) >= 1.0) {
+		var _g = hsv;
+		_g.set(0,_g.get(0) - 1.0);
+	}
+	hsv.set(2,cMax);
+	hsv.set(1,cMax == 0 ? 0 : delta / cMax);
+	return hsv;
+};
+starling_utils_Color.rgbToHsl = function(rgb,hsl) {
+	if(hsl == null) {
+		hsl = openfl_Vector.toFloatVector(null,3,true);
+	}
+	var r = starling_utils_Color.getRed(rgb) / 255.0;
+	var g = starling_utils_Color.getGreen(rgb) / 255.0;
+	var b = starling_utils_Color.getBlue(rgb) / 255.0;
+	var t = Math.max(r,g);
+	var cMax = Math.max(t,b);
+	t = Math.min(r,g);
+	var cMin = Math.min(t,b);
+	var delta = cMax - cMin;
+	if(delta == 0) {
+		hsl.set(0,0);
+	} else if(cMax == r) {
+		hsl.set(0,(g - b) / delta % 6 / 6.0);
+	} else if(cMax == g) {
+		hsl.set(0,((b - r) / delta + 2) / 6.0);
+	} else if(cMax == b) {
+		hsl.set(0,((r - g) / delta + 4) / 6.0);
+	}
+	while(hsl.get(0) < 0.0) {
+		var _g = hsl;
+		_g.set(0,_g.get(0) + 1.0);
+	}
+	while(hsl.get(0) >= 1.0) {
+		var _g = hsl;
+		_g.set(0,_g.get(0) - 1.0);
+	}
+	hsl.set(2,(cMax + cMin) * 0.5);
+	hsl.set(1,delta == 0 ? 0 : delta / (1.0 - Math.abs(2.0 * hsl.get(2) - 1.0)));
+	return hsl;
 };
 starling_utils_Color.toVector = function(color,out) {
 	if(out == null) {
@@ -114311,14 +115479,10 @@ starling_utils_Color.interpolate = function(startColor,endColor,ratio) {
 	var endR = endColor >>> 16 & 255;
 	var endG = endColor >>> 8 & 255;
 	var endB = endColor & 255;
-	var b = UInt.toFloat(endA - startA) * ratio;
-	var newA = UInt.toFloat(startA) + b | 0;
-	var b = UInt.toFloat(endR - startR) * ratio;
-	var newR = UInt.toFloat(startR) + b | 0;
-	var b = UInt.toFloat(endG - startG) * ratio;
-	var newG = UInt.toFloat(startG) + b | 0;
-	var b = UInt.toFloat(endB - startB) * ratio;
-	var newB = UInt.toFloat(startB) + b | 0;
+	var newA = startA + (endA - startA) * ratio | 0;
+	var newR = startR + (endR - startR) * ratio | 0;
+	var newG = startG + (endG - startG) * ratio | 0;
+	var newB = startB + (endB - startB) * ratio | 0;
 	return newA << 24 | newR << 16 | newG << 8 | newB;
 };
 var starling_utils_Execute = function() { };
@@ -116353,7 +117517,7 @@ while(_g < _g1) {
 }
 lime_system_CFFI.available = false;
 lime_system_CFFI.enabled = false;
-lime_utils_Log.level = 4;
+lime_utils_Log.level = 3;
 if(typeof console == "undefined") {
 	console = {}
 }
@@ -116367,10 +117531,6 @@ openfl_ui_Multitouch.maxTouchPoints = 2;
 openfl_ui_Multitouch.supportedGestures = null;
 openfl_ui_Multitouch.supportsGestureEvents = false;
 openfl_ui_Multitouch.inputMode = 2;
-ASCompat.MAX_INT = 2147483647;
-ASCompat.MIN_INT = -2147483648;
-ASCompat.MAX_FLOAT = 1.79e+308;
-ASCompat.MIN_FLOAT = -1.79E+308;
 openfl_Vector.__meta__ = { statics : { toNullVector : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
 openfl_display_DisplayObject.__meta__ = { fields : { __cairo : { SuppressWarnings : ["checkstyle:Dynamic"]}, addEventListener : { SuppressWarnings : ["checkstyle:Dynamic"]}, removeEventListener : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
 openfl_display_DisplayObject.__broadcastEvents = new haxe_ds_StringMap();
@@ -116411,12 +117571,13 @@ starling_display_DisplayObject.sHelperMatrixAlt = new openfl_geom_Matrix();
 starling_display_DisplayObject.sHelperMatrix3D = new openfl_geom_Matrix3D();
 starling_display_DisplayObject.sHelperMatrixAlt3D = new openfl_geom_Matrix3D();
 starling_display_DisplayObject.sMaskWarningShown = false;
-starling_display_DisplayObjectContainer.sHelperMatrix = new openfl_geom_Matrix();
-starling_display_DisplayObjectContainer.sHelperPoint = new openfl_geom_Point();
+starling_display_DisplayObjectContainer.sHitTestMatrix = new openfl_geom_Matrix();
+starling_display_DisplayObjectContainer.sHitTestPoint = new openfl_geom_Point();
+starling_display_DisplayObjectContainer.sBoundsMatrix = new openfl_geom_Matrix();
+starling_display_DisplayObjectContainer.sBoundsPoint = new openfl_geom_Point();
 starling_display_DisplayObjectContainer.sBroadcastListeners = openfl_Vector.toObjectVector(null);
 starling_display_DisplayObjectContainer.sSortBuffer = openfl_Vector.toObjectVector(null);
 starling_display_DisplayObjectContainer.sCacheToken = new starling_rendering_BatchToken();
-starling_display_Button.MAX_DRAG_DIST = 50;
 feathers_core_FeathersControl.HELPER_POINT = new openfl_geom_Point();
 feathers_core_FeathersControl.INVALIDATION_FLAG_ALL = "all";
 feathers_core_FeathersControl.INVALIDATION_FLAG_STATE = "state";
@@ -116498,9 +117659,15 @@ feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_TAB = 9;
 feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_LINE_FEED = 10;
 feathers_controls_text_BitmapFontTextRenderer.CHARACTER_ID_CARRIAGE_RETURN = 13;
 feathers_controls_text_BitmapFontTextRenderer.FUZZY_MAX_WIDTH_PADDING = 0.000001;
-feathers_controls_text_StageTextTextEditor.MIN_VIEW_PORT_POSITION = -8192;
-feathers_controls_text_StageTextTextEditor.MAX_VIEW_PORT_POSITION = 8191;
+feathers_controls_text_TextFieldTextRenderer.HELPER_POINT = new openfl_geom_Point();
+feathers_controls_text_TextFieldTextRenderer.HELPER_MATRIX = new openfl_geom_Matrix();
+feathers_controls_text_TextFieldTextRenderer.HELPER_RECTANGLE = new openfl_geom_Rectangle();
 feathers_core_DefaultFocusManager.NATIVE_STAGE_TO_FOCUS_TARGET = new haxe_ds_ObjectMap();
+openfl_errors_Error.DEFAULT_TO_STRING = "Error";
+feathers_core_FocusManager.FOCUS_MANAGER_NOT_ENABLED_ERROR = "The specified action is not permitted when the focus manager is not enabled.";
+feathers_core_FocusManager.FOCUS_MANAGER_ROOT_MUST_BE_ON_STAGE_ERROR = "A focus manager may not be added or removed for a display object that is not on stage.";
+feathers_core_FocusManager.STAGE_TO_STACK = new haxe_ds_ObjectMap();
+feathers_core_FocusManager.focusManagerFactory = feathers_core_FocusManager.defaultFocusManagerFactory;
 feathers_core_ValidationQueue.STARLING_TO_VALIDATION_QUEUE = new haxe_ds_ObjectMap();
 feathers_events_ExclusiveTouch.stageToObject = new haxe_ds_ObjectMap();
 feathers_events_FeathersEventType.INITIALIZE = "initialize";
@@ -116566,7 +117733,7 @@ openfl_system_Capabilities.hasStreamingAudio = false;
 openfl_system_Capabilities.hasStreamingVideo = false;
 openfl_system_Capabilities.hasTLS = true;
 openfl_system_Capabilities.hasVideoEncoder = true;
-openfl_system_Capabilities.isDebugger = true;
+openfl_system_Capabilities.isDebugger = false;
 openfl_system_Capabilities.isEmbeddedInAcrobat = false;
 openfl_system_Capabilities.localFileReadDisable = true;
 openfl_system_Capabilities.maxLevelIDC = 0;
@@ -118249,7 +119416,6 @@ openfl_display3D__$internal_Context3DState.__meta__ = { obj : { SuppressWarnings
 openfl_display3D_textures_TextureBase.__meta__ = { fields : { __textureContext : { SuppressWarnings : ["checkstyle:Dynamic"]}, __getGLFramebuffer : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
 openfl_display3D_textures_TextureBase.__supportsBGRA = null;
 openfl_display3D_textures_Texture.__lowMemoryMode = false;
-openfl_errors_Error.DEFAULT_TO_STRING = "Error";
 openfl_events_Event.ACTIVATE = "activate";
 openfl_events_Event.ADDED = "added";
 openfl_events_Event.ADDED_TO_STAGE = "addedToStage";
@@ -118873,7 +120039,7 @@ starling_animation_Transitions.EASE_IN_OUT_BOUNCE = "easeInOutBounce";
 starling_animation_Transitions.EASE_OUT_IN_BOUNCE = "easeOutInBounce";
 starling_animation_Tween.HINT_MARKER = "#";
 starling_animation_Tween.sTweenPool = openfl_Vector.toObjectVector(null);
-starling_core_Starling.VERSION = "2.5.1";
+starling_core_Starling.VERSION = "0.0.0";
 starling_core_Starling.sAll = openfl_Vector.toObjectVector(null);
 starling_core_StatsDisplay.UPDATE_INTERVAL = 0.5;
 starling_core_StatsDisplay.B_TO_MB = 9.5367431640625e-007;
@@ -118927,8 +120093,10 @@ starling_events_Event.RESIZE = "resize";
 starling_events_Event.COMPLETE = "complete";
 starling_events_Event.CONTEXT3D_CREATE = "context3DCreate";
 starling_events_Event.RENDER = "render";
+starling_events_Event.SKIP_FRAME = "skipFrame";
 starling_events_Event.ROOT_CREATED = "rootCreated";
 starling_events_Event.REMOVE_FROM_JUGGLER = "removeFromJuggler";
+starling_events_Event.REMOVED_FROM_JUGGLER = "removedFromJuggler";
 starling_events_Event.TEXTURES_RESTORED = "texturesRestored";
 starling_events_Event.IO_ERROR = "ioError";
 starling_events_Event.SECURITY_ERROR = "securityError";
@@ -118957,7 +120125,7 @@ starling_events_TouchPhase.MOVED = "moved";
 starling_events_TouchPhase.STATIONARY = "stationary";
 starling_events_TouchPhase.ENDED = "ended";
 starling_events_TouchProcessor.sUpdatedTouches = openfl_Vector.toObjectVector(null);
-starling_events_TouchProcessor.sHoveringTouchData = openfl_Vector.toBoolVector(null);
+starling_events_TouchProcessor.sHoveringTouchData = [];
 starling_events_TouchProcessor.sHelperPoint = new openfl_geom_Point();
 starling_events_TouchProcessor.TOP = 0;
 starling_events_TouchProcessor.BOTTOM = 1;
@@ -119042,7 +120210,7 @@ starling_text_BitmapFontType.MULTI_CHANNEL_DISTANCE_FIELD = "multiChannelDistanc
 starling_text_MiniBitmapFont.BITMAP_WIDTH = 128;
 starling_text_MiniBitmapFont.BITMAP_HEIGHT = 64;
 starling_text_MiniBitmapFont.BITMAP_DATA = [2027613533,-881927360,202148514,-2028041698,-88080844,-8114179,2034947,-1092263897,352977282,-1337209332,-1181314416,-2136898414,1468709156,-2026903579,-1515657153,2101025806,-878458241,-79172757,-692798458,1038056207,1932393374,-1112681669,-1208165062,1741291262,2017257123,-899686453,984074419,-1245274149,-308890273,1055013549,1806563255,1754714962,1577746187,1124058786,-406208038,-1812738253,-1378383630,-551901968,866060213,1695195001,-1893385228,-1181619395,-1678445700,1053798161,2093370968,-65941613,560451479,854767518,-1684725974,-15925948,-113394816,-263722323,587139110,1081376765,962217926,783603325,-689440871,-192965380,289204733,-1659827041,-840985601,-807112923,2132197241,-1130192222,-37326968,770238970,144664537,707141570,-1360534225,871272893,512964596,808491899,481894297,-1198984815,-696603140,1710636358,-1390950977,1751040139,596966466,1363963692,465815609,315567311,-4301137,-208944745,179721458,-2073232326,-352742308,1519355876,-1002643514,-361540066,-980767403,-558739948,-448928871,603088884,-1617618069,-1087897969,-739691329,-1231913013,-1230390083,-882923117,693642210,-14453347,762928717,1802215333,-520117622,-73811966,970959395,557220237,2107226136,-785144314,-891682508,-29147277,898597576,991077243,2091615904,-960250408,633599866,-76187187,-2078966920,834870947,2118009742,1362731961,236280636,1274945142,1458729366,797960805,-1005597576,2103717340,-348561293,-1618444407,1624104606,1156993903,-1108796892,-2040468225,1204911924,1314218830,-987880904,-1470691337,-455101617,2073394964,1873329433,1754205930,1528429545,1631106062,-2031694831,-74470249,-772073531,-653590993,707451487,-842470509,1390653868,-1674411503,1027328684,-875283820,-632773593,765701986,-486688164,786403271,-470531459,713234896,-33110897,-823036565,-301474417,1447960461,1398434593,1914230187,-1896324011,-138592832,-435628089,-1074267235,-921718534,-1108936862,1315917060,-1485114815,-286413393,-189355343,1599499652,-781109705,877854499,-96707841,-646407219,-1456931877,-1039373106,-1829388839,-31462095,534904657,-1405705698,1358214576,1069250354,-424956739,-1666070713,-846356418,442343309,1024736866,-279848163,-1044100017,1513359261,-1852877700,1944476762,735490552,426990058,-60861185,1204305707,-963972031,-1896317928,-73919173,1724669255,-493851587,-805638506,-398564363,-598030357,-1457984001,-638216903,-945242784,-484551009,-639969688,-10512193,-2000027733,-87269364,642748805,-1817985657,-1975547398,572956615,-461728356,964924880,2081600351,-722508880,2056247513,1951368808,2133449703,-1511238668,512866577,913279200,1678129016,-806388305,-921014367,-1731970345,-628908371,1664169178,1943591935,750675303,154399903,-1723376406,852654952,-177659530,1971649621,-114771476,1222535348,-11014081,-1414305060,-1577556316,1175907705,1157322027,505963121,-1663426680,-633739640,-703163943,-1670840475,1948662907,-698902193,1147387734,256773959,1173572460,-1933009825,-84091220,-1214786676,-830166086,-473313037,1465302035,-1443781839,-1151701152,-501786882,-926134193,-20296584,-821148188,-807397964,773123355,1618635668,-1724791106,2075248691,1740805534,288646743,1837597401,603556968,-1112430424,673184603,-1206210243,-1397912892,-1102315980,-1409631494,1057233368,1118437241,-112840833,-1184502521,-981775682,-1933980022,735505357,-1302335871,-1934038485,-107132769,279183208,1586420003,1174008423,-231979707,1162167621,1162167621,1162167621,1162167621,1174119799,787274608];
-starling_text_MiniBitmapFont.XML_DATA = Xml.parse("<font>\n      <info face=\"mini\" size=\"8\" bold=\"0\" italic=\"0\" smooth=\"0\"/>\n      <common lineHeight=\"8\" base=\"7\" scaleW=\"128\" scaleH=\"64\" pages=\"1\" packed=\"0\"/>\n      <chars count=\"191\">\n        <char id=\"195\" x=\"1\" y=\"1\" width=\"5\" height=\"9\" xoffset=\"0\" yoffset=\"-2\" xadvance=\"6\"/>\n        <char id=\"209\" x=\"7\" y=\"1\" width=\"5\" height=\"9\" xoffset=\"0\" yoffset=\"-2\" xadvance=\"6\"/>\n        <char id=\"213\" x=\"13\" y=\"1\" width=\"5\" height=\"9\" xoffset=\"0\" yoffset=\"-2\" xadvance=\"6\"/>\n        <char id=\"253\" x=\"19\" y=\"1\" width=\"4\" height=\"9\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"255\" x=\"24\" y=\"1\" width=\"4\" height=\"9\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"192\" x=\"29\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"193\" x=\"35\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"194\" x=\"41\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"197\" x=\"47\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"200\" x=\"53\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"201\" x=\"59\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"202\" x=\"65\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"210\" x=\"71\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"211\" x=\"77\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"212\" x=\"83\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"217\" x=\"89\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"218\" x=\"95\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"219\" x=\"101\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"221\" x=\"107\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\n        <char id=\"206\" x=\"113\" y=\"1\" width=\"3\" height=\"8\" xoffset=\"-1\" yoffset=\"-1\" xadvance=\"2\"/>\n        <char id=\"204\" x=\"117\" y=\"1\" width=\"2\" height=\"8\" xoffset=\"-1\" yoffset=\"-1\" xadvance=\"2\"/>\n        <char id=\"205\" x=\"120\" y=\"1\" width=\"2\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"2\"/>\n        <char id=\"36\"  x=\"1\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"6\"/>\n        <char id=\"196\" x=\"7\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"6\"/>\n        <char id=\"199\" x=\"13\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"203\" x=\"19\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"6\"/>\n        <char id=\"214\" x=\"25\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"6\"/>\n        <char id=\"220\" x=\"31\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"6\"/>\n        <char id=\"224\" x=\"37\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"225\" x=\"42\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"226\" x=\"47\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"227\" x=\"52\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"232\" x=\"57\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"233\" x=\"62\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"234\" x=\"67\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"235\" x=\"72\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"241\" x=\"77\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"242\" x=\"82\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"243\" x=\"87\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"244\" x=\"92\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"245\" x=\"97\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"249\" x=\"102\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"250\" x=\"107\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"251\" x=\"112\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\n        <char id=\"254\" x=\"117\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"123\" x=\"122\" y=\"11\" width=\"3\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"4\"/>\n        <char id=\"125\" x=\"1\" y=\"19\" width=\"3\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"4\"/>\n        <char id=\"167\" x=\"5\" y=\"19\" width=\"3\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"4\"/>\n        <char id=\"207\" x=\"9\" y=\"19\" width=\"3\" height=\"7\" xoffset=\"-1\" yoffset=\"0\" xadvance=\"2\"/>\n        <char id=\"106\" x=\"13\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\n        <char id=\"40\" x=\"16\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"3\"/>\n        <char id=\"41\" x=\"19\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"3\"/>\n        <char id=\"91\" x=\"22\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"3\"/>\n        <char id=\"93\" x=\"25\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"3\"/>\n        <char id=\"124\" x=\"28\" y=\"19\" width=\"1\" height=\"7\" xoffset=\"1\" yoffset=\"1\" xadvance=\"4\"/>\n        <char id=\"81\" x=\"30\" y=\"19\" width=\"5\" height=\"6\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"163\" x=\"36\" y=\"19\" width=\"5\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"6\"/>\n        <char id=\"177\" x=\"42\" y=\"19\" width=\"5\" height=\"6\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"181\" x=\"48\" y=\"19\" width=\"5\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"6\"/>\n        <char id=\"103\" x=\"54\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"112\" x=\"59\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"113\" x=\"64\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"121\" x=\"69\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"162\" x=\"74\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"228\" x=\"79\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\n        <char id=\"229\" x=\"84\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\n        <char id=\"231\" x=\"89\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"240\" x=\"94\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\n        <char id=\"246\" x=\"99\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\n        <char id=\"252\" x=\"104\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\n        <char id=\"238\" x=\"109\" y=\"19\" width=\"3\" height=\"6\" xoffset=\"-1\" yoffset=\"1\" xadvance=\"2\"/>\n        <char id=\"59\" x=\"113\" y=\"19\" width=\"2\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"4\"/>\n        <char id=\"236\" x=\"116\" y=\"19\" width=\"2\" height=\"6\" xoffset=\"-1\" yoffset=\"1\" xadvance=\"2\"/>\n        <char id=\"237\" x=\"119\" y=\"19\" width=\"2\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"2\"/>\n        <char id=\"198\" x=\"1\" y=\"27\" width=\"9\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"10\"/>\n        <char id=\"190\" x=\"11\" y=\"27\" width=\"8\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"9\"/>\n        <char id=\"87\" x=\"20\" y=\"27\" width=\"7\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"8\"/>\n        <char id=\"188\" x=\"28\" y=\"27\" width=\"7\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"8\"/>\n        <char id=\"189\" x=\"36\" y=\"27\" width=\"7\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"8\"/>\n        <char id=\"38\" x=\"44\" y=\"27\" width=\"6\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"7\"/>\n        <char id=\"164\" x=\"51\" y=\"27\" width=\"6\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"7\"/>\n        <char id=\"208\" x=\"58\" y=\"27\" width=\"6\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"7\"/>\n        <char id=\"8364\" x=\"65\" y=\"27\" width=\"6\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"7\"/>\n        <char id=\"65\" x=\"72\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"66\" x=\"78\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"67\" x=\"84\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"68\" x=\"90\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"69\" x=\"96\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"70\" x=\"102\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"71\" x=\"108\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"72\" x=\"114\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"75\" x=\"120\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"77\" x=\"1\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"78\" x=\"7\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"79\" x=\"13\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"80\" x=\"19\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"82\" x=\"25\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"83\" x=\"31\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"84\" x=\"37\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"85\" x=\"43\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"86\" x=\"49\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"88\" x=\"55\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"89\" x=\"61\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"90\" x=\"67\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"50\" x=\"73\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"51\" x=\"79\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"52\" x=\"85\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"53\" x=\"91\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"54\" x=\"97\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"56\" x=\"103\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"57\" x=\"109\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"48\" x=\"115\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"47\" x=\"121\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"64\" x=\"1\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"92\" x=\"7\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"37\" x=\"13\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"43\" x=\"19\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"35\" x=\"25\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"42\" x=\"31\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"165\" x=\"37\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"169\" x=\"43\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"174\" x=\"49\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"182\" x=\"55\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"216\" x=\"61\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"247\" x=\"67\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\n        <char id=\"74\" x=\"73\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"76\" x=\"78\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"98\" x=\"83\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"100\" x=\"88\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"104\" x=\"93\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"107\" x=\"98\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"55\" x=\"103\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"63\" x=\"108\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"191\" x=\"113\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"222\" x=\"118\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"223\" x=\"123\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"116\" x=\"1\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"60\" x=\"5\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"62\" x=\"9\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"170\" x=\"13\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"186\" x=\"17\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"239\" x=\"21\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"-1\" yoffset=\"2\" xadvance=\"2\"/>\n        <char id=\"102\" x=\"25\" y=\"45\" width=\"2\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\n        <char id=\"49\" x=\"28\" y=\"45\" width=\"2\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\n        <char id=\"73\" x=\"31\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\n        <char id=\"105\" x=\"33\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\n        <char id=\"108\" x=\"35\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\n        <char id=\"33\" x=\"37\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"1\" yoffset=\"2\" xadvance=\"3\"/>\n        <char id=\"161\" x=\"39\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\n        <char id=\"166\" x=\"41\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\n        <char id=\"109\" x=\"43\" y=\"45\" width=\"7\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"8\"/>\n        <char id=\"119\" x=\"51\" y=\"45\" width=\"7\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"8\"/>\n        <char id=\"230\" x=\"59\" y=\"45\" width=\"7\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"8\"/>\n        <char id=\"97\" x=\"67\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"99\" x=\"72\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"101\" x=\"77\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"110\" x=\"82\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"111\" x=\"87\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"115\" x=\"92\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"117\" x=\"97\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"118\" x=\"102\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"120\" x=\"107\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"122\" x=\"112\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"215\" x=\"117\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"248\" x=\"122\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"114\" x=\"1\" y=\"51\" width=\"3\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"4\"/>\n        <char id=\"178\" x=\"5\" y=\"51\" width=\"3\" height=\"4\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"179\" x=\"9\" y=\"51\" width=\"3\" height=\"4\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"185\" x=\"13\" y=\"51\" width=\"1\" height=\"4\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\n        <char id=\"61\" x=\"15\" y=\"51\" width=\"5\" height=\"3\" xoffset=\"0\" yoffset=\"3\" xadvance=\"6\"/>\n        <char id=\"171\" x=\"21\" y=\"51\" width=\"5\" height=\"3\" xoffset=\"0\" yoffset=\"3\" xadvance=\"6\"/>\n        <char id=\"172\" x=\"27\" y=\"51\" width=\"5\" height=\"3\" xoffset=\"0\" yoffset=\"4\" xadvance=\"6\"/>\n        <char id=\"187\" x=\"33\" y=\"51\" width=\"5\" height=\"3\" xoffset=\"0\" yoffset=\"3\" xadvance=\"6\"/>\n        <char id=\"176\" x=\"39\" y=\"51\" width=\"3\" height=\"3\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"44\" x=\"43\" y=\"51\" width=\"2\" height=\"3\" xoffset=\"0\" yoffset=\"6\" xadvance=\"3\"/>\n        <char id=\"58\" x=\"46\" y=\"51\" width=\"1\" height=\"3\" xoffset=\"1\" yoffset=\"3\" xadvance=\"4\"/>\n        <char id=\"94\" x=\"48\" y=\"51\" width=\"4\" height=\"2\" xoffset=\"-1\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"126\" x=\"53\" y=\"51\" width=\"4\" height=\"2\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\n        <char id=\"34\" x=\"58\" y=\"51\" width=\"3\" height=\"2\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"96\" x=\"62\" y=\"51\" width=\"2\" height=\"2\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\n        <char id=\"180\" x=\"65\" y=\"51\" width=\"2\" height=\"2\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\n        <char id=\"184\" x=\"68\" y=\"51\" width=\"2\" height=\"2\" xoffset=\"0\" yoffset=\"7\" xadvance=\"3\"/>\n        <char id=\"39\" x=\"71\" y=\"51\" width=\"1\" height=\"2\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\n        <char id=\"95\" x=\"73\" y=\"51\" width=\"5\" height=\"1\" xoffset=\"0\" yoffset=\"7\" xadvance=\"6\"/>\n        <char id=\"45\" x=\"79\" y=\"51\" width=\"4\" height=\"1\" xoffset=\"0\" yoffset=\"4\" xadvance=\"5\"/>\n        <char id=\"173\" x=\"84\" y=\"51\" width=\"4\" height=\"1\" xoffset=\"0\" yoffset=\"4\" xadvance=\"5\"/>\n        <char id=\"168\" x=\"89\" y=\"51\" width=\"3\" height=\"1\" xoffset=\"1\" yoffset=\"2\" xadvance=\"5\"/>\n        <char id=\"175\" x=\"93\" y=\"51\" width=\"3\" height=\"1\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\n        <char id=\"46\" x=\"97\" y=\"51\" width=\"1\" height=\"1\" xoffset=\"0\" yoffset=\"6\" xadvance=\"2\"/>\n        <char id=\"183\" x=\"99\" y=\"51\" width=\"1\" height=\"1\" xoffset=\"0\" yoffset=\"4\" xadvance=\"2\"/>\n        <char id=\"32\" x=\"6\" y=\"56\" width=\"0\" height=\"0\" xoffset=\"0\" yoffset=\"127\" xadvance=\"3\"/>\n      </chars>\n    </font>");
+starling_text_MiniBitmapFont.XML_DATA = Xml.parse("<font>\r\n      <info face=\"mini\" size=\"8\" bold=\"0\" italic=\"0\" smooth=\"0\"/>\r\n      <common lineHeight=\"8\" base=\"7\" scaleW=\"128\" scaleH=\"64\" pages=\"1\" packed=\"0\"/>\r\n      <chars count=\"191\">\r\n        <char id=\"195\" x=\"1\" y=\"1\" width=\"5\" height=\"9\" xoffset=\"0\" yoffset=\"-2\" xadvance=\"6\"/>\r\n        <char id=\"209\" x=\"7\" y=\"1\" width=\"5\" height=\"9\" xoffset=\"0\" yoffset=\"-2\" xadvance=\"6\"/>\r\n        <char id=\"213\" x=\"13\" y=\"1\" width=\"5\" height=\"9\" xoffset=\"0\" yoffset=\"-2\" xadvance=\"6\"/>\r\n        <char id=\"253\" x=\"19\" y=\"1\" width=\"4\" height=\"9\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"255\" x=\"24\" y=\"1\" width=\"4\" height=\"9\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"192\" x=\"29\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"193\" x=\"35\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"194\" x=\"41\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"197\" x=\"47\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"200\" x=\"53\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"201\" x=\"59\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"202\" x=\"65\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"210\" x=\"71\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"211\" x=\"77\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"212\" x=\"83\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"217\" x=\"89\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"218\" x=\"95\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"219\" x=\"101\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"221\" x=\"107\" y=\"1\" width=\"5\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"6\"/>\r\n        <char id=\"206\" x=\"113\" y=\"1\" width=\"3\" height=\"8\" xoffset=\"-1\" yoffset=\"-1\" xadvance=\"2\"/>\r\n        <char id=\"204\" x=\"117\" y=\"1\" width=\"2\" height=\"8\" xoffset=\"-1\" yoffset=\"-1\" xadvance=\"2\"/>\r\n        <char id=\"205\" x=\"120\" y=\"1\" width=\"2\" height=\"8\" xoffset=\"0\" yoffset=\"-1\" xadvance=\"2\"/>\r\n        <char id=\"36\"  x=\"1\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"6\"/>\r\n        <char id=\"196\" x=\"7\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"6\"/>\r\n        <char id=\"199\" x=\"13\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"203\" x=\"19\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"6\"/>\r\n        <char id=\"214\" x=\"25\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"6\"/>\r\n        <char id=\"220\" x=\"31\" y=\"11\" width=\"5\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"6\"/>\r\n        <char id=\"224\" x=\"37\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"225\" x=\"42\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"226\" x=\"47\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"227\" x=\"52\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"232\" x=\"57\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"233\" x=\"62\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"234\" x=\"67\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"235\" x=\"72\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"241\" x=\"77\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"242\" x=\"82\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"243\" x=\"87\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"244\" x=\"92\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"245\" x=\"97\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"249\" x=\"102\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"250\" x=\"107\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"251\" x=\"112\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"0\" xadvance=\"5\"/>\r\n        <char id=\"254\" x=\"117\" y=\"11\" width=\"4\" height=\"7\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"123\" x=\"122\" y=\"11\" width=\"3\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"4\"/>\r\n        <char id=\"125\" x=\"1\" y=\"19\" width=\"3\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"4\"/>\r\n        <char id=\"167\" x=\"5\" y=\"19\" width=\"3\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"4\"/>\r\n        <char id=\"207\" x=\"9\" y=\"19\" width=\"3\" height=\"7\" xoffset=\"-1\" yoffset=\"0\" xadvance=\"2\"/>\r\n        <char id=\"106\" x=\"13\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\r\n        <char id=\"40\" x=\"16\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"3\"/>\r\n        <char id=\"41\" x=\"19\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"3\"/>\r\n        <char id=\"91\" x=\"22\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"3\"/>\r\n        <char id=\"93\" x=\"25\" y=\"19\" width=\"2\" height=\"7\" xoffset=\"0\" yoffset=\"1\" xadvance=\"3\"/>\r\n        <char id=\"124\" x=\"28\" y=\"19\" width=\"1\" height=\"7\" xoffset=\"1\" yoffset=\"1\" xadvance=\"4\"/>\r\n        <char id=\"81\" x=\"30\" y=\"19\" width=\"5\" height=\"6\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"163\" x=\"36\" y=\"19\" width=\"5\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"6\"/>\r\n        <char id=\"177\" x=\"42\" y=\"19\" width=\"5\" height=\"6\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"181\" x=\"48\" y=\"19\" width=\"5\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"6\"/>\r\n        <char id=\"103\" x=\"54\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"112\" x=\"59\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"113\" x=\"64\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"121\" x=\"69\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"162\" x=\"74\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"228\" x=\"79\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\r\n        <char id=\"229\" x=\"84\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\r\n        <char id=\"231\" x=\"89\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"240\" x=\"94\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\r\n        <char id=\"246\" x=\"99\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\r\n        <char id=\"252\" x=\"104\" y=\"19\" width=\"4\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"5\"/>\r\n        <char id=\"238\" x=\"109\" y=\"19\" width=\"3\" height=\"6\" xoffset=\"-1\" yoffset=\"1\" xadvance=\"2\"/>\r\n        <char id=\"59\" x=\"113\" y=\"19\" width=\"2\" height=\"6\" xoffset=\"0\" yoffset=\"3\" xadvance=\"4\"/>\r\n        <char id=\"236\" x=\"116\" y=\"19\" width=\"2\" height=\"6\" xoffset=\"-1\" yoffset=\"1\" xadvance=\"2\"/>\r\n        <char id=\"237\" x=\"119\" y=\"19\" width=\"2\" height=\"6\" xoffset=\"0\" yoffset=\"1\" xadvance=\"2\"/>\r\n        <char id=\"198\" x=\"1\" y=\"27\" width=\"9\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"10\"/>\r\n        <char id=\"190\" x=\"11\" y=\"27\" width=\"8\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"9\"/>\r\n        <char id=\"87\" x=\"20\" y=\"27\" width=\"7\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"8\"/>\r\n        <char id=\"188\" x=\"28\" y=\"27\" width=\"7\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"8\"/>\r\n        <char id=\"189\" x=\"36\" y=\"27\" width=\"7\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"8\"/>\r\n        <char id=\"38\" x=\"44\" y=\"27\" width=\"6\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"7\"/>\r\n        <char id=\"164\" x=\"51\" y=\"27\" width=\"6\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"7\"/>\r\n        <char id=\"208\" x=\"58\" y=\"27\" width=\"6\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"7\"/>\r\n        <char id=\"8364\" x=\"65\" y=\"27\" width=\"6\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"7\"/>\r\n        <char id=\"65\" x=\"72\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"66\" x=\"78\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"67\" x=\"84\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"68\" x=\"90\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"69\" x=\"96\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"70\" x=\"102\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"71\" x=\"108\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"72\" x=\"114\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"75\" x=\"120\" y=\"27\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"77\" x=\"1\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"78\" x=\"7\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"79\" x=\"13\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"80\" x=\"19\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"82\" x=\"25\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"83\" x=\"31\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"84\" x=\"37\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"85\" x=\"43\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"86\" x=\"49\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"88\" x=\"55\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"89\" x=\"61\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"90\" x=\"67\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"50\" x=\"73\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"51\" x=\"79\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"52\" x=\"85\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"53\" x=\"91\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"54\" x=\"97\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"56\" x=\"103\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"57\" x=\"109\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"48\" x=\"115\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"47\" x=\"121\" y=\"33\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"64\" x=\"1\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"92\" x=\"7\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"37\" x=\"13\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"43\" x=\"19\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"35\" x=\"25\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"42\" x=\"31\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"165\" x=\"37\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"169\" x=\"43\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"174\" x=\"49\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"182\" x=\"55\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"216\" x=\"61\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"247\" x=\"67\" y=\"39\" width=\"5\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"6\"/>\r\n        <char id=\"74\" x=\"73\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"76\" x=\"78\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"98\" x=\"83\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"100\" x=\"88\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"104\" x=\"93\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"107\" x=\"98\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"55\" x=\"103\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"63\" x=\"108\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"191\" x=\"113\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"222\" x=\"118\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"223\" x=\"123\" y=\"39\" width=\"4\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"116\" x=\"1\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"60\" x=\"5\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"62\" x=\"9\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"170\" x=\"13\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"186\" x=\"17\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"239\" x=\"21\" y=\"45\" width=\"3\" height=\"5\" xoffset=\"-1\" yoffset=\"2\" xadvance=\"2\"/>\r\n        <char id=\"102\" x=\"25\" y=\"45\" width=\"2\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\r\n        <char id=\"49\" x=\"28\" y=\"45\" width=\"2\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\r\n        <char id=\"73\" x=\"31\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\r\n        <char id=\"105\" x=\"33\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\r\n        <char id=\"108\" x=\"35\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\r\n        <char id=\"33\" x=\"37\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"1\" yoffset=\"2\" xadvance=\"3\"/>\r\n        <char id=\"161\" x=\"39\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\r\n        <char id=\"166\" x=\"41\" y=\"45\" width=\"1\" height=\"5\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\r\n        <char id=\"109\" x=\"43\" y=\"45\" width=\"7\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"8\"/>\r\n        <char id=\"119\" x=\"51\" y=\"45\" width=\"7\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"8\"/>\r\n        <char id=\"230\" x=\"59\" y=\"45\" width=\"7\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"8\"/>\r\n        <char id=\"97\" x=\"67\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"99\" x=\"72\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"101\" x=\"77\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"110\" x=\"82\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"111\" x=\"87\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"115\" x=\"92\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"117\" x=\"97\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"118\" x=\"102\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"120\" x=\"107\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"122\" x=\"112\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"215\" x=\"117\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"248\" x=\"122\" y=\"45\" width=\"4\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"114\" x=\"1\" y=\"51\" width=\"3\" height=\"4\" xoffset=\"0\" yoffset=\"3\" xadvance=\"4\"/>\r\n        <char id=\"178\" x=\"5\" y=\"51\" width=\"3\" height=\"4\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"179\" x=\"9\" y=\"51\" width=\"3\" height=\"4\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"185\" x=\"13\" y=\"51\" width=\"1\" height=\"4\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\r\n        <char id=\"61\" x=\"15\" y=\"51\" width=\"5\" height=\"3\" xoffset=\"0\" yoffset=\"3\" xadvance=\"6\"/>\r\n        <char id=\"171\" x=\"21\" y=\"51\" width=\"5\" height=\"3\" xoffset=\"0\" yoffset=\"3\" xadvance=\"6\"/>\r\n        <char id=\"172\" x=\"27\" y=\"51\" width=\"5\" height=\"3\" xoffset=\"0\" yoffset=\"4\" xadvance=\"6\"/>\r\n        <char id=\"187\" x=\"33\" y=\"51\" width=\"5\" height=\"3\" xoffset=\"0\" yoffset=\"3\" xadvance=\"6\"/>\r\n        <char id=\"176\" x=\"39\" y=\"51\" width=\"3\" height=\"3\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"44\" x=\"43\" y=\"51\" width=\"2\" height=\"3\" xoffset=\"0\" yoffset=\"6\" xadvance=\"3\"/>\r\n        <char id=\"58\" x=\"46\" y=\"51\" width=\"1\" height=\"3\" xoffset=\"1\" yoffset=\"3\" xadvance=\"4\"/>\r\n        <char id=\"94\" x=\"48\" y=\"51\" width=\"4\" height=\"2\" xoffset=\"-1\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"126\" x=\"53\" y=\"51\" width=\"4\" height=\"2\" xoffset=\"0\" yoffset=\"3\" xadvance=\"5\"/>\r\n        <char id=\"34\" x=\"58\" y=\"51\" width=\"3\" height=\"2\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"96\" x=\"62\" y=\"51\" width=\"2\" height=\"2\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\r\n        <char id=\"180\" x=\"65\" y=\"51\" width=\"2\" height=\"2\" xoffset=\"0\" yoffset=\"2\" xadvance=\"3\"/>\r\n        <char id=\"184\" x=\"68\" y=\"51\" width=\"2\" height=\"2\" xoffset=\"0\" yoffset=\"7\" xadvance=\"3\"/>\r\n        <char id=\"39\" x=\"71\" y=\"51\" width=\"1\" height=\"2\" xoffset=\"0\" yoffset=\"2\" xadvance=\"2\"/>\r\n        <char id=\"95\" x=\"73\" y=\"51\" width=\"5\" height=\"1\" xoffset=\"0\" yoffset=\"7\" xadvance=\"6\"/>\r\n        <char id=\"45\" x=\"79\" y=\"51\" width=\"4\" height=\"1\" xoffset=\"0\" yoffset=\"4\" xadvance=\"5\"/>\r\n        <char id=\"173\" x=\"84\" y=\"51\" width=\"4\" height=\"1\" xoffset=\"0\" yoffset=\"4\" xadvance=\"5\"/>\r\n        <char id=\"168\" x=\"89\" y=\"51\" width=\"3\" height=\"1\" xoffset=\"1\" yoffset=\"2\" xadvance=\"5\"/>\r\n        <char id=\"175\" x=\"93\" y=\"51\" width=\"3\" height=\"1\" xoffset=\"0\" yoffset=\"2\" xadvance=\"4\"/>\r\n        <char id=\"46\" x=\"97\" y=\"51\" width=\"1\" height=\"1\" xoffset=\"0\" yoffset=\"6\" xadvance=\"2\"/>\r\n        <char id=\"183\" x=\"99\" y=\"51\" width=\"1\" height=\"1\" xoffset=\"0\" yoffset=\"4\" xadvance=\"2\"/>\r\n        <char id=\"32\" x=\"6\" y=\"56\" width=\"0\" height=\"0\" xoffset=\"0\" yoffset=\"127\" xadvance=\"3\"/>\r\n      </chars>\r\n    </font>");
 starling_text_TextFieldAutoSize.NONE = "none";
 starling_text_TextFieldAutoSize.HORIZONTAL = "horizontal";
 starling_text_TextFieldAutoSize.VERTICAL = "vertical";
@@ -119070,6 +120238,7 @@ starling_utils_Align.CENTER = "center";
 starling_utils_AssetManager.HTTP_RESPONSE_STATUS = "httpResponseStatus";
 starling_utils_AssetManager.sNames = openfl_Vector.toObjectVector(null);
 starling_utils_AssetManager.NAME_REGEX = new EReg("([^\\?/\\\\]+?)(?:\\.([\\w\\-]+))?(?:\\?.*)?$","");
+starling_utils_ButtonBehavior.sBounds = new openfl_geom_Rectangle();
 starling_utils_Color.WHITE = 16777215;
 starling_utils_Color.SILVER = 12632256;
 starling_utils_Color.GRAY = 8421504;
@@ -119121,7 +120290,6 @@ starlingbuilder_engine_UIElementFactory.PARAMS = { x : 1, y : 1, width : 2, heig
 ApplicationMain.main();
 })(typeof exports != "undefined" ? exports : typeof window != "undefined" ? window : typeof self != "undefined" ? self : this, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
-//# sourceMappingURL=StarlingProject.js.map
 });
 $hx_exports.lime = $hx_exports.lime || {};
 $hx_exports.lime.$scripts = $hx_exports.lime.$scripts || {};

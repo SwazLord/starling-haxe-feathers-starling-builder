@@ -1,60 +1,36 @@
 /*
-	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.motion.effectClasses;
 
 /**
  * Gives a component the ability to control a move effect.
- * 
+ *
  * @see ../../../help/effects.html Effects and animation for Feathers components
  */
-interface IMoveEffectContext extends IEffectContext {
+interface IMoveEffectContext extends IEffectContext
+{
 	/**
 	 * The old x position of the target.
 	 */
-	var oldX(get, set):Float;
-
-	// function get oldX():Number;
-	/**
-	 * @private
-	 */
-	// function set oldX(value:Number):void;
-
+	public var oldX(get, set):Float;
+	
 	/**
 	 * The old y position of the target.
 	 */
-	var oldY(get, set):Float;
-
-	// function get oldY():Number;
-	/**
-	 * @private
-	 */
-	// function set oldY(value:Number):void;
-
+	public var oldY(get, set):Float;
+	
 	/**
 	 * The new x position of the target.
 	 */
-	var newX(get, set):Float;
-
-	// function get newX():Number;
-	/**
-	 * @private
-	 */
-	// function set newX(value:Number):void;
-
+	public var newX(get, set):Float;
+	
 	/**
 	 * The new y position of the target.
 	 */
-	var newY(get, set):Float;
-
-	// function get newY():Number;
-	/**
-	 * @private
-	 */
-	// function set newY(value:Number):void;
+	public var newY(get, set):Float;
 }

@@ -1,14 +1,11 @@
 /*
-	Feathers
-	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.controls;
-
-import feathers.core.IFeathersControl;
 import starling.display.DisplayObject;
 
 /**
@@ -23,14 +20,15 @@ import starling.display.DisplayObject;
  *
  * @productversion Feathers 1.3.0
  */
-interface IScrollContainer extends IFeathersControl {
+interface IScrollContainer 
+{
 	/**
 	 * Returns the number of raw children that are added directly to the
 	 * <code>Scroller</code> rather than delegating the call to the view
 	 * port.
 	 */
-	var numRawChildren(get, never):Int;
-
+	public var numRawChildren(get, never):Int;
+	
 	/**
 	 * Gets the name of a direct child of the <code>Scroller</code> rather
 	 * than delegating the call to the view port.

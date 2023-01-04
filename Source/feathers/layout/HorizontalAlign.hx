@@ -1,10 +1,11 @@
 /*
-Feathers
-Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+	Feathers
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-This program is free software. You can redistribute and/or modify it in
-accordance with the terms of the accompanying license agreement.
-*/
+	This program is free software. You can redistribute and/or modify it in
+	accordance with the terms of the accompanying license agreement.
+ */
+
 package feathers.layout;
 
 /**
@@ -16,9 +17,7 @@ package feathers.layout;
  *
  * @productversion Feathers 3.0.0
  */
-class HorizontalAlign 
-{
-
+class HorizontalAlign {
 	/**
 	 * The items in the layout will be horizontally aligned to the left of
 	 * the bounds.
@@ -26,7 +25,7 @@ class HorizontalAlign
 	 * @productversion Feathers 3.0.0
 	 */
 	public static inline var LEFT:String = "left";
-	
+
 	/**
 	 * The items in the layout will be horizontally aligned to the center of
 	 * the bounds.
@@ -34,7 +33,7 @@ class HorizontalAlign
 	 * @productversion Feathers 3.0.0
 	 */
 	public static inline var CENTER:String = "center";
-	
+
 	/**
 	 * The items in the layout will be horizontally aligned to the right of
 	 * the bounds.
@@ -42,12 +41,11 @@ class HorizontalAlign
 	 * @productversion Feathers 3.0.0
 	 */
 	public static inline var RIGHT:String = "right";
-	
+
 	/**
 	 * The items in the layout will fill the width of the bounds.
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
 	public static inline var JUSTIFY:String = "justify";
-	
 }

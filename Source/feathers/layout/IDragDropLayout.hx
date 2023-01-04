@@ -13,7 +13,7 @@ import starling.display.DisplayObject;
 /**
  * Methods for layouts that support drag and drop.
  */
-interface IDragDropLayout extends ILayout {
+interface IDragDropLayout {
 	/**
 	 * Returns the index of the item if it were dropped at the specified
 	 * location.

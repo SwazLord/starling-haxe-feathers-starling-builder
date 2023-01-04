@@ -1,13 +1,11 @@
 /*
-	Feathers
-	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.skins;
-
 import haxe.ds.Map;
 import openfl.errors.ArgumentError;
 
@@ -16,7 +14,8 @@ import openfl.errors.ArgumentError;
  *
  * @productversion Feathers 2.0.0
  */
-class StyleProviderRegistry {
+class StyleProviderRegistry 
+{
 	/**
 	 * @private
 	 */
@@ -25,10 +24,11 @@ class StyleProviderRegistry {
 	/**
 	 * @private
 	 */
-	private static function defaultStyleProviderFactory():IStyleProvider {
+	private static function defaultStyleProviderFactory():IStyleProvider
+	{
 		return new StyleNameFunctionStyleProvider();
 	}
-
+	
 	/**
 	 * Constructor.
 	 *
@@ -44,15 +44,19 @@ class StyleProviderRegistry {
 	 * @param registerGlobally			Determines if the registry sets the static <code>globalStyleProvider</code> property.
 	 * @param styleProviderFactory		An optional function that creates a new style provider. If <code>null</code>, a <code>StyleNameFunctionStyleProvider</code> will be created.
 	 */
-	public function new(registerGlobally:Bool = true, styleProviderFactory:Dynamic = null) {
+	public function new(registerGlobally:Bool = true, styleProviderFactory:Void->IStyleProvider = null) 
+	{
 		this._registerGlobally = registerGlobally;
-		if (styleProviderFactory == null) {
+		if(styleProviderFactory == null)
+		{
 			this._styleProviderFactory = defaultStyleProviderFactory;
-		} else {
+		}
+		else
+		{
 			this._styleProviderFactory = styleProviderFactory;
 		}
 	}
-
+	
 	/**
 	 * @private
 	 */
@@ -61,57 +65,78 @@ class StyleProviderRegistry {
 	/**
 	 * @private
 	 */
-	private var _styleProviderFactory:Dynamic;
-
+	private var _styleProviderFactory:Void->IStyleProvider;
+	
 	/**
 	 * @private
 	 */
-	private var _classToStyleProvider:Map<Class<Dynamic>, IStyleProvider> = new Map();
-
+	private var _classToStyleProvider:Map<String, IStyleProvider> = new Map<String, IStyleProvider>();
+	
+	private var _classList:Array<Class<Dynamic>> = new Array<Class<Dynamic>>();
+	
 	/**
 	 * Disposes the theme.
 	 */
-	public function dispose():Void {
-		// clear the global style providers, but only if they still match the
-		// ones that the theme created. a developer could replace the global
-		// style providers with different ones.
-		for (type in this._classToStyleProvider.keys()) {
+	public function dispose():Void
+	{
+		//clear the global style providers, but only if they still match the
+		//ones that the theme created. a developer could replace the global
+		//style providers with different ones.
+		//for (type in this._classToStyleProvider.keys())
+		//{
+			//this.clearStyleProvider(type);
+		//}
+		for (type in this._classList)
+		{
 			this.clearStyleProvider(type);
 		}
 		this._classToStyleProvider.clear();
 		this._classToStyleProvider = null;
 	}
-
+	
 	/**
 	 * Determines if an <code>IStyleProvider</code> for the specified
 	 * component class has been created.
 	 *
-	 * @param forClass					The class that may have a style provider.
+	 * @param forClass	The class that may have a style provider.
 	 */
-	public function hasStyleProvider(forClass:Class<Dynamic>):Bool {
-		if (this._classToStyleProvider == null) {
+	public function hasStyleProvider(forClass:Class<Dynamic>):Bool
+	{
+		if (this._classToStyleProvider == null)
+		{
 			return false;
 		}
-		return this._classToStyleProvider.exists(forClass);
+		return this._classToStyleProvider.exists(Type.getClassName(forClass));
 	}
-
+	
 	/**
 	 * Returns all classes that have been registered with a style provider.
 	 */
-	public function getRegisteredClasses(result:Array<Class<Dynamic>> = null):Array<Class<Dynamic>> {
-		if (result != null) {
-			result = [];
-		} else {
-			result = new Array<Class<Dynamic>>();
+	public function getRegisteredClasses(result:Array<Class<Dynamic>> = null):Array<Class<Dynamic>>
+	{
+		if (result != null)
+		{
+			result.resize(0);
 		}
-		var index:Int = 0;
-		for (forClass in this._classToStyleProvider.keys()) {
-			result[index] = forClass;
-			index++;
+		else
+		{
+			//result = new Array<Class<Dynamic>>();
+			return this._classList.copy();
 		}
+		
+		var count:Int = this._classList.length;
+		for (i in 0...count)
+		{
+			result[i] = this._classList[i];
+		}
+		//for (forClass in this._classToStyleProvider.keys())
+		//{
+			//result[index] = forClass;
+			//index++;
+		//}
 		return result;
 	}
-
+	
 	/**
 	 * Creates an <code>IStyleProvider</code> for the specified component
 	 * class, or if it was already created, returns the existing registered
@@ -122,19 +147,25 @@ class StyleProviderRegistry {
 	 * @param forClass					The style provider is registered for this class.
 	 * @param styleProviderFactory		A factory used to create the style provider.
 	 */
-	public function getStyleProvider(forClass:Class<Dynamic>):IStyleProvider {
+	public function getStyleProvider(forClass:Class<Dynamic>):IStyleProvider
+	{
+		var className:String = Type.getClassName(forClass);
 		this.validateComponentClass(forClass);
-		var styleProvider:IStyleProvider = this._classToStyleProvider[forClass];
-		if (styleProvider == null) {
+		var styleProvider:IStyleProvider = this._classToStyleProvider[className];
+		if (styleProvider == null)
+		{
 			styleProvider = this._styleProviderFactory();
-			this._classToStyleProvider[forClass] = styleProvider;
-			if (this._registerGlobally) {
+			this._classToStyleProvider[className] = styleProvider;
+			_classList.push(forClass);
+			if (this._registerGlobally)
+			{
+				//forClass[GLOBAL_STYLE_PROVIDER_PROPERTY_NAME] = styleProvider;
 				Reflect.setProperty(forClass, GLOBAL_STYLE_PROVIDER_PROPERTY_NAME, styleProvider);
 			}
 		}
 		return styleProvider;
 	}
-
+	
 	/**
 	 * Removes the style provider for the specified component class. If the
 	 * registry is global, and the static <code>globalStyleProvider</code>
@@ -144,34 +175,41 @@ class StyleProviderRegistry {
 	 *
 	 * @param forClass		The style provider is registered for this class.
 	 */
-	public function clearStyleProvider(forClass:Class<Dynamic>):IStyleProvider {
+	public function clearStyleProvider(forClass:Class<Dynamic>):IStyleProvider
+	{
+		var className:String = Type.getClassName(forClass);
 		this.validateComponentClass(forClass);
-		if (this._classToStyleProvider.exists(forClass)) {
-			var styleProvider:IStyleProvider = this._classToStyleProvider[forClass];
-			this._classToStyleProvider.remove(forClass);
-			if (this._registerGlobally && Reflect.field(forClass, GLOBAL_STYLE_PROVIDER_PROPERTY_NAME) == styleProvider)
-				// forClass[GLOBAL_STYLE_PROVIDER_PROPERTY_NAME] == styleProvider)
+		if (this._classToStyleProvider.exists(className))
+		{
+			var styleProvider:IStyleProvider = this._classToStyleProvider[className];
+			this._classToStyleProvider.remove(className);
+			this._classList.remove(forClass);
+			if (this._registerGlobally &&
+				Reflect.field(forClass, GLOBAL_STYLE_PROVIDER_PROPERTY_NAME) == styleProvider)
+				//forClass[GLOBAL_STYLE_PROVIDER_PROPERTY_NAME] == styleProvider)
 			{
-				// something else may have changed the global style provider
-				// after this registry set it, so we check if it's equal
-				// before setting to null.
-				// forClass[GLOBAL_STYLE_PROVIDER_PROPERTY_NAME] = null;
+				//something else may have changed the global style provider
+				//after this registry set it, so we check if it's equal
+				//before setting to null.
+				//forClass[GLOBAL_STYLE_PROVIDER_PROPERTY_NAME] = null;
 				Reflect.setField(forClass, GLOBAL_STYLE_PROVIDER_PROPERTY_NAME, null);
 			}
 			return styleProvider;
 		}
 		return null;
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function validateComponentClass(type:Class<Dynamic>):Void {
-		// if (!this._registerGlobally || Object(type).hasOwnProperty(GLOBAL_STYLE_PROVIDER_PROPERTY_NAME))
-		if (!this._registerGlobally || Reflect.hasField(type, GLOBAL_STYLE_PROVIDER_PROPERTY_NAME)) {
+	private function validateComponentClass(type:Class<Dynamic>):Void
+	{
+		//if (!this._registerGlobally || Object(type).hasOwnProperty(GLOBAL_STYLE_PROVIDER_PROPERTY_NAME))
+		if (!this._registerGlobally || Reflect.hasField(type, GLOBAL_STYLE_PROVIDER_PROPERTY_NAME))
+		{
 			return;
 		}
-		throw new ArgumentError("Class " + Type.getClassName(type) + " must have a " + GLOBAL_STYLE_PROVIDER_PROPERTY_NAME
-			+ " static property to support themes.");
+		throw new ArgumentError("Class " + Type.getClassName(type) + " must have a " + GLOBAL_STYLE_PROVIDER_PROPERTY_NAME + " static property to support themes.");
 	}
+	
 }

@@ -1,6 +1,6 @@
 /*
 	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
 	This program is free software. You can redistribute and/or modify it in
 	accordance with the terms of the accompanying license agreement.
@@ -8,7 +8,7 @@
 
 package feathers.layout;
 
-import flash.geom.Point;
+import openfl.geom.Point;
 import starling.display.DisplayObject;
 
 /**
@@ -26,12 +26,7 @@ interface IVirtualLayout extends ILayout {
 	 * <code>false</code>. In those cases, the virtual layout options
 	 * will be ignored.
 	 */
-	var useVirtualLayout(get, set):Bool;
-
-	/**
-	 * @private
-	 */
-	// function set useVirtualLayout(value:Boolean):void;
+	public var useVirtualLayout(get, set):Bool;
 
 	/**
 	 * Used internally by a component that supports layout virtualization,
@@ -43,13 +38,7 @@ interface IVirtualLayout extends ILayout {
 	 * have no effect. It is meant to be used by the component, and the
 	 * component will replace any value you pass to this property.
 	 */
-	// function get typicalItem():DisplayObject;
-	var typicalItem(get, set):DisplayObject;
-
-	/**
-	 * @private
-	 */
-	// function set typicalItem(value:DisplayObject):void;
+	public var typicalItem(get, set):DisplayObject;
 
 	/**
 	 * Used internally by a component, such as <code>List</code>, to measure

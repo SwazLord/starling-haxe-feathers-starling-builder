@@ -1,26 +1,19 @@
 /*
-	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.core;
 
 /**
- * Watches an <code>IStateContext</code> for state changes.
- * 
- * @see feathers.core.IStateContext
- *
- * @productversion Feathers 2.3.0
+ * @author Matse
  */
-interface IStateObserver {
+interface IStateObserver 
+{
 	/**
 	 * The current state context that is being observed.
 	 */
-	/**
-	 * @private
-	 */
-	var stateContext(get, set):IStateContext;
+	public var stateContext(get, set):IStateContext;
 }

@@ -1,15 +1,18 @@
 /*
 Feathers
-Copyright 2012-2015 Bowler Hat LLC. All Rights Reserved.
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
 */
 package feathers.core;
+
 /**
  * A component that can receive focus with children that can receive focus.
  *
- * @see feathers.core.IFocusManager
+ * @see ../../../help/focus.html Keyboard focus management in Feathers
+ *
+ * @productversion Feathers 2.1.0
  */
 interface IFocusContainer extends IFocusDisplayObject
 {
@@ -27,11 +30,5 @@ interface IFocusContainer extends IFocusDisplayObject
 	 *
 	 * @see #isFocusEnabled
 	 */
-	var isChildFocusEnabled(get, set):Bool;
-	//function get_isChildFocusEnabled():Bool;
-
-	/**
-	 * @private
-	 */
-	//function set_isChildFocusEnabled(value:Bool):Bool;
+	public var isChildFocusEnabled(get, set):Bool;
 }

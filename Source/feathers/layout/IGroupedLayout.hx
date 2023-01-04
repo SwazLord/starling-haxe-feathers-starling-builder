@@ -1,6 +1,6 @@
 /*
 	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
 	This program is free software. You can redistribute and/or modify it in
 	accordance with the terms of the accompanying license agreement.
@@ -11,21 +11,15 @@ package feathers.layout;
 /**
  * A layout where items are divided into separate groups, with headers for
  * each group.
- * 
+ *
  * @see feathers.controls.GroupedList
  *
  * @productversion Feathers 2.3.0
  */
-interface IGroupedLayout extends ILayout {
+interface IGroupedLayout {
 	/**
 	 * Used internally by a component with grouped data to indicate which
 	 * indices are headers for a group.
 	 */
-	var headerIndices(get, set):Array<Int>;
-
-	// function get headerIndices():Vector.<int>;
-	/**
-	 * @private
-	 */
-	// function set headerIndices(value:Vector.<int>):void;
+	public var headerIndices(get, set):Array<Int>;
 }

@@ -8,7 +8,6 @@
 
 package feathers.controls;
 
-import feathers.utils.skins.SkinsUtils;
 import feathers.core.FeathersControl;
 import feathers.core.IMeasureDisplayObject;
 import feathers.core.IStateContext;
@@ -16,6 +15,7 @@ import feathers.core.IStateObserver;
 import feathers.core.IValidating;
 import feathers.events.FeathersEventType;
 import feathers.skins.IStyleProvider;
+import feathers.utils.skins.SkinsUtils;
 import feathers.utils.touch.TapToTrigger;
 import feathers.utils.touch.TouchToState;
 import openfl.geom.Point;
@@ -104,7 +104,7 @@ class BasicButton extends FeathersControl implements IStateContext {
 		} else {
 			this.changeState(ButtonState.DISABLED);
 		}
-		return value;
+		return this._isEnabled;
 	}
 
 	/**
@@ -114,12 +114,12 @@ class BasicButton extends FeathersControl implements IStateContext {
 
 	private var _keepDownStateOnRollOut:Bool = false;
 
-	public function get_keepDownStateOnRollOut():Bool {
+	private function get_keepDownStateOnRollOut():Bool {
 		return this._keepDownStateOnRollOut;
 	}
 
-	public function set_keepDownStateOnRollOut(value:Bool):Bool {
-		if (this.processStyleRestriction(this.set_keepDownStateOnRollOut)) {
+	private function set_keepDownStateOnRollOut(value:Bool):Bool {
+		if (this.processStyleRestriction("keepDownStateOnRollOut")) {
 			return value;
 		}
 		if (this.touchToState != null) {
@@ -132,19 +132,19 @@ class BasicButton extends FeathersControl implements IStateContext {
 
 	private var _defaultSkin:DisplayObject;
 
-	public function get_defaultSkin():DisplayObject {
+	private function get_defaultSkin():DisplayObject {
 		return this._defaultSkin;
 	}
 
-	public function set_defaultSkin(value:DisplayObject):DisplayObject {
-		if (this.processStyleRestriction(this.set_defaultSkin)) {
+	private function set_defaultSkin(value:DisplayObject):DisplayObject {
+		if (this.processStyleRestriction("defaultSkin")) {
 			if (value != null) {
 				value.dispose();
 			}
-			return this._defaultSkin;
+			return value;
 		}
 		if (this._defaultSkin == value) {
-			return this._defaultSkin;
+			return value;
 		}
 		if (this._defaultSkin != null && this.currentSkin == this._defaultSkin) {
 			// if this skin needs to be reused somewhere else, we need to
@@ -162,11 +162,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 	 */
 	public var upSkin(get, set):DisplayObject;
 
-	public function get_upSkin():DisplayObject {
+	private function get_upSkin():DisplayObject {
 		return this.getSkinForState(ButtonState.UP);
 	}
 
-	public function set_upSkin(value:DisplayObject):DisplayObject {
+	private function set_upSkin(value:DisplayObject):DisplayObject {
 		this.setSkinForState(ButtonState.UP, value);
 		return value;
 	}
@@ -176,11 +176,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 	 */
 	public var downSkin(get, set):DisplayObject;
 
-	public function get_downSkin():DisplayObject {
+	private function get_downSkin():DisplayObject {
 		return this.getSkinForState(ButtonState.DOWN);
 	}
 
-	public function set_downSkin(value:DisplayObject):DisplayObject {
+	private function set_downSkin(value:DisplayObject):DisplayObject {
 		this.setSkinForState(ButtonState.DOWN, value);
 		return value;
 	}
@@ -190,11 +190,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 	 */
 	public var hoverSkin(get, set):DisplayObject;
 
-	public function get_hoverSkin():DisplayObject {
+	private function get_hoverSkin():DisplayObject {
 		return this.getSkinForState(ButtonState.HOVER);
 	}
 
-	public function set_hoverSkin(value:DisplayObject):DisplayObject {
+	private function set_hoverSkin(value:DisplayObject):DisplayObject {
 		this.setSkinForState(ButtonState.HOVER, value);
 		return value;
 	}
@@ -204,11 +204,11 @@ class BasicButton extends FeathersControl implements IStateContext {
 	 */
 	public var disabledSkin(get, set):DisplayObject;
 
-	public function get_disabledSkin():DisplayObject {
+	private function get_disabledSkin():DisplayObject {
 		return this.getSkinForState(ButtonState.DISABLED);
 	}
 
-	public function set_disabledSkin(value:DisplayObject):DisplayObject {
+	private function set_disabledSkin(value:DisplayObject):DisplayObject {
 		this.setSkinForState(ButtonState.DISABLED, value);
 		return value;
 	}

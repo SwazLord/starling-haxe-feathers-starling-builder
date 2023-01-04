@@ -19,7 +19,7 @@ import starling.events.Event;
  * @see feathers.layout.HorizontalLayout
  * @see feathers.layout.VerticalLayout
  */
-class BaseLinearLayout extends BaseVariableVirtualLayout {
+abstract class BaseLinearLayout extends BaseVariableVirtualLayout {
 	/**
 	 * 
 	 */
@@ -41,11 +41,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _gap:Float = 0;
 
-	public function get_gap():Float {
+	private function get_gap():Float {
 		return this._gap;
 	}
 
-	public function set_gap(value:Float):Float {
+	private function set_gap(value:Float):Float {
 		if (this._gap == value) {
 			return value;
 		}
@@ -65,11 +65,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _firstGap:Float = Math.NaN;
 
-	public function get_firstGap():Float {
+	private function get_firstGap():Float {
 		return this._firstGap;
 	}
 
-	public function set_firstGap(value:Float):Float {
+	private function set_firstGap(value:Float):Float {
 		if (this._firstGap == value) {
 			return value;
 		}
@@ -89,11 +89,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _lastGap:Float = Math.NaN;
 
-	public function get_lastGap():Float {
+	private function get_lastGap():Float {
 		return this._lastGap;
 	}
 
-	public function set_lastGap(value:Float):Float {
+	private function set_lastGap(value:Float):Float {
 		if (this._lastGap == value) {
 			return value;
 		}
@@ -117,11 +117,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 	 */
 	public var padding(get, set):Float;
 
-	public function get_padding():Float {
+	private function get_padding():Float {
 		return this._paddingTop;
 	}
 
-	public function set_padding(value:Float):Float {
+	private function set_padding(value:Float):Float {
 		this.paddingTop = value;
 		this.paddingRight = value;
 		this.paddingBottom = value;
@@ -137,11 +137,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _paddingTop:Float = 0;
 
-	public function get_paddingTop():Float {
+	private function get_paddingTop():Float {
 		return this._paddingTop;
 	}
 
-	public function set_paddingTop(value:Float):Float {
+	private function set_paddingTop(value:Float):Float {
 		if (this._paddingTop == value) {
 			return value;
 		}
@@ -159,11 +159,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _paddingRight:Float = 0;
 
-	public function get_paddingRight():Float {
+	private function get_paddingRight():Float {
 		return this._paddingRight;
 	}
 
-	public function set_paddingRight(value:Float):Float {
+	private function set_paddingRight(value:Float):Float {
 		if (this._paddingRight == value) {
 			return value;
 		}
@@ -181,11 +181,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _paddingBottom:Float = 0;
 
-	public function get_paddingBottom():Float {
+	private function get_paddingBottom():Float {
 		return this._paddingBottom;
 	}
 
-	public function set_paddingBottom(value:Float):Float {
+	private function set_paddingBottom(value:Float):Float {
 		if (this._paddingBottom == value) {
 			return value;
 		}
@@ -203,11 +203,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _paddingLeft:Float = 0;
 
-	public function get_paddingLeft():Float {
+	private function get_paddingLeft():Float {
 		return this._paddingLeft;
 	}
 
-	public function set_paddingLeft(value:Float):Float {
+	private function set_paddingLeft(value:Float):Float {
 		if (this._paddingLeft == value) {
 			return value;
 		}
@@ -234,11 +234,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _verticalAlign:String = VerticalAlign.TOP;
 
-	public function get_verticalAlign():String {
+	private function get_verticalAlign():String {
 		return this._verticalAlign;
 	}
 
-	public function set_verticalAlign(value:String):String {
+	private function set_verticalAlign(value:String):String {
 		if (this._verticalAlign == value) {
 			return value;
 		}
@@ -265,13 +265,13 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _horizontalAlign:String = HorizontalAlign.LEFT;
 
-	public function get_horizontalAlign():String {
+	private function get_horizontalAlign():String {
 		return this._horizontalAlign;
 	}
 
-	public function set_horizontalAlign(value:String):String {
+	private function set_horizontalAlign(value:String):String {
 		if (this._horizontalAlign == value) {
-			return this._horizontalAlign;
+			return value;
 		}
 		this._horizontalAlign = value;
 		this.dispatchEventWith(Event.CHANGE);
@@ -285,11 +285,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _beforeVirtualizedItemCount:Int = 0;
 
-	public function get_beforeVirtualizedItemCount():Int {
+	private function get_beforeVirtualizedItemCount():Int {
 		return this._beforeVirtualizedItemCount;
 	}
 
-	public function set_beforeVirtualizedItemCount(value:Int):Int {
+	private function set_beforeVirtualizedItemCount(value:Int):Int {
 		if (this._beforeVirtualizedItemCount == value) {
 			return value;
 		}
@@ -305,11 +305,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _afterVirtualizedItemCount:Int = 0;
 
-	public function get_afterVirtualizedItemCount():Int {
+	private function get_afterVirtualizedItemCount():Int {
 		return this._afterVirtualizedItemCount;
 	}
 
-	public function set_afterVirtualizedItemCount(value:Int):Int {
+	private function set_afterVirtualizedItemCount(value:Int):Int {
 		if (this._afterVirtualizedItemCount == value) {
 			return value;
 		}
@@ -337,11 +337,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _resetTypicalItemDimensionsOnMeasure:Bool = false;
 
-	public function get_resetTypicalItemDimensionsOnMeasure():Bool {
+	private function get_resetTypicalItemDimensionsOnMeasure():Bool {
 		return this._resetTypicalItemDimensionsOnMeasure;
 	}
 
-	public function set_resetTypicalItemDimensionsOnMeasure(value:Bool):Bool {
+	private function set_resetTypicalItemDimensionsOnMeasure(value:Bool):Bool {
 		if (this._resetTypicalItemDimensionsOnMeasure == value) {
 			return value;
 		}
@@ -378,11 +378,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _typicalItemWidth:Float = Math.NaN;
 
-	public function get_typicalItemWidth():Float {
+	private function get_typicalItemWidth():Float {
 		return this._typicalItemWidth;
 	}
 
-	public function set_typicalItemWidth(value:Float):Float {
+	private function set_typicalItemWidth(value:Float):Float {
 		if (this._typicalItemWidth == value) {
 			return value;
 		}
@@ -419,11 +419,11 @@ class BaseLinearLayout extends BaseVariableVirtualLayout {
 
 	private var _typicalItemHeight:Float = Math.NaN;
 
-	public function get_typicalItemHeight():Float {
+	private function get_typicalItemHeight():Float {
 		return this._typicalItemHeight;
 	}
 
-	public function set_typicalItemHeight(value:Float):Float {
+	private function set_typicalItemHeight(value:Float):Float {
 		if (this._typicalItemHeight == value) {
 			return value;
 		}

@@ -1,11 +1,10 @@
 /*
-	Feathers
-	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.skins;
 
 import feathers.core.IMeasureDisplayObject;
@@ -43,23 +42,25 @@ import starling.utils.Pool;
  *
  * @productversion Feathers 3.0.0
  */
-class ImageSkin extends Image implements IMeasureDisplayObject implements IStateObserver {
+class ImageSkin extends Image implements IMeasureDisplayObject implements IStateObserver
+{
 	/**
 	 * Constructor.
 	 */
-	public function new(defaultTexture:Texture) {
+	public function new(defaultTexture:Texture) 
+	{
 		super(defaultTexture);
-		// the super constructor sets the color property, so we need to wait
-		// before restricting it
+		//the super constructor sets the color property, so we need to wait
+		//before restricting it
 		this._restrictColor = true;
 		this.defaultTexture = defaultTexture;
 	}
-
+	
 	/**
 	 * @private
 	 */
 	private var _restrictColor:Bool = false;
-
+	
 	/**
 	 * The default texture that the skin will display. If the component
 	 * being skinned supports states, the texture for a specific state may
@@ -88,22 +89,19 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see http://doc.starling-framework.org/current/starling/textures/Texture.html starling.textures.Texture
 	 */
 	public var defaultTexture(get, set):Texture;
-
 	private var _defaultTexture:Texture;
-
-	public function get_defaultTexture():Texture {
-		return this._defaultTexture;
-	}
-
-	public function set_defaultTexture(value:Texture):Texture {
-		if (this._defaultTexture == value) {
+	private function get_defaultTexture():Texture { return this._defaultTexture; }
+	private function set_defaultTexture(value:Texture):Texture
+	{
+		if (this._defaultTexture == value)
+		{
 			return value;
 		}
 		this._defaultTexture = value;
 		this.updateTextureFromContext();
 		return this._defaultTexture;
 	}
-
+	
 	/**
 	 * The texture to display when the <code>stateContext</code> is
 	 * an <code>IFeathersControl</code> and its <code>isEnabled</code>
@@ -129,22 +127,19 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see http://doc.starling-framework.org/current/starling/textures/Texture.html starling.textures.Texture
 	 */
 	public var disabledTexture(get, set):Texture;
-
 	private var _disabledTexture:Texture;
-
-	public function get_disabledTexture():Texture {
-		return this._disabledTexture;
-	}
-
-	public function set_disabledTexture(value:Texture):Texture {
-		if (this._disabledTexture == value) {
+	private function get_disabledTexture():Texture { return this._disabledTexture; }
+	private function set_disabledTexture(value:Texture):Texture
+	{
+		if (this._disabledTexture == value)
+		{
 			return value;
 		}
 		this._disabledTexture = value;
 		this.updateTextureFromContext();
 		return this._disabledTexture;
 	}
-
+	
 	/**
 	 * The texture to display when the <code>stateContext</code> is
 	 * an <code>IToggle</code> instance and its <code>isSelected</code>
@@ -170,42 +165,41 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see http://doc.starling-framework.org/current/starling/textures/Texture.html starling.textures.Texture
 	 */
 	public var selectedTexture(get, set):Texture;
-
 	private var _selectedTexture:Texture;
-
-	public function get_selectedTexture():Texture {
-		return this._selectedTexture;
-	}
-
-	public function set_selectedTexture(value:Texture):Texture {
-		if (this._selectedTexture == value) {
+	private function get_selectedTexture():Texture { return this._selectedTexture; }
+	private function set_selectedTexture(value:Texture):Texture
+	{
+		if (this._selectedTexture == value)
+		{
 			return value;
 		}
 		this._selectedTexture = value;
 		this.updateTextureFromContext();
 		return this._selectedTexture;
 	}
-
+	
 	/**
 	 * @private
 	 */
-	override function set_color(value:UInt):UInt {
-		if (this._restrictColor) {
+	override function set_color(value:UInt):UInt 
+	{
+		if (this._restrictColor)
+		{
 			throw new IllegalOperationError("To set the color of an ImageSkin, use defaultColor or setColorForState().");
 		}
 		return this.scolor = value;
 	}
-
+	
 	/**
 	 * @private
 	 * Subclasses may use this setter to change the color.
 	 */
 	public var scolor(never, set):UInt;
-
-	public function set_scolor(value:UInt):UInt {
+	private function set_scolor(value:UInt):UInt
+	{
 		return super.color = value;
 	}
-
+	
 	/**
 	 * The default color to use to tint the skin. If the component
 	 * being skinned supports states, the color for a specific state may
@@ -236,22 +230,19 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #setColorForState()
 	 */
 	public var defaultColor(get, set):UInt;
-
 	private var _defaultColor:UInt = 0xffffff;
-
-	public function get_defaultColor():UInt {
-		return this._defaultColor;
-	}
-
-	public function set_defaultColor(value:UInt):UInt {
-		if (this._defaultColor == value) {
+	private function get_defaultColor():UInt { return this._defaultColor; }
+	private function set_defaultColor(value:UInt):UInt
+	{
+		if (this._defaultColor == value)
+		{
 			return value;
 		}
 		this._defaultColor = value;
 		this.updateColorFromContext();
 		return this._defaultColor;
 	}
-
+	
 	/**
 	 * The color to tint the skin when the <code>stateContext</code> is
 	 * an <code>IFeathersControl</code> and its <code>isEnabled</code>
@@ -281,22 +272,19 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #setColorForState()
 	 */
 	public var disabledColor(get, set):UInt;
-
 	private var _disabledColor:UInt = MathUtils.INT_MAX;
-
-	public function get_disabledColor():UInt {
-		return this._disabledColor;
-	}
-
-	public function set_disabledColor(value:UInt):UInt {
-		if (this._disabledColor == value) {
+	private function get_disabledColor():UInt { return this._disabledColor; }
+	private function set_disabledColor(value:UInt):UInt
+	{
+		if (this._disabledColor == value)
+		{
 			return value;
 		}
 		this._disabledColor = value;
 		this.updateColorFromContext();
 		return this._disabledColor;
 	}
-
+	
 	/**
 	 * The color to tint the skin when the <code>stateContext</code> is
 	 * an <code>IToggle</code> instance and its <code>isSelected</code>
@@ -322,22 +310,19 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #setColorForState()
 	 */
 	public var selectedColor(get, set):UInt;
-
 	private var _selectedColor:UInt = MathUtils.INT_MAX;
-
-	public function get_selectedColor():UInt {
-		return this._selectedColor;
-	}
-
-	public function set_selectedColor(value:UInt):UInt {
-		if (this._selectedColor == value) {
+	private function get_selectedColor():UInt { return this._selectedColor; }
+	private function set_selectedColor(value:UInt):UInt
+	{
+		if (this._selectedColor == value)
+		{
 			return value;
 		}
 		this._selectedColor = value;
 		this.updateColorFromContext();
 		return this._selectedColor;
 	}
-
+	
 	/**
 	 * When the skin observes a state context, the skin may change its
 	 * <code>Texture</code> based on the current state of that context.
@@ -350,29 +335,28 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #setTextureForState()
 	 */
 	public var stateContext(get, set):IStateContext;
-
 	private var _stateContext:IStateContext;
-
-	public function get_stateContext():IStateContext {
-		return this._stateContext;
-	}
-
-	public function set_stateContext(value:IStateContext):IStateContext {
-		if (this._stateContext == value) {
+	private function get_stateContext():IStateContext { return this._stateContext; }
+	private function set_stateContext(value:IStateContext):IStateContext
+	{
+		if (this._stateContext == value)
+		{
 			return value;
 		}
-		if (this._stateContext != null) {
+		if (this._stateContext != null)
+		{
 			this._stateContext.removeEventListener(FeathersEventType.STATE_CHANGE, stateContext_stageChangeHandler);
 		}
 		this._stateContext = value;
-		if (this._stateContext != null) {
+		if (this._stateContext != null)
+		{
 			this._stateContext.addEventListener(FeathersEventType.STATE_CHANGE, stateContext_stageChangeHandler);
 		}
 		this.updateTextureFromContext();
 		this.updateColorFromContext();
 		return this._stateContext;
 	}
-
+	
 	/**
 	 * The value passed to the <code>width</code> property setter. If the
 	 * <code>width</code> property has not be set, returns <code>NaN</code>.
@@ -380,39 +364,41 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #width
 	 */
 	public var explicitWidth(get, never):Float;
-
 	private var _explicitWidth:Float = Math.NaN;
-
-	public function get_explicitWidth():Float {
-		return this._explicitWidth;
-	}
-
+	private function get_explicitWidth():Float { return this._explicitWidth; }
+	
 	/**
 	 * @private
 	 */
-	override function set_width(value:Float):Float {
-		if (this._explicitWidth == value) {
+	override function set_width(value:Float):Float 
+	{
+		if (this._explicitWidth == value)
+		{
 			return value;
 		}
-		if (value != value && this._explicitWidth != this._explicitWidth) // isNaN
+		if (value != value && this._explicitWidth != this._explicitWidth) //isNaN
 		{
 			return value;
 		}
 		this._explicitWidth = value;
-		if (value == value) // !isNaN
+		if(value == value) //!isNaN
 		{
 			super.width = value;
-		} else if (this.texture != null) {
-			// return to the original width of the texture
+		}
+		else if (this.texture != null)
+		{
+			//return to the original width of the texture
 			this.scaleX = 1;
 			this.readjustSize(this.texture.frameWidth);
-		} else {
+		}
+		else
+		{
 			this.readjustSize();
 		}
 		this.dispatchEventWith(Event.RESIZE);
 		return this._explicitWidth;
 	}
-
+	
 	/**
 	 * The value passed to the <code>height</code> property setter. If the
 	 * <code>height</code> property has not be set, returns
@@ -421,39 +407,41 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #height
 	 */
 	public var explicitHeight(get, never):Float;
-
 	private var _explicitHeight:Float = Math.NaN;
-
-	public function get_explicitHeight():Float {
-		return this._explicitHeight;
-	}
-
+	private function get_explicitHeight():Float { return this._explicitHeight; }
+	
 	/**
 	 * @private
 	 */
-	override function set_height(value:Float):Float {
-		if (this._explicitHeight == value) {
+	override function set_height(value:Float):Float 
+	{
+		if (this._explicitHeight == value)
+		{
 			return value;
 		}
-		if (value != value && this._explicitHeight != this._explicitHeight) // isNaN
+		if (value != value && this._explicitHeight != this._explicitHeight) //isNaN
 		{
 			return value;
 		}
 		this._explicitHeight = value;
-		if (value == value) // !isNaN
+		if (value == value) //!isNaN
 		{
 			super.height = value;
-		} else if (this.texture != null) {
-			// return to the original height of the texture
+		}
+		else if (this.texture != null)
+		{
+			//return to the original height of the texture
 			this.scaleY = 1;
 			this.readjustSize(-1, this.texture.frameHeight);
-		} else {
+		}
+		else
+		{
 			this.readjustSize();
 		}
 		this.dispatchEventWith(Event.RESIZE);
 		return this._explicitHeight;
 	}
-
+	
 	/**
 	 * The value passed to the <code>minWidth</code> property setter. If the
 	 * <code>minWidth</code> property has not be set, returns
@@ -462,31 +450,29 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #minWidth
 	 */
 	public var explicitMinWidth(get, never):Float;
-
 	private var _explicitMinWidth:Float = Math.NaN;
-
-	public function get_explicitMinWidth():Float {
-		return this._explicitMinWidth;
-	}
-
+	private function get_explicitMinWidth():Float { return this._explicitMinWidth; }
+	
 	/**
 	 * The minimum width of the component.
 	 */
 	public var minWidth(get, set):Float;
-
-	public function get_minWidth():Float {
-		if (this._explicitMinWidth == this._explicitMinWidth) // !isNaN
+	private function get_minWidth():Float
+	{
+		if (this._explicitMinWidth == this._explicitMinWidth) //!isNaN
 		{
 			return this._explicitMinWidth;
 		}
 		return 0;
 	}
-
-	public function set_minWidth(value:Float):Float {
-		if (this._explicitMinWidth == value) {
+	
+	private function set_minWidth(value:Float):Float
+	{
+		if (this._explicitMinWidth == value)
+		{
 			return value;
 		}
-		if (value != value && this._explicitMinWidth != this._explicitMinWidth) // isNaN
+		if (value != value && this._explicitMinWidth != this._explicitMinWidth) //isNaN
 		{
 			return value;
 		}
@@ -494,7 +480,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 		this.dispatchEventWith(Event.RESIZE);
 		return this._explicitMinWidth;
 	}
-
+	
 	/**
 	 * The value passed to the <code>maxWidth</code> property setter. If the
 	 * <code>maxWidth</code> property has not be set, returns
@@ -503,27 +489,21 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #maxWidth
 	 */
 	public var explicitMaxWidth(get, never):Float;
-
 	private var _explicitMaxWidth:Float = Math.POSITIVE_INFINITY;
-
-	public function get_explicitMaxWidth():Float {
-		return this._explicitMaxWidth;
-	}
-
+	private function get_explicitMaxWidth():Float { return this._explicitMaxWidth; }
+	
 	/**
 	 * The maximum width of the component.
 	 */
 	public var maxWidth(get, set):Float;
-
-	public function get_maxWidth():Float {
-		return this._explicitMaxWidth;
-	}
-
-	public function set_maxWidth(value:Float):Float {
-		if (this._explicitMaxWidth == value) {
+	private function get_maxWidth():Float { return this._explicitMaxWidth; }
+	private function set_maxWidth(value:Float):Float
+	{
+		if (this._explicitMaxWidth == value)
+		{
 			return value;
 		}
-		if (value != value && this._explicitMaxWidth != this._explicitMaxWidth) // isNaN
+		if (value != value && this._explicitMaxWidth != this._explicitMaxWidth) //isNaN
 		{
 			return value;
 		}
@@ -531,7 +511,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 		this.dispatchEventWith(Event.RESIZE);
 		return this._explicitMaxWidth;
 	}
-
+	
 	/**
 	 * The value passed to the <code>minHeight</code> property setter. If
 	 * the <code>minHeight</code> property has not be set, returns
@@ -540,31 +520,29 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #minHeight
 	 */
 	public var explicitMinHeight(get, never):Float;
-
 	private var _explicitMinHeight:Float = Math.NaN;
-
-	public function get_explicitMinHeight():Float {
-		return this._explicitMinHeight;
-	}
-
+	private function get_explicitMinHeight():Float { return this._explicitMinHeight; }
+	
 	/**
 	 * The minimum height of the component.
 	 */
 	public var minHeight(get, set):Float;
-
-	public function get_minHeight():Float {
-		if (this._explicitMinHeight == this._explicitMinHeight) // !isNaN
+	private function get_minHeight():Float
+	{
+		if (this._explicitMinHeight == this._explicitMinHeight) //!isNaN
 		{
 			return this._explicitMinHeight;
 		}
 		return 0;
 	}
-
-	public function set_minHeight(value:Float):Float {
-		if (this._explicitMinHeight == value) {
+	
+	private function set_minHeight(value:Float):Float
+	{
+		if (this._explicitMinHeight == value)
+		{
 			return value;
 		}
-		if (value != value && this._explicitMinHeight != this._explicitMinHeight) // isNaN
+		if (value != value && this._explicitMinHeight != this._explicitMinHeight) //isNaN
 		{
 			return value;
 		}
@@ -572,7 +550,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 		this.dispatchEventWith(Event.RESIZE);
 		return this._explicitMinHeight;
 	}
-
+	
 	/**
 	 * The value passed to the <code>maxHeight</code> property setter. If
 	 * the <code>maxHeight</code> property has not be set, returns
@@ -581,27 +559,21 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #maxHeight
 	 */
 	public var explicitMaxHeight(get, never):Float;
-
 	private var _explicitMaxHeight:Float = Math.POSITIVE_INFINITY;
-
-	public function get_explicitMaxHeight():Float {
-		return this._explicitMaxHeight;
-	}
-
+	private function get_explicitMaxHeight():Float { return this._explicitMaxHeight; }
+	
 	/**
 	 * The maximum height of the component.
 	 */
 	public var maxHeight(get, set):Float;
-
-	public function get_maxHeight():Float {
-		return this._explicitMaxHeight;
-	}
-
-	public function set_maxHeight(value:Float):Float {
-		if (this._explicitMaxHeight == value) {
+	private function get_maxHeight():Float { return this._explicitMaxHeight; }
+	private function set_maxHeight(value:Float):Float
+	{
+		if (this._explicitMaxHeight == value)
+		{
 			return value;
 		}
-		if (value != value && this._explicitMaxHeight != this._explicitMaxHeight) // isNaN
+		if (value != value && this._explicitMaxHeight != this._explicitMaxHeight) //isNaN
 		{
 			return value;
 		}
@@ -609,7 +581,7 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 		this.dispatchEventWith(Event.RESIZE);
 		return this._explicitMaxHeight;
 	}
-
+	
 	/**
 	 * If the skin's width is smaller than this value, the hit area will be expanded.
 	 *
@@ -622,17 +594,13 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @default 0
 	 */
 	public var minTouchWidth(get, set):Float;
-
 	private var _minTouchWidth:Float = 0;
-
-	public function get_minTouchWidth():Float {
-		return this._minTouchWidth;
-	}
-
-	public function set_minTouchWidth(value:Float):Float {
+	private function get_minTouchWidth():Float { return this._minTouchWidth; }
+	private function set_minTouchWidth(value:Float):Float
+	{
 		return this._minTouchWidth = value;
 	}
-
+	
 	/**
 	 * If the skin's height is smaller than this value, the hit area will be expanded.
 	 *
@@ -645,27 +613,23 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @default 0
 	 */
 	public var minTouchHeight(get, set):Float;
-
 	private var _minTouchHeight:Float = 0;
-
-	public function get_minTouchHeight():Float {
-		return this._minTouchHeight;
-	}
-
-	public function set_minTouchHeight(value:Float):Float {
+	private function get_minTouchHeight():Float { return this._minTouchHeight; }
+	private function set_minTouchHeight(value:Float):Float
+	{
 		return this._minTouchHeight = value;
 	}
-
+	
 	/**
 	 * @private
 	 */
 	private var _stateToTexture:Map<String, Texture> = new Map<String, Texture>();
-
+	
 	/**
 	 * @private
 	 */
 	private var _stateToColor:Map<String, UInt> = new Map<String, UInt>();
-
+	
 	/**
 	 * Gets the texture to be used by the skin when the context's
 	 * <code>currentState</code> property matches the specified state value.
@@ -675,10 +639,11 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 *
 	 * @see #setTextureForState()
 	 */
-	public function getTextureForState(state:String):Texture {
+	public function getTextureForState(state:String):Texture
+	{
 		return this._stateToTexture[state];
 	}
-
+	
 	/**
 	 * Sets the texture to be used by the skin when the context's
 	 * <code>currentState</code> property matches the specified state value.
@@ -689,15 +654,19 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #defaultTexture
 	 * @see #getTextureForState()
 	 */
-	public function setTextureForState(state:String, texture:Texture):Void {
-		if (texture != null) {
+	public function setTextureForState(state:String, texture:Texture):Void
+	{
+		if (texture != null)
+		{
 			this._stateToTexture[state] = texture;
-		} else {
+		}
+		else
+		{
 			this._stateToTexture.remove(state);
 		}
 		this.updateTextureFromContext();
 	}
-
+	
 	/**
 	 * Gets the color to be used by the skin when the context's
 	 * <code>currentState</code> property matches the specified state value.
@@ -707,13 +676,15 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 *
 	 * @see #setColorForState()
 	 */
-	public function getColorForState(state:String):UInt {
-		if (this._stateToColor.exists(state)) {
+	public function getColorForState(state:String):UInt
+	{
+		if (this._stateToColor.exists(state))
+		{
 			return this._stateToColor[state];
 		}
 		return MathUtils.INT_MAX;
 	}
-
+	
 	/**
 	 * Sets the color to be used by the skin when the context's
 	 * <code>currentState</code> property matches the specified state value.
@@ -726,50 +697,61 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 	 * @see #defaultColor
 	 * @see #getColorForState()
 	 */
-	public function setColorForState(state:String, color:UInt):Void {
-		if (color != MathUtils.INT_MAX) {
+	public function setColorForState(state:String, color:UInt):Void
+	{
+		if (color != MathUtils.INT_MAX)
+		{
 			this._stateToColor[state] = color;
-		} else {
+		}
+		else
+		{
 			this._stateToColor.remove(state);
 		}
 		this.updateColorFromContext();
 	}
-
+	
 	/**
 	 * @private
 	 */
-	override public function readjustSize(width:Float = -1, height:Float = -1):Void {
+	override public function readjustSize(width:Float = -1, height:Float = -1):Void
+	{
 		super.readjustSize(width, height);
-		if (this._explicitWidth == this._explicitWidth) // !isNaN
+		if (this._explicitWidth == this._explicitWidth) //!isNaN
 		{
 			super.width = this._explicitWidth;
 		}
-		if (this._explicitHeight == this._explicitHeight) // !isNaN
+		if (this._explicitHeight == this._explicitHeight) //!isNaN
 		{
 			super.height = this._explicitHeight;
 		}
 	}
-
+	
 	/**
 	 * @private
 	 */
-	override public function hitTest(localPoint:Point):DisplayObject {
-		if (this._minTouchWidth > 0 || this._minTouchHeight > 0) {
-			if (!this.visible || !this.touchable) {
+	override public function hitTest(localPoint:Point):DisplayObject
+	{
+		if (this._minTouchWidth > 0 || this._minTouchHeight > 0)
+		{
+			if (!this.visible || !this.touchable)
+			{
 				return null;
 			}
-			if (this.mask != null && !this.hitTestMask(localPoint)) {
+			if (this.mask != null && !this.hitTestMask(localPoint))
+			{
 				return null;
 			}
 			var rect:Rectangle = Pool.getRectangle();
-			var difference:Float;
 			this.getBounds(this, rect);
-			if (rect.width < this._minTouchWidth) {
-				difference = this._minTouchWidth - rect.width;
+			var difference:Float;
+			if (rect.width < this._minTouchWidth)
+			{
+			difference = this._minTouchWidth - rect.width;
 				rect.width += difference;
 				rect.x -= difference / 2;
 			}
-			if (rect.height < this._minTouchHeight) {
+			if (rect.height < this._minTouchHeight)
+			{
 				difference = this._minTouchHeight - rect.height;
 				rect.height += difference;
 				rect.y -= difference / 2;
@@ -780,75 +762,90 @@ class ImageSkin extends Image implements IMeasureDisplayObject implements IState
 		}
 		return super.hitTest(localPoint);
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function updateTextureFromContext():Void {
+	private function updateTextureFromContext():Void
+	{
 		var texture:Texture = null;
-		if (this._stateContext == null) {
+		if (this._stateContext == null)
+		{
 			texture = this._defaultTexture;
-		} else {
+		}
+		else
+		{
 			texture = this._stateToTexture[this._stateContext.currentState];
-			if (texture == null
-				&& this._disabledTexture != null
-				&& Std.isOfType(this._stateContext, IFeathersControl)
-				&& !cast(this._stateContext, IFeathersControl).isEnabled) {
+			if (texture == null &&
+				this._disabledTexture != null &&
+				Std.isOfType(this._stateContext, IFeathersControl) && !cast(this._stateContext, IFeathersControl).isEnabled)
+			{
 				texture = this._disabledTexture;
 			}
-			if (texture == null
-				&& this._selectedTexture != null
-				&& Std.isOfType(this._stateContext, IToggle)
-				&& cast(this._stateContext, IToggle).isSelected) {
+			if (texture == null &&
+				this._selectedTexture != null &&
+				Std.isOfType(this._stateContext, IToggle) &&
+				cast(this._stateContext, IToggle).isSelected)
+			{
 				texture = this._selectedTexture;
 			}
-			if (texture == null) {
+			if (texture == null)
+			{
 				texture = this._defaultTexture;
 			}
 		}
 		this.texture = texture;
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function updateColorFromContext():Void {
-		if (this._stateContext == null) {
-			if (this._defaultColor != MathUtils.INT_MAX) {
+	private function updateColorFromContext():Void
+	{
+		if (this._stateContext == null)
+		{
+			if (this._defaultColor != MathUtils.INT_MAX)
+			{
 				this.scolor = this._defaultColor;
 			}
 			return;
 		}
 		var color:UInt = MathUtils.INT_MAX;
 		var currentState:String = this._stateContext.currentState;
-		if (this._stateToColor.exists(currentState)) {
+		if (this._stateToColor.exists(currentState))
+		{
 			color = this._stateToColor[currentState];
 		}
-		if (color == MathUtils.INT_MAX
-			&& this._disabledColor != MathUtils.INT_MAX
-			&& Std.isOfType(this._stateContext, IFeathersControl)
-			&& !cast(this._stateContext, IFeathersControl).isEnabled) {
+		if (color == MathUtils.INT_MAX &&
+			this._disabledColor != MathUtils.INT_MAX &&
+			Std.isOfType(this._stateContext, IFeathersControl) && !cast(this._stateContext, IFeathersControl).isEnabled)
+		{
 			color = this._disabledColor;
 		}
-		if (color == MathUtils.INT_MAX
-			&& this._selectedColor != MathUtils.INT_MAX
-			&& Std.isOfType(this._stateContext, IToggle)
-			&& cast(this._stateContext, IToggle).isSelected) {
+		if (color == MathUtils.INT_MAX &&
+			this._selectedColor != MathUtils.INT_MAX &&
+			Std.isOfType(this._stateContext, IToggle) &&
+			cast(this._stateContext, IToggle).isSelected)
+		{
 			color = this._selectedColor;
 		}
-		if (color == MathUtils.INT_MAX) {
+		if (color == MathUtils.INT_MAX)
+		{
 			color = this._defaultColor;
 		}
-		if (color != MathUtils.INT_MAX) {
+		if (color != MathUtils.INT_MAX)
+		{
 			this.scolor = color;
 		}
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function stateContext_stageChangeHandler(event:Event):Void {
+	private function stateContext_stageChangeHandler(event:Event):Void
+	{
 		this.updateTextureFromContext();
 		this.updateColorFromContext();
 	}
+	
 }

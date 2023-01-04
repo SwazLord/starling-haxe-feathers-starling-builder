@@ -1,6 +1,6 @@
 /*
 	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
 	This program is free software. You can redistribute and/or modify it in
 	accordance with the terms of the accompanying license agreement.
@@ -11,29 +11,6 @@ package feathers.layout;
 import feathers.core.IFeathersEventDispatcher;
 import flash.geom.Point;
 import starling.display.DisplayObject;
-
-/**
- * Dispatched when a property of the layout changes, indicating that a
- * redraw is probably needed.
- *
- * <p>The properties of the event object have the following values:</p>
- * <table class="innertable">
- * <tr><th>Property</th><th>Value</th></tr>
- * <tr><td><code>bubbles</code></td><td>false</td></tr>
- * <tr><td><code>currentTarget</code></td><td>The Object that defines the
- *   event listener that handles the event. For example, if you use
- *   <code>myButton.addEventListener()</code> to register an event listener,
- *   myButton is the value of the <code>currentTarget</code>.</td></tr>
- * <tr><td><code>data</code></td><td>null</td></tr>
- * <tr><td><code>target</code></td><td>The Object that dispatched the event;
- *   it is not always the Object listening for the event. Use the
- *   <code>currentTarget</code> property to always access the Object
- *   listening for the event.</td></tr>
- * </table>
- *
- * @eventType starling.events.Event.CHANGE
- */
-// [Event(name="change",type="starling.events.Event")]
 
 /**
  * Interface providing layout capabilities for containers.
@@ -50,7 +27,7 @@ interface ILayout extends IFeathersEventDispatcher {
 	 * May also be used by layouts that toggle item visibility as the items
 	 * scroll into and out of the view port.
 	 */
-	var requiresLayoutOnScroll(get, never):Bool;
+	public var requiresLayoutOnScroll(get, never):Bool;
 
 	/**
 	 * Positions (and possibly resizes) the supplied items within the
@@ -83,7 +60,7 @@ interface ILayout extends IFeathersEventDispatcher {
 	 *         item.validate();
 	 *     }
 	 * }</listing>
-	 * 
+	 *
 	 * @see feathers.core.FeathersControl#validate()
 	 */
 	function layout(items:Array<DisplayObject>, viewPortBounds:ViewPortBounds = null, result:LayoutBoundsResult = null):LayoutBoundsResult;
@@ -92,7 +69,7 @@ interface ILayout extends IFeathersEventDispatcher {
 	 * Using the current index and a key press, calculates the new index.
 	 * This might be use to change a list's <code>selectedIndex</code> when
 	 * a key is pressed.
-	 * 
+	 *
 	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/ui/Keyboard.html#UP flash.ui.Keyboard.UP
 	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/ui/Keyboard.html#DOWN flash.ui.Keyboard.DOWN
 	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/ui/Keyboard.html#LEFT flash.ui.Keyboard.LEFT
@@ -102,7 +79,7 @@ interface ILayout extends IFeathersEventDispatcher {
 	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/ui/Keyboard.html#PAGE_UP flash.ui.Keyboard.PAGE_UP
 	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/ui/Keyboard.html#PAGE_DOWN flash.ui.Keyboard.PAGE_DOWN
 	 */
-	function calculateNavigationDestination(items:Array<DisplayObject>, index:Int, keyCode:UInt, bounds:LayoutBoundsResult):Int;
+	function calculateNavigationDestination(items:Array<DisplayObject>, index:Int, keyCode:Int, bounds:LayoutBoundsResult):Int;
 
 	/**
 	 * Using the item dimensions, calculates a scroll position that will

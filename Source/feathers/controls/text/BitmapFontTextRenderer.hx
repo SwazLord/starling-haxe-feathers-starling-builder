@@ -1,34 +1,33 @@
 /*
-	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.controls.text;
-
+import feathers.core.FeathersControl;
+import feathers.core.ITextRenderer;
 import feathers.core.IToggle;
-import feathers.core.IFeathersControl;
+import feathers.skins.IStyleProvider;
+import feathers.text.BitmapFontTextFormat;
+import feathers.utils.ReverseIterator;
+import openfl.geom.Point;
 import openfl.geom.Rectangle;
-import starling.textures.Texture;
+import openfl.text.TextFormatAlign;
+import feathers.core.IFeathersControl;
+import starling.display.Image;
+import starling.display.MeshBatch;
+import starling.rendering.Painter;
+import starling.styles.MeshStyle;
+import starling.text.BitmapChar;
+import starling.text.BitmapFont;
 import starling.text.TextField;
+import starling.text.TextFormat;
+import starling.textures.Texture;
 import starling.utils.Align;
 import starling.utils.MathUtil;
 import starling.utils.Pool;
-import openfl.text.TextFormatAlign;
-import openfl.geom.Point;
-import starling.rendering.Painter;
-import starling.display.Image;
-import starling.text.BitmapFont;
-import starling.styles.MeshStyle;
-import feathers.core.FeathersControl;
-import starling.text.TextFormat;
-import feathers.text.BitmapFontTextFormat;
-import starling.display.MeshBatch;
-import feathers.skins.IStyleProvider;
-import starling.text.BitmapChar;
-import feathers.core.ITextRenderer;
 
 /**
  * Renders text using
@@ -52,47 +51,48 @@ import feathers.core.ITextRenderer;
  *
  * @productversion Feathers 1.0.0
  */
-class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
+class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer
+{
 	/**
 	 * @private
 	 */
 	private static var HELPER_RESULT:MeasureTextResult = new MeasureTextResult();
-
+	
 	/**
 	 * @private
 	 */
-	inline private static var CHARACTER_ID_SPACE:Int = 32;
-
+	private static inline var CHARACTER_ID_SPACE:Int = 32;
+	
 	/**
 	 * @private
 	 */
-	inline private static var CHARACTER_ID_TAB:Int = 9;
-
+	private static inline var CHARACTER_ID_TAB:Int = 9;
+	
 	/**
 	 * @private
 	 */
-	inline private static var CHARACTER_ID_LINE_FEED:Int = 10;
-
+	private static inline var CHARACTER_ID_LINE_FEED:Int = 10;
+	
 	/**
 	 * @private
 	 */
-	inline private static var CHARACTER_ID_CARRIAGE_RETURN:Int = 13;
-
+	private static inline var CHARACTER_ID_CARRIAGE_RETURN:Int = 13;
+	
 	/**
 	 * @private
 	 */
 	private static var CHARACTER_BUFFER:Array<CharLocation>;
-
+	
 	/**
 	 * @private
 	 */
 	private static var CHAR_LOCATION_POOL:Array<CharLocation>;
-
+	
 	/**
 	 * @private
 	 */
-	inline private static var FUZZY_MAX_WIDTH_PADDING:Float = 0.000001;
-
+	private static inline var FUZZY_MAX_WIDTH_PADDING:Float = 0.000001;
+	
 	/**
 	 * The default <code>IStyleProvider</code> for all <code>BitmapFontTextRenderer</code>
 	 * components.
@@ -101,127 +101,110 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @see feathers.core.FeathersControl#styleProvider
 	 */
 	public static var globalStyleProvider:IStyleProvider;
-
+	
 	/**
-	 * Constructor.
-	 */
-	public function new() {
+	   Constructor.
+	**/
+	public function new() 
+	{
 		super();
-		if (CHAR_LOCATION_POOL == null) {
-			// compiler doesn't like referencing CharLocation class in a
-			// static constant
-			CHAR_LOCATION_POOL = new Array();
+		if (CHAR_LOCATION_POOL == null)
+		{
+			//compiler doesn't like referencing CharLocation class in a
+			//static constant
+			CHAR_LOCATION_POOL = new Array<CharLocation>();
 		}
-		if (CHARACTER_BUFFER == null) {
-			CHARACTER_BUFFER = new Array();
+		if (CHARACTER_BUFFER == null)
+		{
+			CHARACTER_BUFFER = new Array<CharLocation>();
 		}
 		this.isQuickHitAreaEnabled = true;
 	}
-
+	
 	/**
 	 * @private
 	 */
 	private var _characterBatch:MeshBatch = null;
-
+	
 	/**
 	 * @private
 	 * This variable may be used by subclasses to affect the x position of
 	 * the text.
 	 */
 	private var _batchX:Float = 0;
-
+	
 	/**
 	 * @private
 	 */
 	private var _textFormatChanged:Bool = true;
-
+	
 	/**
 	 * @private
 	 */
 	private var _currentFontStyles:TextFormat = null;
-
+	
 	/**
 	 * @private
 	 */
 	private var _fontStylesTextFormat:BitmapFontTextFormat;
-
+	
 	/**
 	 * @private
 	 */
 	private var _currentVerticalAlign:String;
-
+	
 	/**
 	 * @private
 	 */
 	private var _verticalAlignOffsetY:Float = 0;
-
-	/**
-	 * @private
-	 */
-	private var _currentTextFormat:BitmapFontTextFormat;
-
+	
 	/**
 	 * For debugging purposes, the current
 	 * <code>feathers.text.BitmapFontTextFormat</code> used to render the
 	 * text. Updated during validation, and may be <code>null</code> before
 	 * the first validation.
-	 * 
+	 *
 	 * <p>Do not modify this value. It is meant for testing and debugging
 	 * only. Use the parent's <code>starling.text.TextFormat</code> font
 	 * styles APIs instead.</p>
 	 */
 	public var currentTextFormat(get, never):BitmapFontTextFormat;
-
-	public function get_currentTextFormat():BitmapFontTextFormat {
-		return this._currentTextFormat;
-	}
-
+	private var _currentTextFormat:BitmapFontTextFormat;
+	private function get_currentTextFormat():BitmapFontTextFormat { return this._currentTextFormat; }
+	
 	/**
 	 * @private
 	 */
-	override public function get_defaultStyleProvider():IStyleProvider {
+	override function get_defaultStyleProvider():IStyleProvider
+	{
 		return BitmapFontTextRenderer.globalStyleProvider;
 	}
-
+	
 	/**
 	 * @private
 	 */
-	override public function set_maxWidth(value:Float):Float {
-		// this is a special case because truncation may bypass normal rules
-		// for determining if changing maxWidth should invalidate
+	override function set_maxWidth(value:Float):Float
+	{
+		//this is a special case because truncation may bypass normal rules
+		//for determining if changing maxWidth should invalidate
 		var needsInvalidate:Bool = value > this._explicitMaxWidth && this._lastLayoutIsTruncated;
 		super.maxWidth = value;
-		if (needsInvalidate) {
+		if (needsInvalidate)
+		{
 			this.invalidate(FeathersControl.INVALIDATION_FLAG_SIZE);
 		}
-
 		return value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _numLines:Int = 0;
-
-	/**
-	 * @copy feathers.core.ITextRenderer#numLines
-	 */
+	
 	public var numLines(get, never):Int;
-
-	public function get_numLines():Int {
-		return this._numLines;
-	}
-
+	private var _numLines:Int = 0;
+	private function get_numLines():Int { return this._numLines; }
+	
 	/**
 	 * @private
 	 */
 	private var _textFormatForState:Map<String, BitmapFontTextFormat>;
-
-	/**
-	 * @private
-	 */
-	private var _textFormat:BitmapFontTextFormat;
-
+	
 	/**
 	 * Advanced font formatting used to draw the text, if
 	 * <code>fontStyles</code> and <code>starling.text.TextFormat</code>
@@ -246,28 +229,19 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @see #selectedTextFormat
 	 */
 	public var textFormat(get, set):BitmapFontTextFormat;
-
-	public function get_textFormat():BitmapFontTextFormat {
-		return this._textFormat;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_textFormat(value:BitmapFontTextFormat):BitmapFontTextFormat {
-		if (this._textFormat == value) {
-			return this._textFormat;
+	private var _textFormat:BitmapFontTextFormat;
+	private function get_textFormat():BitmapFontTextFormat { return this._textFormat; }
+	private function set_textFormat(value:BitmapFontTextFormat):BitmapFontTextFormat
+	{
+		if (this._textFormat == value)
+		{
+			return value;
 		}
 		this._textFormat = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._textFormat;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _disabledTextFormat:BitmapFontTextFormat;
-
+	
 	/**
 	 * Advanced font formatting used to draw the text when the component is
 	 * disabled, if <code>disabledFontStyles</code> and
@@ -287,33 +261,24 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * <code>BitmapFontTextFormat</code> will always take precedence.</p>
 	 *
 	 * @default null
-	 * 
+	 *
 	 * @see #textFormat
 	 * @see #selectedTextFormat
 	 */
 	public var disabledTextFormat(get, set):BitmapFontTextFormat;
-
-	public function get_disabledTextFormat():BitmapFontTextFormat {
-		return this._disabledTextFormat;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_disabledTextFormat(value:BitmapFontTextFormat):BitmapFontTextFormat {
-		if (this._disabledTextFormat == value) {
-			return this._disabledTextFormat;
+	private var _disabledTextFormat:BitmapFontTextFormat;
+	private function get_disabledTextFormat():BitmapFontTextFormat { return this._disabledTextFormat; }
+	private function set_disabledTextFormat(value:BitmapFontTextFormat):BitmapFontTextFormat
+	{
+		if (this._disabledTextFormat == value)
+		{
+			return value;
 		}
 		this._disabledTextFormat = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._disabledTextFormat;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _selectedTextFormat:BitmapFontTextFormat;
-
+	
 	/**
 	 * Advanced font formatting used to draw the text when the
 	 * <code>stateContext</code> is disabled, if
@@ -340,35 +305,24 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @see #disabledTextFormat
 	 */
 	public var selectedTextFormat(get, set):BitmapFontTextFormat;
-
-	public function get_selectedTextFormat():BitmapFontTextFormat {
-		return this._selectedTextFormat;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_selectedTextFormat(value:BitmapFontTextFormat):BitmapFontTextFormat {
-		if (this._selectedTextFormat == value) {
-			return this._selectedTextFormat;
+	private var _selectedTextFormat:BitmapFontTextFormat;
+	private function get_selectedTextFormat():BitmapFontTextFormat { return this._selectedTextFormat; }
+	private function set_selectedTextFormat(value:BitmapFontTextFormat):BitmapFontTextFormat
+	{
+		if (this._selectedTextFormat == value)
+		{
+			return value;
 		}
 		this._selectedTextFormat = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._selectedTextFormat;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _textureSmoothing:String = null;
-
-	// [Inspectable(type="String",enumeration="bilinear,trilinear,none")]
-
+	
 	/**
 	 * A texture smoothing value passed to each character image. If
 	 * <code>null</code>, defaults to the value specified by the
 	 * <code>smoothing</code> property of the <code>BitmapFont</code>.
-	 * 
+	 *
 	 * <p>In the following example, the texture smoothing is changed:</p>
 	 *
 	 * <listing version="3.0">
@@ -379,28 +333,19 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @see http://doc.starling-framework.org/core/starling/textures/TextureSmoothing.html starling.textures.TextureSmoothing
 	 */
 	public var textureSmoothing(get, set):String;
-
-	public function get_textureSmoothing():String {
-		return this._textureSmoothing;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_textureSmoothing(value:String):String {
-		if (this._textureSmoothing == value) {
-			return this._textureSmoothing;
+	private var _textureSmoothing:String = null;
+	private function get_textureSmoothing():String { return this._textureSmoothing; }
+	private function set_textureSmoothing(value:String):String
+	{
+		if (this._textureSmoothing == value)
+		{
+			return value;
 		}
 		this._textureSmoothing = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._textureSmoothing;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _pixelSnapping:Bool = true;
-
+	
 	/**
 	 * Determines if the position of the text should be snapped to the
 	 * nearest whole pixel when rendered. When snapped to a whole pixel, the
@@ -415,28 +360,19 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @default true
 	 */
 	public var pixelSnapping(get, set):Bool;
-
-	public function get_pixelSnapping():Bool {
-		return _pixelSnapping;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_pixelSnapping(value:Bool):Bool {
-		if (this._pixelSnapping == value) {
-			return this._pixelSnapping;
+	private var _pixelSnapping:Bool = true;
+	private function get_pixelSnapping():Bool { return this._pixelSnapping; }
+	private function set_pixelSnapping(value:Bool):Bool
+	{
+		if (this._pixelSnapping == value)
+		{
+			return value;
 		}
 		this._pixelSnapping = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._pixelSnapping;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _breakLongWords:Bool = false;
-
+	
 	/**
 	 * If <code>wordWrap</code> is <code>true</code>, determines if words
 	 * longer than the width of the text renderer will break in the middle
@@ -448,32 +384,23 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * textRenderer.breakLongWords = true;</listing>
 	 *
 	 * @default false
-	 * 
+	 *
 	 * @see #wordWrap
 	 */
 	public var breakLongWords(get, set):Bool;
-
-	public function get_breakLongWords():Bool {
-		return _breakLongWords;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_breakLongWords(value:Bool):Bool {
-		if (this._breakLongWords == value) {
-			return this._breakLongWords;
+	private var _breakLongWords:Bool = false;
+	private function get_breakLongWords():Bool { return this._breakLongWords; }
+	private function set_breakLongWords(value:Bool):Bool
+	{
+		if (this._breakLongWords == value)
+		{
+			return value;
 		}
 		this._breakLongWords = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._breakLongWords;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _truncateToFit:Bool = true;
-
+	
 	/**
 	 * If word wrap is disabled, and the text is longer than the width of
 	 * the label, the text may be truncated using <code>truncationText</code>.
@@ -493,28 +420,19 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @see #truncationText
 	 */
 	public var truncateToFit(get, set):Bool;
-
-	public function get_truncateToFit():Bool {
-		return _truncateToFit;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_truncateToFit(value:Bool):Bool {
-		if (this._truncateToFit == value) {
-			return this._truncateToFit;
+	private var _truncateToFit:Bool = true;
+	private function get_truncateToFit():Bool { return _truncateToFit; }
+	private function set_truncateToFit(value:Bool):Bool
+	{
+		if (this._truncateToFit == value)
+		{
+			return value;
 		}
 		this._truncateToFit = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_DATA);
 		return this._truncateToFit;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _truncationText:String = "...";
-
+	
 	/**
 	 * The text to display at the end of the label if it is truncated.
 	 *
@@ -526,28 +444,19 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @default "..."
 	 */
 	public var truncationText(get, set):String;
-
-	public function get_truncationText():String {
-		return _truncationText;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_truncationText(value:String):String {
-		if (this._truncationText == value) {
-			return this._truncationText;
+	private var _truncationText:String = "...";
+	private function get_truncationText():String { return this._truncationText; }
+	private function set_truncationText(value:String):String
+	{
+		if (this._truncationText == value)
+		{
+			return value;
 		}
 		this._truncationText = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_DATA);
 		return this._truncationText;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _useSeparateBatch:Bool = true;
-
+	
 	/**
 	 * Determines if the characters are batched normally by Starling or if
 	 * they're batched separately. Batching separately may improve
@@ -562,33 +471,24 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @default true
 	 */
 	public var useSeparateBatch(get, set):Bool;
-
-	public function get_useSeparateBatch():Bool {
-		return this._useSeparateBatch;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_useSeparateBatch(value:Bool):Bool {
-		if (this._useSeparateBatch == value) {
-			return this._useSeparateBatch;
+	private var _useSeparateBatch:Bool = true;
+	private function get_useSeparateBatch():Bool { return this._useSeparateBatch; }
+	private function set_useSeparateBatch(value:Bool):Bool
+	{
+		if (this._useSeparateBatch == value)
+		{
+			return value;
 		}
 		this._useSeparateBatch = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._useSeparateBatch;
 	}
-
+	
 	/**
-	 * @private
-	 */
+	   private
+	**/
 	private var _defaultStyle:MeshStyle = null;
-
-	/**
-	 * @private
-	 */
-	private var _style:MeshStyle = null;
-
+	
 	/**
 	 * The style that is used to render the text's mesh.
 	 *
@@ -600,81 +500,77 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @default null
 	 */
 	public var style(get, set):MeshStyle;
-
-	public function get_style():MeshStyle {
-		return this._style;
-	}
-
-	/**
-	 * @private
-	 */
-	public function set_style(value:MeshStyle):MeshStyle {
-		if (this._style == value) {
-			return this._style;
+	private var _style:MeshStyle = null;
+	private function get_style():MeshStyle { return _style; }
+	private function set_style(value:MeshStyle):MeshStyle
+	{
+		if (this._style == value)
+		{
+			return value;
 		}
 		this._style = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 		return this._style;
 	}
-
+	
 	/**
 	 * @inheritDoc
 	 */
 	public var baseline(get, never):Float;
-
-	public function get_baseline():Float {
-		if (this._currentTextFormat == null) {
+	private function get_baseline():Float
+	{
+		if (this._currentTextFormat == null)
+		{
 			return 0;
 		}
 		var font:BitmapFont = this._currentTextFormat.font;
 		var formatSize:Float = this._currentTextFormat.size;
 		var fontSizeScale:Float = formatSize / font.size;
-		if (fontSizeScale != fontSizeScale) // isNaN
+		if (fontSizeScale != fontSizeScale) //isNaN
 		{
 			fontSizeScale = 1;
 		}
-		var baseline:Float = font.baseline;
-		// for some reason, if we do the !== check on a local variable right
-		// here, compiling with the flex 4.6 SDK will throw a VerifyError
-		// for a stack overflow.
-		// we could change the !== check back to isNaN() instead, but
-		// isNaN() can allocate an object that needs garbage collection.
-		this._compilerWorkaround = baseline;
-		if (baseline != baseline) // isNaN
+		var baseLine:Float = font.baseline;
+		//for some reason, if we do the != check on a local variable right
+		//here, compiling with the flex 4.6 SDK will throw a VerifyError
+		//for a stack overflow.
+		//we could change the != check back to isNaN() instead, but
+		//isNaN() can allocate an object that needs garbage collection.
+		this._compilerWorkaround = baseLine;
+		if (baseLine != baseLine) // isNaN
 		{
 			return font.lineHeight * fontSizeScale;
 		}
-		return baseline * fontSizeScale;
+		return baseLine * fontSizeScale;
 	}
-
+	
 	/**
-	 * @private
-	 */
+	   @private
+	**/
 	private var _image:Image = null;
-
+	
 	/**
 	 * @private
 	 * This function is here to work around a bug in the Flex 4.6 SDK
 	 * compiler. For explanation, see the places where it gets called.
 	 */
 	private var _compilerWorkaround:Dynamic;
-
-	/**
-	 * @private
-	 */
-	override public function render(painter:Painter):Void {
+	
+	override public function render(painter:Painter):Void 
+	{
 		this._characterBatch.x = this._batchX;
 		this._characterBatch.y = this._verticalAlignOffsetY;
 		super.render(painter);
 	}
-
+	
 	/**
 	 * @inheritDoc
 	 */
-	public function measureText(result:Point = null):Point {
+	public function measureText(result:Point = null):Point
+	{
 		return this.measureTextInternal(result, true);
 	}
-
+	
 	/**
 	 * Gets the advanced <code>BitmapFontTextFormat</code> font formatting
 	 * passed in using <code>setTextFormatForState()</code> for the
@@ -685,13 +581,15 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 *
 	 * @see #setTextFormatForState()
 	 */
-	public function getTextFormatForState(state:String):BitmapFontTextFormat {
-		if (this._textFormatForState == null) {
+	public function getTextFormatForState(state:String):BitmapFontTextFormat
+	{
+		if (this._textFormatForState == null)
+		{
 			return null;
 		}
-		return cast(this._textFormatForState.get(state), BitmapFontTextFormat);
+		return this._textFormatForState[state];
 	}
-
+	
 	/**
 	 * Sets the advanced <code>BitmapFontTextFormat</code> font formatting
 	 * to be used by the text renderer when the <code>currentState</code>
@@ -711,115 +609,133 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 	 * @see #stateContext
 	 * @see #textFormat
 	 */
-	public function setTextFormatForState(state:String, textFormat:BitmapFontTextFormat):Void {
-		if (textFormat != null) {
-			if (this._textFormatForState == null) {
+	public function setTextFormatForState(state:String, textFormat:BitmapFontTextFormat):Void
+	{
+		if (textFormat != null)
+		{
+			if (this._textFormatForState == null)
+			{
 				this._textFormatForState = new Map<String, BitmapFontTextFormat>();
 			}
-			this._textFormatForState.set(state, textFormat);
-		} else {
+			this._textFormatForState[state] = textFormat;
+		}
+		else
+		{
 			this._textFormatForState.remove(state);
 		}
-		// if the context's current state is the state that we're modifying,
-		// we need to use the new value immediately.
-		if (this._stateContext != null && this._stateContext.currentState == state) {
+		//if the context's current state is the state that we're modifying,
+		//we need to use the new value immediately.
+		if (this._stateContext != null && this._stateContext.currentState == state)
+		{
 			this.invalidate(FeathersControl.INVALIDATION_FLAG_STATE);
 		}
 	}
-
+	
 	/**
-	 * @private
-	 */
-	override private function initialize():Void {
-		if (this._characterBatch == null) {
+	   @private
+	**/
+	override function initialize():Void
+	{
+		if (this._characterBatch == null)
+		{
 			this._characterBatch = new MeshBatch();
 			this._characterBatch.touchable = false;
 			this.addChild(this._characterBatch);
 		}
 	}
-
+	
 	/**
-	 * @private
-	 */
+	   @private
+	**/
 	private var _lastLayoutWidth:Float = 0;
-
+	
 	/**
-	 * @private
-	 */
+	   @private
+	**/
 	private var _lastLayoutHeight:Float = 0;
-
+	
 	/**
-	 * @private
-	 */
+	   @private
+	**/
 	private var _lastLayoutIsTruncated:Bool = false;
-
+	
 	/**
-	 * @private
-	 */
-	override private function draw():Void {
+	   @private
+	**/
+	override function draw():Void
+	{
 		var dataInvalid:Bool = this.isInvalid(FeathersControl.INVALIDATION_FLAG_DATA);
 		var stylesInvalid:Bool = this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES);
 		var stateInvalid:Bool = this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE);
-
-		if (stylesInvalid || stateInvalid) {
+		
+		if (stylesInvalid || stateInvalid)
+		{
 			this.refreshTextFormat();
 		}
-
-		if (stylesInvalid) {
+		
+		if (stylesInvalid)
+		{
 			this._characterBatch.pixelSnapping = this._pixelSnapping;
 			this._characterBatch.batchable = !this._useSeparateBatch;
 		}
-
-		// sometimes, we can determine that the layout will be exactly
-		// the same without needing to update. this will result in much
-		// better performance.
+		
+		//sometimes, we can determine that the layout will be exactly
+		//the same without needing to update. this will result in much
+		//better performance.
 		var newWidth:Float = this._explicitWidth;
-		if (newWidth != newWidth) // isNaN
+		if (newWidth != newWidth) //isNaN
 		{
 			newWidth = this._explicitMaxWidth;
 		}
-
-		// sometimes, we can determine that the dimensions will be exactly
-		// the same without needing to refresh the text lines. this will
-		// result in much better performance.
+		
+		//sometimes, we can determine that the dimensions will be exactly
+		//the same without needing to refresh the text lines. this will
+		//result in much better performance.
 		var sizeInvalid:Bool;
-		if (this._wordWrap) {
-			// when word wrapped, we need to measure again any time that the
-			// width changes.
+		if (this._wordWrap)
+		{
+			//when word wrapped, we need to measure again any time that the
+			//width changes.
 			sizeInvalid = newWidth != this._lastLayoutWidth;
-		} else {
-			// we can skip measuring again more frequently when the text is
-			// a single line.
-
-			// if the width is smaller than the last layout width, we need to
-			// measure again. when it's larger, the result won't change...
+		}
+		else
+		{
+			//we can skip measuring again more frequently when the text is
+			//a single line.
+			
+			//if the width is smaller than the last layout width, we need to
+			//measure again. when it's larger, the result won't change...
 			sizeInvalid = newWidth < this._lastLayoutWidth;
-
-			// ...unless the text was previously truncated!
-			// sizeInvalid ||= (this._lastLayoutIsTruncated && newWidth != this._lastLayoutWidth);
+			
+			//...unless the text was previously truncated!
 			sizeInvalid = sizeInvalid || (this._lastLayoutIsTruncated && newWidth != this._lastLayoutWidth);
-
-			// ... or the text is aligned
-			// sizeInvalid ||= this._currentTextFormat.align != TextFormatAlign.LEFT;
+			
+			//...or the text is aligned
 			sizeInvalid = sizeInvalid || this._currentTextFormat.align != TextFormatAlign.LEFT;
 		}
-
-		if (dataInvalid || sizeInvalid || stylesInvalid || this._textFormatChanged) {
+		
+		if (dataInvalid || sizeInvalid || stylesInvalid || this._textFormatChanged)
+		{
 			this._textFormatChanged = false;
 			this._characterBatch.clear();
-			if (this._currentTextFormat == null || this._text == null) {
+			if (this._currentTextFormat == null || this._text == null)
+			{
 				this.saveMeasurements(0, 0, 0, 0);
 				return;
 			}
 			this.layoutCharacters(HELPER_RESULT);
-			// for some reason, we can't just set the style once...
-			// we need to set up every time after layout
-			if (this._style != null) {
+			//for some reason, we can't just set the style once...
+			//we need to set up every time after layout
+			if (this._style != null)
+			{
 				this._characterBatch.style = this._style;
-			} else {
-				// getDefaultMeshStyle doesn't exist in Starling 2.2
+			}
+			else
+			{
+				//getDefaultMeshStyle doesn't exist in Starling 2.2
 				this._defaultStyle = this._currentTextFormat.font.getDefaultMeshStyle(this._defaultStyle, this._currentFontStyles, null);
-				if (this._defaultStyle != null) {
+				if (this._defaultStyle != null)
+				{
 					this._characterBatch.style = this._defaultStyle;
 				}
 			}
@@ -827,86 +743,98 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 			this._lastLayoutHeight = HELPER_RESULT.height;
 			this._lastLayoutIsTruncated = HELPER_RESULT.isTruncated;
 		}
-		this.saveMeasurements(this._lastLayoutWidth, this._lastLayoutHeight, this._lastLayoutWidth, this._lastLayoutHeight);
+		this.saveMeasurements(this._lastLayoutWidth, this._lastLayoutHeight,
+			this._lastLayoutWidth, this._lastLayoutHeight);
 		this._verticalAlignOffsetY = this.getVerticalAlignOffsetY();
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function layoutCharacters(result:MeasureTextResult = null):MeasureTextResult {
-		if (result == null) {
+	   @private
+	**/
+	private function layoutCharacters(result:MeasureTextResult = null):MeasureTextResult
+	{
+		if (result == null)
+		{
 			result = new MeasureTextResult();
 		}
 		this._numLines = 1;
-
+		
 		var font:BitmapFont = this._currentTextFormat.font;
 		var customSize:Float = this._currentTextFormat.size;
 		var customLetterSpacing:Float = this._currentTextFormat.letterSpacing;
 		var isKerningEnabled:Bool = this._currentTextFormat.isKerningEnabled;
 		var scale:Float = customSize / font.size;
-		if (scale != scale) // isNaN
+		if (scale != scale) //isNaN
 		{
 			scale = 1;
 		}
 		var lineHeight:Float = font.lineHeight * scale + this._currentTextFormat.leading;
 		var offsetX:Float = font.offsetX * scale;
 		var offsetY:Float = font.offsetY * scale;
-
-		var hasExplicitWidth:Bool = this._explicitWidth == this._explicitWidth; // !isNaN
+		
+		var hasExplicitWidth:Bool = this._explicitWidth == this._explicitWidth; //!isNaN
 		var isAligned:Bool = this._currentTextFormat.align != TextFormatAlign.LEFT;
 		var maxLineWidth:Float = hasExplicitWidth ? this._explicitWidth : this._explicitMaxWidth;
-		if (isAligned && maxLineWidth == Math.POSITIVE_INFINITY) {
-			// we need to measure the text to get the maximum line width
-			// so that we can align the text
+		if (isAligned && maxLineWidth == Math.POSITIVE_INFINITY)
+		{
+			//we need to measure the text to get the maximum line width
+			//so that we can align the text
 			var point:Point = Pool.getPoint();
 			this.measureText(point);
 			maxLineWidth = point.x;
 			Pool.putPoint(point);
 		}
 		var textToDraw:String = this._text;
-		if (this._truncateToFit) {
-			var truncatedText:String = this.getTruncatedText(maxLineWidth);
+		if (this._truncateToFit)
+		{
+			var truncatedText = this.getTruncatedText(maxLineWidth);
 			result.isTruncated = truncatedText != textToDraw;
 			textToDraw = truncatedText;
-		} else {
+		}
+		else
+		{
 			result.isTruncated = false;
 		}
-		CHARACTER_BUFFER = [];
-
+		CHARACTER_BUFFER.resize(0);
+		
 		var maxX:Float = 0;
 		var currentX:Float = 0;
 		var currentY:Float = 0;
-		var previousCharID:Float = Math.NaN;
+		var previousCharID:Int = -1;
 		var isWordComplete:Bool = false;
 		var startXOfPreviousWord:Float = 0;
 		var widthOfWhitespaceAfterWord:Float = 0;
 		var wordLength:Int = 0;
 		var wordCountForLine:Int = 0;
 		var charData:BitmapChar = null;
+		var previousCharData:BitmapChar;
 		var charCount:Int = textToDraw != null ? textToDraw.length : 0;
-		// for (var i:Int = 0; i < charCount; i++)
-		for (i in 0...charCount) {
+		for (i in 0...charCount)
+		{
 			isWordComplete = false;
 			var charID:Int = textToDraw.charCodeAt(i);
-			if (charID == CHARACTER_ID_LINE_FEED || charID == CHARACTER_ID_CARRIAGE_RETURN) // new line \n or \r
+			if (charID == CHARACTER_ID_LINE_FEED || charID == CHARACTER_ID_CARRIAGE_RETURN) //new line \n or \r
 			{
-				// remove whitespace after the final character in the line
+				//remove whitespace after the final character in the line
 				currentX -= customLetterSpacing;
-				if (charData != null) {
+				if (charData != null)
+				{
 					currentX -= (charData.xAdvance - charData.width) * scale;
 				}
-				if (currentX < 0) {
+				if (currentX < 0)
+				{
 					currentX = 0;
 				}
-				if (this._wordWrap || isAligned) {
+				if (this._wordWrap || isAligned)
+				{
 					this.alignBuffer(maxLineWidth, currentX, 0);
 					this.addBufferToBatch(0);
 				}
-				if (maxX < currentX) {
+				if (maxX < currentX)
+				{
 					maxX = currentX;
 				}
-				previousCharID = Math.NaN;
+				previousCharID = -1;
 				currentX = 0;
 				currentY += lineHeight;
 				startXOfPreviousWord = 0;
@@ -916,81 +844,90 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 				this._numLines++;
 				continue;
 			}
-
+			
 			charData = font.getChar(charID);
-			if (charData == null) {
+			if (charData  == null)
+			{
 				trace("Missing character " + String.fromCharCode(charID) + " in font " + font.name + ".");
 				continue;
 			}
-
-			if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+			
+			if (isKerningEnabled && previousCharID != -1)
 			{
-				currentX += charData.getKerning(Std.int(previousCharID)) * scale;
+				currentX += charData.getKerning(previousCharID) * scale;
 			}
-
+			
 			var xAdvance:Float = charData.xAdvance * scale;
-			var previousCharData:BitmapChar;
-			if (this._wordWrap) {
-				var currentCharIsWhitespace:Bool = charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB;
-				var previousCharIsWhitespace:Bool = previousCharID == CHARACTER_ID_SPACE || previousCharID == CHARACTER_ID_TAB;
-				if (currentCharIsWhitespace) {
-					if (!previousCharIsWhitespace) {
-						// this is the spacing after the last character
-						// that isn't whitespace
-						previousCharData = font.getChar(Std.int(previousCharID));
+			if (this._wordWrap)
+			{
+				var currentCharIsWhiteSpace:Bool = charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB;
+				var previousCharIsWhiteSpace:Bool = previousCharID == CHARACTER_ID_SPACE || previousCharID == CHARACTER_ID_TAB;
+				if (currentCharIsWhiteSpace)
+				{
+					if (!previousCharIsWhiteSpace)
+					{
+						//this is the spacing after the last character
+						//that isn't whitespace
+						previousCharData = font.getChar(previousCharID);
 						widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.xAdvance - previousCharData.width) * scale;
 					}
 					widthOfWhitespaceAfterWord += xAdvance;
-				} else if (previousCharIsWhitespace) {
+				}
+				else if (previousCharIsWhiteSpace)
+				{
 					startXOfPreviousWord = currentX;
 					wordLength = 0;
 					wordCountForLine++;
 					isWordComplete = true;
 				}
-
-				// we may need to move to a new line at the same time
-				// that our previous word in the buffer can be batched
-				// so we need to add the buffer here rather than after
-				// the next section
-				if (isWordComplete && !isAligned) {
+				
+				//we may need to move to a new line at the same time
+				//that our previous word in the buffer can be batched
+				//so we need to add the buffer here rather than after
+				//the next section
+				if (isWordComplete && !isAligned)
+				{
 					this.addBufferToBatch(0);
 				}
-
-				// floating point errors can cause unnecessary line breaks,
-				// so we're going to be a little bit fuzzy on the greater
-				// than check. such tiny numbers shouldn't break anything.
+				
+				//floating point errors can cause unnecessary line breaks,
+				//so we're going to be a little bit fuzzy on the greater
+				//than check. such tiny numbers shouldn't break anything.
 				var charWidth:Float = charData.width * scale;
-				if (!currentCharIsWhitespace
-					&& (wordCountForLine > 0 || this._breakLongWords)
-					&& ((currentX + charWidth) - maxLineWidth) > FUZZY_MAX_WIDTH_PADDING) {
-					if (wordCountForLine == 0) {
-						// if we're breaking long words, this is where we break.
-						// we need to pretend that there's a word before this one.
+				if (!currentCharIsWhiteSpace && (wordCountForLine > 0 || this._breakLongWords) && ((currentX + charWidth) - maxLineWidth) > FUZZY_MAX_WIDTH_PADDING)
+				{
+					if (wordCountForLine == 0)
+					{
+						//if we're breaking long words, this is where we break.
+						//we need to pretend that there's a word before this one.
 						wordLength = 0;
 						startXOfPreviousWord = currentX;
 						widthOfWhitespaceAfterWord = 0;
-						if (previousCharID == previousCharID) // !isNaN
+						if (previousCharID != -1)
 						{
-							previousCharData = font.getChar(Std.int(previousCharID));
+							previousCharData = font.getChar(previousCharID);
 							widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.xAdvance - previousCharData.width) * scale;
 						}
-						if (!isAligned) {
+						if (!isAligned)
+						{
 							this.addBufferToBatch(0);
 						}
 					}
-					if (isAligned) {
+					if (isAligned)
+					{
 						this.trimBuffer(wordLength);
 						this.alignBuffer(maxLineWidth, startXOfPreviousWord - widthOfWhitespaceAfterWord, wordLength);
 						this.addBufferToBatch(wordLength);
 					}
-					this.moveBufferedCharacters(-startXOfPreviousWord, lineHeight, 0);
-					// we're just reusing this variable to avoid creating a
-					// new one. it'll be reset to 0 in a moment.
+					this.moveBufferedCharacters( -startXOfPreviousWord, lineHeight, 0);
+					//we're just reusing this variable to avoid creating a
+					//new one. it'll be reset to 0 in a moment.
 					widthOfWhitespaceAfterWord = startXOfPreviousWord - widthOfWhitespaceAfterWord;
-					if (maxX < widthOfWhitespaceAfterWord) {
+					if (maxX < widthOfWhitespaceAfterWord)
+					{
 						maxX = widthOfWhitespaceAfterWord;
 					}
-					previousCharID = Math.NaN;
+					previousCharID = -1;
 					currentX -= startXOfPreviousWord;
 					currentY += lineHeight;
 					startXOfPreviousWord = 0;
@@ -1001,111 +938,140 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 					this._numLines++;
 				}
 			}
-			if (this._wordWrap || isAligned) {
-				var charLocation:CharLocation = CHAR_LOCATION_POOL.length > 0 ? CHAR_LOCATION_POOL.shift() : new CharLocation();
+			if (this._wordWrap || isAligned)
+			{
+				var charLocation:CharLocation = CHAR_LOCATION_POOL.length != 0 ? CHAR_LOCATION_POOL.shift() : new CharLocation();
 				charLocation.char = charData;
 				charLocation.x = currentX + offsetX + charData.xOffset * scale;
 				charLocation.y = currentY + offsetY + charData.yOffset * scale;
 				charLocation.scale = scale;
 				CHARACTER_BUFFER[CHARACTER_BUFFER.length] = charLocation;
 				wordLength++;
-			} else {
-				this.addCharacterToBatch(charData, currentX + offsetX + charData.xOffset * scale, currentY + offsetY + charData.yOffset * scale, scale);
 			}
-
+			else
+			{
+				this.addCharacterToBatch(charData,
+					currentX + offsetX + charData.xOffset * scale,
+					currentY + offsetY + charData.yOffset * scale,
+					scale);
+			}
+			
 			currentX += xAdvance + customLetterSpacing;
 			previousCharID = charID;
 		}
-		// remove whitespace after the final character in the final line
+		//remove whitespace after the final character in the final line
 		currentX = currentX - customLetterSpacing;
-		if (charData != null) {
+		if (charData != null)
+		{
 			currentX -= (charData.xAdvance - charData.width) * scale;
 		}
-		if (currentX < 0) {
+		if (currentX < 0)
+		{
 			currentX = 0;
 		}
-		if (this._wordWrap || isAligned) {
+		if (this._wordWrap || isAligned)
+		{
 			this.alignBuffer(maxLineWidth, currentX, 0);
 			this.addBufferToBatch(0);
 		}
-		// if the text ends in extra whitespace, the currentX value will be
-		// larger than the max line width. we'll remove that and add extra
-		// lines.
-		if (this._wordWrap) {
-			while (currentX > maxLineWidth && !MathUtil.isEquivalent(currentX, maxLineWidth)) {
+		//if the text ends in extra whitespace, the currentX value will be
+		//larger than the max line width. we'll remove that and add extra
+		//lines.
+		if (this._wordWrap)
+		{
+			while (currentX > maxLineWidth && !MathUtil.isEquivalent(currentX, maxLineWidth))
+			{
 				currentX -= maxLineWidth;
 				currentY += lineHeight;
-				if (maxLineWidth == 0) {
-					// we don't want to get stuck in an infinite loop!
+				if (maxLineWidth == 0)
+				{
+					//we don't want to get stuck in an infinite loop!
 					break;
 				}
 			}
 		}
-		if (maxX < currentX) {
+		if (maxX < currentX)
+		{
 			maxX = currentX;
 		}
-
-		if (isAligned && !hasExplicitWidth) {
+		
+		if (isAligned && !hasExplicitWidth)
+		{
 			var align:String = this._currentTextFormat.align;
-			if (align == TextFormatAlign.CENTER) {
+			if (align == TextFormatAlign.CENTER)
+			{
 				this._batchX = (maxX - maxLineWidth) / 2;
-			} else if (align == TextFormatAlign.RIGHT) {
+			}
+			else if (align == TextFormatAlign.RIGHT)
+			{
 				this._batchX = maxX - maxLineWidth;
 			}
-		} else {
+		}
+		else
+		{
 			this._batchX = 0;
 		}
 		this._characterBatch.x = this._batchX;
-
+		
 		result.width = maxX;
 		result.height = currentY + lineHeight - this._currentTextFormat.leading;
 		return result;
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function trimBuffer(skipCount:Int):Void {
+	   @private
+	**/
+	private function trimBuffer(skipCount:Int):Void
+	{
 		var countToRemove:Int = 0;
 		var charCount:Int = CHARACTER_BUFFER.length - skipCount;
-		// for (var i:Int = charCount - 1; i >= 0; i--)
-		var i:Int = charCount - 1;
-		while (i >= 0) {
+		var index:Int = -1;
+		for (i in new ReverseIterator(charCount - 1, 0))
+		{
 			var charLocation:CharLocation = CHARACTER_BUFFER[i];
 			var charData:BitmapChar = charLocation.char;
 			var charID:Int = charData.charID;
-			if (charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB) {
+			if (charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB)
+			{
 				countToRemove++;
-			} else {
+			}
+			else
+			{
+				index = i;
 				break;
 			}
-			i--;
 		}
-		if (countToRemove > 0) {
-			CHARACTER_BUFFER.splice(i + 1, countToRemove);
+		if (countToRemove > 0)
+		{
+			CHARACTER_BUFFER.splice(index + 1, countToRemove);
 		}
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function alignBuffer(maxLineWidth:Float, currentLineWidth:Float, skipCount:Int):Void {
+	   @private
+	**/
+	private function alignBuffer(maxLineWidth:Float, currentLineWidth:Float, skipCount:Int):Void
+	{
 		var align:String = this._currentTextFormat.align;
-		if (align == TextFormatAlign.CENTER) {
-			this.moveBufferedCharacters(Math.round((maxLineWidth - currentLineWidth) / 2), 0, skipCount);
-		} else if (align == TextFormatAlign.RIGHT) {
+		if (align == TextFormatAlign.CENTER)
+		{
+			this.moveBufferedCharacters(Math.fround((maxLineWidth - currentLineWidth) / 2), 0, skipCount);
+		}
+		else if (align == TextFormatAlign.RIGHT)
+		{
 			this.moveBufferedCharacters(maxLineWidth - currentLineWidth, 0, skipCount);
 		}
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function addBufferToBatch(skipCount:Int):Void {
+	   @private
+	**/
+	private function addBufferToBatch(skipCount:Int):Void
+	{
 		var charCount:Int = CHARACTER_BUFFER.length - skipCount;
 		var pushIndex:Int = CHAR_LOCATION_POOL.length;
-		// for (var i:Int = 0; i < charCount; i++)
-		for (i in 0...charCount) {
+		for (i in 0...charCount)
+		{
 			var charLocation:CharLocation = CHARACTER_BUFFER.shift();
 			this.addCharacterToBatch(charLocation.char, charLocation.x, charLocation.y, charLocation.scale);
 			charLocation.char = null;
@@ -1113,37 +1079,46 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 			pushIndex++;
 		}
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function moveBufferedCharacters(xOffset:Float, yOffset:Float, skipCount:Int):Void {
+	   @private
+	**/
+	private function moveBufferedCharacters(xOffset:Float, yOffset:Float, skipCount:Int):Void
+	{
 		var charCount:Int = CHARACTER_BUFFER.length - skipCount;
-		// for (var i:Int = 0; i < charCount; i++)
-		for (i in 0...charCount) {
+		for (i in 0...charCount)
+		{
 			var charLocation:CharLocation = CHARACTER_BUFFER[i];
 			charLocation.x += xOffset;
 			charLocation.y += yOffset;
 		}
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function addCharacterToBatch(charData:BitmapChar, x:Float, y:Float, scale:Float, painter:Painter = null):Void {
+	   @private
+	**/
+	private function addCharacterToBatch(charData:BitmapChar, x:Float, y:Float, scale:Float, painter:Painter = null):Void
+	{
 		var texture:Texture = charData.texture;
 		var frame:Rectangle = texture.frame;
-		if (frame != null) {
-			if (frame.width == 0 || frame.height == 0) {
+		if (frame != null)
+		{
+			if (frame.width == 0 || frame.height == 0)
+			{
 				return;
 			}
-		} else if (texture.width == 0 || texture.height == 0) {
+		}
+		else if (texture.width == 0 || texture.height == 0)
+		{
 			return;
 		}
 		var font:BitmapFont = this._currentTextFormat.font;
-		if (this._image == null) {
+		if (this._image == null)
+		{
 			this._image = new Image(texture);
-		} else {
+		}
+		else
+		{
 			this._image.texture = texture;
 			this._image.readjustSize();
 		}
@@ -1152,96 +1127,118 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 		this._image.x = x;
 		this._image.y = y;
 		this._image.color = this._currentTextFormat.color;
-		if (this._textureSmoothing != null) {
+		if (this._textureSmoothing != null)
+		{
 			this._image.textureSmoothing = this._textureSmoothing;
-		} else {
+		}
+		else
+		{
 			this._image.textureSmoothing = font.smoothing;
 		}
-
-		if (painter != null) {
+		
+		if (painter != null)
+		{
 			painter.pushState();
 			painter.setStateTo(this._image.transformationMatrix);
 			painter.batchMesh(this._image);
 			painter.popState();
-		} else {
+		}
+		else
+		{
 			this._characterBatch.addMesh(this._image);
 		}
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function refreshTextFormat():Void {
+	   @private
+	**/
+	private function refreshTextFormat():Void
+	{
 		var textFormat:BitmapFontTextFormat = null;
-		if (this._stateContext != null) {
-			if (this._textFormatForState != null) {
+		if (this._stateContext != null)
+		{
+			if (this._textFormatForState != null)
+			{
 				var currentState:String = this._stateContext.currentState;
-				if (this._textFormatForState.exists(currentState)) {
-					textFormat = cast this._textFormatForState.get(currentState);
-				}
+				textFormat = this._textFormatForState[currentState];
 			}
-			if (textFormat == null
-				&& this._disabledTextFormat != null
-				&& Std.isOfType(this._stateContext, IFeathersControl)
-				&& !cast(this._stateContext, IFeathersControl).isEnabled) {
+			if (textFormat == null && this._disabledTextFormat != null &&
+				Std.isOfType(this._stateContext, IFeathersControl) && !cast(this._stateContext, IFeathersControl).isEnabled)
+			{
 				textFormat = this._disabledTextFormat;
 			}
-			if (textFormat == null
-				&& this._selectedTextFormat != null
-				&& this._stateContext is IToggle
-				&& cast(this._stateContext, IToggle).isSelected) {
+			if (textFormat == null && this._selectedTextFormat != null &&
+				Std.isOfType(this._stateContext, IToggle) && cast(this._stateContext, IToggle).isSelected)
+			{
 				textFormat = this._selectedTextFormat;
 			}
-		} else // no state context
+		}
+		else //no state context
 		{
-			// we can still check if the text renderer is disabled to see if
-			// we should use disabledTextFormat
-			if (!this._isEnabled && this._disabledTextFormat != null) {
+			//we can still check if the text renderer is disabled to see if
+			//we should use disabledTextFormat
+			if (!this._isEnabled && this._disabledTextFormat != null)
+			{
 				textFormat = this._disabledTextFormat;
 			}
 		}
-		if (textFormat == null) {
+		if (textFormat == null)
+		{
 			textFormat = this._textFormat;
 		}
-		if (textFormat == null) {
+		if (textFormat == null)
+		{
 			textFormat = this.getTextFormatFromFontStyles();
-		} else {
-			// when using BitmapFontTextFormat, vertical align is always top
+		}
+		else
+		{
+			//when using BitmapFontTextFormat, vertical align is always top
 			this._currentVerticalAlign = Align.TOP;
-			if (this._currentFontStyles == null) {
+			if (this._currentFontStyles == null)
+			{
 				this._currentFontStyles = new TextFormat();
 			}
 			// we need the size to determine the default mesh style
 			this._currentFontStyles.size = textFormat.size;
 		}
-		if (this._currentTextFormat != textFormat) {
+		if (this._currentTextFormat != textFormat)
+		{
 			this._currentTextFormat = textFormat;
 			this._textFormatChanged = true;
 		}
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function getTextFormatFromFontStyles():BitmapFontTextFormat {
-		if (this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES) || this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE)) {
+	   @private
+	**/
+	private function getTextFormatFromFontStyles():BitmapFontTextFormat
+	{
+		if (this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES) ||
+			this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE))
+		{
 			var textFormat:TextFormat = null;
-			if (this._fontStyles != null) {
+			if (this._fontStyles != null)
+			{
 				textFormat = this._fontStyles.getTextFormatForTarget(this);
 				this._currentFontStyles = textFormat;
 			}
-			if (textFormat != null) {
-				this._fontStylesTextFormat = new BitmapFontTextFormat(textFormat.font, textFormat.size, textFormat.color, textFormat.horizontalAlign,
-					textFormat.leading);
+			if (textFormat != null)
+			{
+				this._fontStylesTextFormat = new BitmapFontTextFormat(
+					textFormat.font, textFormat.size, textFormat.color,
+					textFormat.horizontalAlign, textFormat.leading);
 				this._fontStylesTextFormat.isKerningEnabled = textFormat.kerning;
 				this._fontStylesTextFormat.letterSpacing = textFormat.letterSpacing;
 				this._currentVerticalAlign = textFormat.verticalAlign;
-			} else if (this._fontStylesTextFormat == null) {
-				// let's fall back to using Starling's embedded mini font if no
-				// text format has been specified
-
-				// if it's not registered, do that first
-				if (TextField.getBitmapFont(BitmapFont.MINI) == null) {
+			}
+			else if (this._fontStylesTextFormat == null)
+			{
+				//let's fall back to using Starling's embedded mini font if no
+				//text format has been specified
+				
+				//if it's not registered, do that first
+				if (TextField.getBitmapFont(BitmapFont.MINI) != null)
+				{
 					var font:BitmapFont = new BitmapFont();
 					TextField.registerCompositor(font, font.name);
 				}
@@ -1251,137 +1248,155 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 		}
 		return this._fontStylesTextFormat;
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function measureTextInternal(result:Point, useExplicit:Bool):Point {
-		if (result == null) {
+	   @private
+	**/
+	private function measureTextInternal(result:Point, useExplicit:Bool):Point
+	{
+		if (result == null)
+		{
 			result = new Point();
 		}
-
-		var needsWidth:Bool = !useExplicit || this._explicitWidth != this._explicitWidth; // isNaN
-		var needsHeight:Bool = !useExplicit || this._explicitHeight != this._explicitHeight; // isNaN
-		if (!needsWidth && !needsHeight) {
+		
+		var needsWidth:Bool = !useExplicit || this._explicitWidth != this._explicitWidth; //isNaN
+		var needsHeight:Bool = !useExplicit || this._explicitHeight != this._explicitHeight; //isNaN
+		if (!needsWidth && !needsHeight)
+		{
 			result.x = this._explicitWidth;
 			result.y = this._explicitHeight;
 			return result;
 		}
-
-		if (this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES) || this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE)) {
+		
+		if (this.isInvalid(FeathersControl.INVALIDATION_FLAG_STYLES) || this.isInvalid(FeathersControl.INVALIDATION_FLAG_STATE))
+		{
 			this.refreshTextFormat();
 		}
-
-		if (this._currentTextFormat == null || this._text == null) {
+		
+		if (this._currentTextFormat == null || this._text == null)
+		{
 			result.setTo(0, 0);
 			return result;
 		}
-
+		
 		var font:BitmapFont = this._currentTextFormat.font;
 		var customSize:Float = this._currentTextFormat.size;
 		var customLetterSpacing:Float = this._currentTextFormat.letterSpacing;
 		var isKerningEnabled:Bool = this._currentTextFormat.isKerningEnabled;
 		var scale:Float = customSize / font.size;
-		if (scale != scale) // isNaN
+		if (scale != scale) //isNaN
 		{
 			scale = 1;
 		}
 		var lineHeight:Float = font.lineHeight * scale + this._currentTextFormat.leading;
 		var maxLineWidth:Float = this._explicitWidth;
-		if (maxLineWidth != maxLineWidth) // isNaN
+		if (maxLineWidth != maxLineWidth) //isNaN
 		{
 			maxLineWidth = this._explicitMaxWidth;
 		}
-
+		
 		var maxX:Float = 0;
 		var currentX:Float = 0;
 		var currentY:Float = 0;
-		var previousCharID:Float = Math.NaN;
+		var previousCharID:Int = -1;
+		var previousCharData:BitmapChar;
 		var charCount:Int = this._text.length;
 		var startXOfPreviousWord:Float = 0;
-		var widthOfWhitespaceAfterWord:Float = 0;
+		var widthOfWhiteSpaceAfterWord:Float = 0;
 		var wordCountForLine:Int = 0;
 		var line:String = "";
 		var word:String = "";
 		var charData:BitmapChar = null;
-		// for (var i:Int = 0; i < charCount; i++)
-		for (i in 0...charCount) {
+		for (i in 0...charCount)
+		{
 			var charID:Int = this._text.charCodeAt(i);
-			if (charID == CHARACTER_ID_LINE_FEED || charID == CHARACTER_ID_CARRIAGE_RETURN) // new line \n or \r
+			if (charID == CHARACTER_ID_LINE_FEED || charID == CHARACTER_ID_CARRIAGE_RETURN) //new line \n or \r
 			{
-				// remove whitespace after the final character in the line
+				//remove whitespace after the final character in the line
 				currentX -= customLetterSpacing;
-				if (charData != null) {
+				if (charData != null)
+				{
 					currentX -= (charData.xAdvance - charData.width) * scale;
 				}
-				if (currentX < 0) {
+				if (currentX < 0)
+				{
 					currentX = 0;
 				}
-				if (maxX < currentX) {
+				if (maxX < currentX)
+				{
 					maxX = currentX;
 				}
-				previousCharID = Math.NaN;
+				previousCharID = -1;
 				currentX = 0;
 				currentY += lineHeight;
 				startXOfPreviousWord = 0;
 				wordCountForLine = 0;
-				widthOfWhitespaceAfterWord = 0;
+				widthOfWhiteSpaceAfterWord = 0;
 				continue;
 			}
-
+			
 			charData = font.getChar(charID);
-			if (charData == null) {
+			if (charData  == null)
+			{
 				trace("Missing character " + String.fromCharCode(charID) + " in font " + font.name + ".");
 				continue;
 			}
-
-			if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+			
+			if (isKerningEnabled && 
+				previousCharID != -1) //!isNaN
 			{
-				currentX += charData.getKerning(Std.int(previousCharID)) * scale;
+				currentX += charData.getKerning(previousCharID) * scale;
 			}
-
+			
 			var xAdvance:Float = charData.xAdvance * scale;
-			var previousCharData:BitmapChar;
-			if (this._wordWrap) {
-				var currentCharIsWhitespace:Bool = charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB;
-				var previousCharIsWhitespace:Bool = previousCharID == CHARACTER_ID_SPACE || previousCharID == CHARACTER_ID_TAB;
-				if (currentCharIsWhitespace) {
-					if (!previousCharIsWhitespace) {
-						// this is the spacing after the last character
-						// that isn't whitespace
-						previousCharData = font.getChar(Std.int(previousCharID));
-						widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.xAdvance - previousCharData.width) * scale;
+			if (this._wordWrap)
+			{
+				var currentCharIsWhiteSpace:Bool = charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB;
+				var previousCharIsWhiteSpace:Bool = previousCharID == CHARACTER_ID_SPACE || previousCharID == CHARACTER_ID_TAB;
+				if (currentCharIsWhiteSpace)
+				{
+					if (!previousCharIsWhiteSpace)
+					{
+						//this is the spacing after the last character
+						//that isn't whitespace
+						previousCharData = font.getChar(previousCharID);
+						widthOfWhiteSpaceAfterWord = customLetterSpacing + (previousCharData.xAdvance - previousCharData.width) * scale;
 					}
-					widthOfWhitespaceAfterWord += xAdvance;
-				} else if (previousCharIsWhitespace) {
+					widthOfWhiteSpaceAfterWord += xAdvance;
+				}
+				else if (previousCharIsWhiteSpace)
+				{
 					startXOfPreviousWord = currentX;
 					wordCountForLine++;
 					line += word;
 					word = "";
 				}
-
+				
 				var charWidth:Float = charData.width * scale;
-				if (!currentCharIsWhitespace && (wordCountForLine > 0 || this._breakLongWords) && (currentX + charWidth) > maxLineWidth) {
-					if (wordCountForLine == 0) {
-						// if we're breaking long words, this is where we break
+				if (!currentCharIsWhiteSpace && (wordCountForLine > 0 || this._breakLongWords) && (currentX + charWidth) > maxLineWidth)
+				{
+					if (wordCountForLine == 0)
+					{
+						// if we are breaking long words, this is where we break
 						startXOfPreviousWord = currentX;
-						if (previousCharID == previousCharID) // !isNaN
+						if (previousCharID != -1) //!isNaN
 						{
-							previousCharData = font.getChar(Std.int(previousCharID));
-							widthOfWhitespaceAfterWord = customLetterSpacing + (previousCharData.xAdvance - previousCharData.width) * scale;
+							previousCharData = font.getChar(previousCharID);
+							widthOfWhiteSpaceAfterWord = customLetterSpacing + (previousCharData.xAdvance - previousCharData.width) * scale;
 						}
 					}
-					// we're just reusing this variable to avoid creating a
-					// new one. it'll be reset to 0 in a moment.
-					widthOfWhitespaceAfterWord = startXOfPreviousWord - widthOfWhitespaceAfterWord;
-					if (maxX < widthOfWhitespaceAfterWord) {
-						maxX = widthOfWhitespaceAfterWord;
+					//we're just reusing this variable to avoid creating a
+					//new one. it'll be reset to 0 in a moment.
+					widthOfWhiteSpaceAfterWord = startXOfPreviousWord - widthOfWhiteSpaceAfterWord;
+					if (maxX < widthOfWhiteSpaceAfterWord)
+					{
+						maxX = widthOfWhiteSpaceAfterWord;
 					}
-					previousCharID = Math.NaN;
+					previousCharID = -1;
 					currentX -= startXOfPreviousWord;
 					currentY += lineHeight;
 					startXOfPreviousWord = 0;
-					widthOfWhitespaceAfterWord = 0;
+					widthOfWhiteSpaceAfterWord = 0;
 					wordCountForLine = 0;
 					line = "";
 				}
@@ -1392,189 +1407,217 @@ class BitmapFontTextRenderer extends BaseTextRenderer implements ITextRenderer {
 		}
 		// remove whitespace after the final character in the final line
 		currentX -= customLetterSpacing;
-		if (charData != null) {
+		if (charData != null)
+		{
 			currentX -= (charData.xAdvance - charData.width) * scale;
 		}
-		if (currentX < 0) {
+		if (currentX < 0)
+		{
 			currentX = 0;
 		}
-		// if the text ends in extra whitespace, the currentX value will be
-		// larger than the max line width. we'll remove that and add extra
-		// lines.
-		if (this._wordWrap) {
-			while (currentX > maxLineWidth && !MathUtil.isEquivalent(currentX, maxLineWidth)) {
+		//if the text ends in extra whitespace, the currentX value will be
+		//larger than the max line width. we'll remove that and add extra
+		//lines.
+		if (this._wordWrap)
+		{
+			while (currentX > maxLineWidth && !MathUtil.isEquivalent(currentX, maxLineWidth))
+			{
 				currentX -= maxLineWidth;
 				currentY += lineHeight;
-				if (maxLineWidth == 0) {
-					// we don't want to get stuck in an infinite loop!
+				if (maxLineWidth == 0)
+				{
+					//we don't want to get stuck in an infinite loop!
 					break;
 				}
 			}
 		}
-		if (maxX < currentX) {
+		if (maxX < currentX)
+		{
 			maxX = currentX;
 		}
-
-		if (needsWidth) {
+		
+		if (needsWidth)
+		{
 			result.x = maxX;
-		} else {
+		}
+		else
+		{
 			result.x = this._explicitWidth;
 		}
-		if (needsHeight) {
-			result.y = currentY + lineHeight - this._currentTextFormat.leading;
-		} else {
+		if (needsHeight)
+		{
+			result.y = currentY + lineHeight - this.currentTextFormat.leading;
+		}
+		else
+		{
 			result.y = this._explicitHeight;
 		}
-
+		
 		return result;
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function getTruncatedText(width:Float):String {
-		if (this._text == null) {
-			// this shouldn't be called if _text is null, but just in case...
+	   @private
+	**/
+	private function getTruncatedText(width:Float):String
+	{
+		if (this._text == null)
+		{
+			//this shouldn't be called if _text is null, but just in case...
 			return "";
 		}
-
-		// if the width is infinity or the string is multiline, don't allow truncation
-		if (width == Math.POSITIVE_INFINITY
-			|| this._wordWrap
-			|| this._text.indexOf(String.fromCharCode(CHARACTER_ID_LINE_FEED)) >= 0
-			|| this._text.indexOf(String.fromCharCode(CHARACTER_ID_CARRIAGE_RETURN)) >= 0) {
+		
+		//if the width is infinity or the string is multiline, don't allow truncation
+		if (width == Math.POSITIVE_INFINITY || this._wordWrap || this._text.indexOf(String.fromCharCode(CHARACTER_ID_LINE_FEED)) != -1 || this._text.indexOf(String.fromCharCode(CHARACTER_ID_CARRIAGE_RETURN)) != -1)
+		{
 			return this._text;
 		}
-
+		
 		var font:BitmapFont = this._currentTextFormat.font;
 		var customSize:Float = this._currentTextFormat.size;
 		var customLetterSpacing:Float = this._currentTextFormat.letterSpacing;
 		var isKerningEnabled:Bool = this._currentTextFormat.isKerningEnabled;
 		var scale:Float = customSize / font.size;
-		if (scale != scale) // isNaN
+		if (scale != scale) //isNaN
 		{
 			scale = 1;
 		}
 		var currentX:Float = 0;
-		var previousCharID:Float = Math.NaN;
-		var charCount:Int = this._text.length;
-		var truncationIndex:Int = -1;
 		var charID:Int;
 		var charData:BitmapChar = null;
-		var charWidth:Float;
+		var previousCharID:Int = -1;
 		var currentKerning:Float;
-		var difference:Float;
-		// for (var i:Int = 0; i < charCount; i++)
-		for (i in 0...charCount) {
+		var charCount:Int = this._text.length;
+		var truncationIndex:Int = -1;
+		for (i in 0...charCount)
+		{
 			charID = this._text.charCodeAt(i);
 			charData = font.getChar(charID);
-			if (charData == null) {
+			if (charData == null)
+			{
 				continue;
 			}
 			currentKerning = 0;
-			if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+			if (isKerningEnabled &&
+				previousCharID != -1)
 			{
-				currentKerning = charData.getKerning(Std.int(previousCharID)) * scale;
+				currentKerning = charData.getKerning(previousCharID) * scale;
 			}
-			charWidth = charData.width * scale;
-			// add only the width of the character and not the xAdvance
-			// because the final character doesn't have whitespace after it
+			var charWidth:Float = charData.width * scale;
+			//add only the width of the character and not the xAdvance
+			//because the final character doesn't have whitespace after it
 			currentX += currentKerning + charWidth;
-			if (currentX > width) {
-				// floating point errors can cause unnecessary truncation,
-				// so we're going to be a little bit fuzzy on the greater
-				// than check. such tiny numbers shouldn't break anything.
-				difference = Math.abs(currentX - width);
-				if (difference > FUZZY_MAX_WIDTH_PADDING) {
+			if (currentX > width)
+			{
+				//floating point errors can cause unnecessary truncation,
+				//so we're going to be a little bit fuzzy on the greater
+				//than check. such tiny numbers shouldn't break anything.
+				var difference:Float = Math.abs(currentX - width);
+				if (difference > FUZZY_MAX_WIDTH_PADDING)
+				{
 					truncationIndex = i;
-					// add the extra whitespace back to the end because we'll
-					// be appending the truncation text (...)
+					//add the extra whitespace back to the end because we'll
+					//be appending the truncation text (...)
 					currentX += (charData.xAdvance * scale) - charWidth;
 					break;
 				}
 			}
-			// add the extra whitespace to the end for the next character
+			//add the extra whitespace to the end for the next character
 			currentX += customLetterSpacing + (charData.xAdvance * scale) - charWidth;
 			previousCharID = charID;
 		}
-
-		if (truncationIndex >= 0) {
-			// first add the width of the truncation text (...)
+		
+		if (truncationIndex >= 0)
+		{
+			//first add the width of the truncation text (...)
 			charCount = this._truncationText.length;
-			// for (i = 0;i < charCount;i++)
-			for (i in 0...charCount) {
+			for (i in 0...charCount)
+			{
 				charID = this._truncationText.charCodeAt(i);
 				charData = font.getChar(charID);
-				if (charData == null) {
+				if (charData == null)
+				{
 					continue;
 				}
 				currentKerning = 0;
-				if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+				if (isKerningEnabled &&
+					previousCharID != -1)
 				{
-					currentKerning = charData.getKerning(Std.int(previousCharID)) * scale;
+					currentKerning = charData.getKerning(previousCharID) * scale;
 				}
 				currentX += currentKerning + charData.xAdvance * scale + customLetterSpacing;
 				previousCharID = charID;
 			}
 			currentX -= customLetterSpacing;
-			if (charData != null) {
+			if (charData != null)
+			{
 				currentX -= (charData.xAdvance - charData.width) * scale;
 			}
-
+			
 			// then work our way backwards until we fit into the width
-			// for (i = truncationIndex; i >= 0; i--)
-			var i:Int = truncationIndex;
-			while (i >= 0) {
+			for (i in new ReverseIterator(truncationIndex, 0))
+			{
 				charID = this._text.charCodeAt(i);
-				previousCharID = (i > 0) ? this._text.charCodeAt(i - 1) : Math.NaN;
+				previousCharID = (i > 0) ? this._text.charCodeAt(i - 1) : -1;
 				charData = font.getChar(charID);
-				if (charData == null) {
+				if (charData == null)
+				{
 					continue;
 				}
 				currentKerning = 0;
-				if (isKerningEnabled && previousCharID == previousCharID) // !isNaN
+				if (isKerningEnabled &&
+					previousCharID != -1)
 				{
-					currentKerning = charData.getKerning(Std.int(previousCharID)) * scale;
+					currentKerning = charData.getKerning(previousCharID) * scale;
 				}
 				currentX -= (currentKerning + charData.xAdvance * scale + customLetterSpacing);
-				if (currentX <= width) {
+				if (currentX <= width)
+				{
 					return this._text.substr(0, i) + this._truncationText;
 				}
-
-				i--;
 			}
 			return this._truncationText;
 		}
 		return this._text;
 	}
-
+	
 	/**
-	 * @private
-	 */
-	private function getVerticalAlignOffsetY():Float {
+	   @private
+	**/
+	private function getVerticalAlignOffsetY():Float
+	{
 		var font:BitmapFont = this._currentTextFormat.font;
 		var customSize:Float = this._currentTextFormat.size;
 		var scale:Float = customSize / font.size;
-		if (scale != scale) // isNaN
+		if (scale != scale) //isNaN
 		{
 			scale = 1;
 		}
 		var lineHeight:Float = font.lineHeight * scale + this._currentTextFormat.leading;
 		var textHeight:Float = this._numLines * lineHeight;
-		if (textHeight > this.actualHeight) {
+		if (textHeight > this.actualHeight)
+		{
 			return 0;
 		}
-		if (this._currentVerticalAlign == Align.BOTTOM) {
+		if (this._currentVerticalAlign == Align.BOTTOM)
+		{
 			return (this.actualHeight - textHeight);
-		} else if (this._currentVerticalAlign == Align.CENTER) {
+		}
+		else if (this._currentVerticalAlign == Align.CENTER)
+		{
 			return (this.actualHeight - textHeight) / 2;
 		}
 		return 0;
 	}
+	
 }
 
-class CharLocation {
-	public function new() {}
+class CharLocation
+{
+	public function new()
+	{
+		
+	}
 
 	public var char:BitmapChar;
 	public var scale:Float;

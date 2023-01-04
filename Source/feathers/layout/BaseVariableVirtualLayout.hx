@@ -12,7 +12,7 @@ import starling.display.DisplayObject;
 import starling.events.Event;
 import starling.events.EventDispatcher;
 
-class BaseVariableVirtualLayout extends EventDispatcher {
+abstract class BaseVariableVirtualLayout extends EventDispatcher {
 	/**
 	 * Constructor.
 	 */
@@ -34,11 +34,11 @@ class BaseVariableVirtualLayout extends EventDispatcher {
 
 	private var _useVirtualLayout:Bool = true;
 
-	public function get_useVirtualLayout():Bool {
+	private function get_useVirtualLayout():Bool {
 		return this._useVirtualLayout;
 	}
 
-	public function set_useVirtualLayout(value:Bool):Bool {
+	private function set_useVirtualLayout(value:Bool):Bool {
 		if (this._useVirtualLayout == value) {
 			return value;
 		}
@@ -58,11 +58,11 @@ class BaseVariableVirtualLayout extends EventDispatcher {
 
 	private var _typicalItem:DisplayObject;
 
-	public function get_typicalItem():DisplayObject {
+	private function get_typicalItem():DisplayObject {
 		return this._typicalItem;
 	}
 
-	public function set_typicalItem(value:DisplayObject):DisplayObject {
+	private function set_typicalItem(value:DisplayObject):DisplayObject {
 		if (this._typicalItem == value) {
 			return value;
 		}
@@ -82,11 +82,11 @@ class BaseVariableVirtualLayout extends EventDispatcher {
 
 	private var _hasVariableItemDimensions:Bool = false;
 
-	public function get_hasVariableItemDimensions():Bool {
+	private function get_hasVariableItemDimensions():Bool {
 		return this._hasVariableItemDimensions;
 	}
 
-	public function set_hasVariableItemDimensions(value:Bool):Bool {
+	private function set_hasVariableItemDimensions(value:Bool):Bool {
 		if (this._hasVariableItemDimensions == value) {
 			return value;
 		}
@@ -100,7 +100,7 @@ class BaseVariableVirtualLayout extends EventDispatcher {
 	 */
 	public var requiresLayoutOnScroll(get, never):Bool;
 
-	public function get_requiresLayoutOnScroll():Bool {
+	private function get_requiresLayoutOnScroll():Bool {
 		return this._useVirtualLayout;
 	}
 
@@ -108,7 +108,7 @@ class BaseVariableVirtualLayout extends EventDispatcher {
 	 * @copy feathers.layout.IVariableVirtualLayout#resetVariableVirtualCache()
 	 */
 	public function resetVariableVirtualCache():Void {
-		this._virtualCache.splice(0, this._virtualCache.length);
+		this._virtualCache.resize(0);
 	}
 
 	/**

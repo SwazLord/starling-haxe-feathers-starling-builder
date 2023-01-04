@@ -1,11 +1,10 @@
 /*
-	Feathers
-	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.controls;
 
 /**
@@ -17,12 +16,13 @@ package feathers.controls;
  *
  * @productversion Feathers 2.0.0
  */
-interface IDirectionalScrollBar extends IScrollBar {
+interface IDirectionalScrollBar extends IScrollBar
+{
 	/**
 	 * The direction of the scroll bar, either horizontal or vertical.
 	 *
 	 * @see feathers.layout.Direction#HORIZONTAL
 	 * @see feathers.layout.Direction#VERTICAL
 	 */
-	var direction(get, set):String;
+	public var direction(get, set):String;
 }

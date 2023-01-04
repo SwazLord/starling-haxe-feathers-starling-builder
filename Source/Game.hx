@@ -25,6 +25,8 @@ class Game extends Sprite {
 	private var _assetMediator:AssetMediator;
 	private var _sprite:Sprite;
 
+	private var scrollContainer:ScrollContainer;
+
 	public static var uiBuilder:IUIBuilder;
 	public static var linkers:Array<Dynamic> = [
 		Button,
@@ -58,10 +60,26 @@ class Game extends Sprite {
 				// _sprite.addChild(new Image(assetManager.getTexture("header_text")));
 				addChild(_sprite);
 				onResize(null);
+				init();
 			}
 		});
 
 		Starling.current.stage.addEventListener(ResizeEvent.RESIZE, onResize);
+	}
+
+	function init() {
+		var item_1:Image = new Image(assetManager.getTexture("cell_01"));
+		var item_2:Image = new Image(assetManager.getTexture("cell_02"));
+		var layout:HorizontalLayout = new HorizontalLayout();
+		layout.gap = 10;
+
+		scrollContainer = new ScrollContainer();
+		scrollContainer.width = 300;
+		scrollContainer.layout = layout;
+
+		scrollContainer.addChild(item_1);
+		scrollContainer.addChild(item_2);
+		_sprite.addChild(scrollContainer);
 	}
 
 	private function onResize(event:ResizeEvent):Void {

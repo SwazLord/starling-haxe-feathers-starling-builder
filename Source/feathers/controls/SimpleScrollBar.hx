@@ -8,13 +8,12 @@
 
 package feathers.controls;
 
-import starling.utils.MathUtil;
-import feathers.core.IFeathersControl;
 import feathers.core.FeathersControl;
 import feathers.core.IFocusDisplayObject;
 import feathers.core.IMeasureDisplayObject;
 import feathers.core.IValidating;
 import feathers.core.PropertyProxy;
+import feathers.core.PropertyProxyReal;
 import feathers.events.FeathersEventType;
 import feathers.layout.Direction;
 import feathers.skins.IStyleProvider;
@@ -145,7 +144,7 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 	/**
 	 * @private
 	 */
-	override public function get_defaultStyleProvider():IStyleProvider {
+	override function get_defaultStyleProvider():IStyleProvider {
 		return SimpleScrollBar.globalStyleProvider;
 	}
 
@@ -156,12 +155,12 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _direction:String = Direction.HORIZONTAL;
 
-	public function get_direction():String {
+	private function get_direction():String {
 		return this._direction;
 	}
 
-	public function set_direction(value:String):String {
-		if (this.processStyleRestriction(this.set_direction)) {
+	private function set_direction(value:String):String {
+		if (this.processStyleRestriction("direction")) {
 			return value;
 		}
 		if (this._direction == value) {
@@ -180,12 +179,12 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _fixedThumbSize:Bool = false;
 
-	public function get_fixedThumbSize():Bool {
+	private function get_fixedThumbSize():Bool {
 		return this._fixedThumbSize;
 	}
 
-	public function set_fixedThumbSize(value:Bool):Bool {
-		if (this.processStyleRestriction(this.set_fixedThumbSize)) {
+	private function set_fixedThumbSize(value:Bool):Bool {
+		if (this.processStyleRestriction("fixedThumbSize")) {
 			return value;
 		}
 		if (this._fixedThumbSize == value) {
@@ -225,13 +224,13 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _value:Float = 0;
 
-	public function get_value():Float {
+	private function get_value():Float {
 		return this._value;
 	}
 
-	public function set_value(newValue:Float):Float {
+	private function set_value(newValue:Float):Float {
 		if (this.clampToRange) {
-			newValue = MathUtil.clamp(newValue, this._minimum, this._maximum);
+			newValue = MathUtils.clamp(newValue, this._minimum, this._maximum);
 		}
 		if (this._value == newValue) {
 			return newValue;
@@ -256,11 +255,11 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _minimum:Float = 0;
 
-	public function get_minimum():Float {
+	private function get_minimum():Float {
 		return this._minimum;
 	}
 
-	public function set_minimum(value:Float):Float {
+	private function set_minimum(value:Float):Float {
 		if (this._minimum == value) {
 			return value;
 		}
@@ -281,13 +280,13 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _maximum:Float = 0;
 
-	public function get_maximum():Float {
+	private function get_maximum():Float {
 		return this._maximum;
 	}
 
-	public function set_maximum(value:Float):Float {
+	private function set_maximum(value:Float):Float {
 		if (this._maximum == value) {
-			return this._maximum;
+			return value;
 		}
 		this._maximum = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_DATA);
@@ -306,11 +305,11 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _step:Float = 0;
 
-	public function get_step():Float {
+	private function get_step():Float {
 		return this._step;
 	}
 
-	public function set_step(value:Float):Float {
+	private function set_step(value:Float):Float {
 		return this._step = value;
 	}
 
@@ -326,13 +325,13 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _page:Float = 0;
 
-	public function get_page():Float {
+	private function get_page():Float {
 		return this._page;
 	}
 
-	public function set_page(value:Float):Float {
+	private function set_page(value:Float):Float {
 		if (this._page == value) {
-			return this._page;
+			return value;
 		}
 		this._page = value;
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_DATA);
@@ -344,11 +343,11 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 	 */
 	public var padding(get, set):Float;
 
-	public function get_padding():Float {
+	private function get_padding():Float {
 		return this._paddingTop;
 	}
 
-	public function set_padding(value:Float):Float {
+	private function set_padding(value:Float):Float {
 		this.paddingTop = value;
 		this.paddingRight = value;
 		this.paddingBottom = value;
@@ -362,12 +361,12 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _paddingTop:Float = 0;
 
-	public function get_paddingTop():Float {
+	private function get_paddingTop():Float {
 		return this._paddingTop;
 	}
 
-	public function set_paddingTop(value:Float):Float {
-		if (this.processStyleRestriction(this.set_paddingTop)) {
+	private function set_paddingTop(value:Float):Float {
+		if (this.processStyleRestriction("paddingTop")) {
 			return value;
 		}
 		if (this._paddingTop == value) {
@@ -385,12 +384,12 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _paddingRight:Float = 0;
 
-	public function get_paddingRight():Float {
+	private function get_paddingRight():Float {
 		return this._paddingRight;
 	}
 
-	public function set_paddingRight(value:Float):Float {
-		if (this.processStyleRestriction(this.set_paddingRight)) {
+	private function set_paddingRight(value:Float):Float {
+		if (this.processStyleRestriction("paddingRight")) {
 			return value;
 		}
 		if (this._paddingRight == value) {
@@ -408,12 +407,12 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _paddingBottom:Float = 0;
 
-	public function get_paddingBottom():Float {
+	private function get_paddingBottom():Float {
 		return this._paddingBottom;
 	}
 
-	public function set_paddingBottom(value:Float):Float {
-		if (this.processStyleRestriction(this.set_paddingBottom)) {
+	private function set_paddingBottom(value:Float):Float {
+		if (this.processStyleRestriction("paddingBottom")) {
 			return value;
 		}
 		if (this._paddingBottom == value) {
@@ -431,12 +430,12 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _paddingLeft:Float = 0;
 
-	public function get_paddingLeft():Float {
+	private function get_paddingLeft():Float {
 		return this._paddingLeft;
 	}
 
-	public function set_paddingLeft(value:Float):Float {
-		if (this.processStyleRestriction(this.set_paddingLeft)) {
+	private function set_paddingLeft(value:Float):Float {
+		if (this.processStyleRestriction("paddingLeft")) {
 			return value;
 		}
 		if (this._paddingLeft == value) {
@@ -450,7 +449,7 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 	/**
 	 * @private
 	 */
-	private var currentRepeatAction:ASFunction;
+	private var currentRepeatAction:Void->Void;
 
 	/**
 	 * @private
@@ -473,11 +472,11 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _repeatDelay:Float = 0.05;
 
-	public function get_repeatDelay():Float {
+	private function get_repeatDelay():Float {
 		return this._repeatDelay;
 	}
 
-	public function set_repeatDelay(value:Float):Float {
+	private function set_repeatDelay(value:Float):Float {
 		if (this._repeatDelay == value) {
 			return value;
 		}
@@ -536,11 +535,11 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _thumbFactory:Void->BasicButton;
 
-	public function get_thumbFactory():Void->BasicButton {
+	private function get_thumbFactory():Void->BasicButton {
 		return this._thumbFactory;
 	}
 
-	public function set_thumbFactory(value:Void->BasicButton):Void->BasicButton {
+	private function set_thumbFactory(value:Void->BasicButton):Void->BasicButton {
 		if (this._thumbFactory == value) {
 			return value;
 		}
@@ -556,12 +555,12 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _customThumbStyleName:String;
 
-	public function get_customThumbStyleName():String {
+	private function get_customThumbStyleName():String {
 		return this._customThumbStyleName;
 	}
 
-	public function set_customThumbStyleName(value:String):String {
-		if (this.processStyleRestriction(this.set_customThumbStyleName)) {
+	private function set_customThumbStyleName(value:String):String {
+		if (this.processStyleRestriction("customThumbStyleName")) {
 			return value;
 		}
 		if (this._customThumbStyleName == value) {
@@ -604,21 +603,21 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 
 	private var _thumbProperties:PropertyProxy;
 
-	public function get_thumbProperties():Dynamic {
+	private function get_thumbProperties():Dynamic {
 		if (this._thumbProperties == null) {
 			this._thumbProperties = new PropertyProxy(thumbProperties_onChange);
 		}
 		return this._thumbProperties;
 	}
 
-	public function set_thumbProperties(value:Dynamic):Dynamic {
+	private function set_thumbProperties(value:Dynamic):Dynamic {
 		if (this._thumbProperties == value) {
 			return value;
 		}
 		if (value == null) {
 			value = new PropertyProxy();
 		}
-		if (!Std.isOfType(value, PropertyProxy)) {
+		if (!Std.isOfType(value, PropertyProxyReal)) {
 			var newValue:PropertyProxy = PropertyProxy.fromObject(value);
 			// var newValue:PropertyProxy = new PropertyProxy();
 			// for(var propertyName:String in value)
@@ -629,8 +628,9 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 		}
 		if (this._thumbProperties != null) {
 			this._thumbProperties.removeOnChangeCallback(thumbProperties_onChange);
+			this._thumbProperties.dispose();
 		}
-		this._thumbProperties = cast(value, PropertyProxy);
+		this._thumbProperties = cast value;
 		if (this._thumbProperties != null) {
 			this._thumbProperties.addOnChangeCallback(thumbProperties_onChange);
 		}
@@ -688,6 +688,14 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 		} else if (this._value > this._maximum) {
 			this.value = this._maximum;
 		}
+	}
+
+	override public function dispose():Void {
+		if (this._thumbProperties != null) {
+			this._thumbProperties.dispose();
+			this._thumbProperties = null;
+		}
+		super.dispose();
 	}
 
 	/**
@@ -858,8 +866,13 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 	 * @private
 	 */
 	private function refreshThumbStyles():Void {
+		if (this._thumbProperties == null)
+			return;
+
+		var propertyValue:Dynamic;
 		for (propertyName in this._thumbProperties) {
-			var propertyValue:Dynamic = this._thumbProperties.getProperty(propertyName);
+			propertyValue = this._thumbProperties[propertyName];
+			// this.thumb[propertyName] = propertyValue;
 			Reflect.setProperty(this.thumb, propertyName, propertyValue);
 		}
 	}
@@ -1006,13 +1019,13 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 	private function adjustPage():Void {
 		var range:Float = this._maximum - this._minimum;
 		var adjustedPage:Float = this._page;
-		var newValue:Float;
 		if (adjustedPage == 0) {
 			adjustedPage = this._step;
 		}
 		if (adjustedPage > range) {
 			adjustedPage = range;
 		}
+		var newValue:Float;
 		if (this._touchValue < this._pageStartValue) {
 			newValue = Math.max(this._touchValue, this._value - adjustedPage);
 			if (this._step != 0 && newValue != this._maximum && newValue != this._minimum) {
@@ -1033,7 +1046,7 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 	/**
 	 * @private
 	 */
-	private function startRepeatTimer(action:ASFunction):Void {
+	private function startRepeatTimer(action:Void->Void):Void {
 		this.currentRepeatAction = action;
 		if (this._repeatDelay > 0) {
 			if (this._repeatTimer == null) {
@@ -1050,7 +1063,7 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 	/**
 	 * @private
 	 */
-	private function thumbProperties_onChange(proxy:PropertyProxy, name:String):Void {
+	private function thumbProperties_onChange(proxy:PropertyProxyReal, name:String):Void {
 		this.invalidate(FeathersControl.INVALIDATION_FLAG_STYLES);
 	}
 
@@ -1072,6 +1085,7 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 			this._touchPointID = -1;
 			return;
 		}
+
 		var touch:Touch;
 		var location:Point;
 		if (this._touchPointID >= 0) {
@@ -1113,9 +1127,9 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 		if (!this._isEnabled) {
 			return;
 		}
+
 		var touch:Touch;
 		var location:Point;
-		var newValue:Float;
 		if (this._touchPointID >= 0) {
 			touch = event.getTouch(this.thumb, null, this._touchPointID);
 			if (touch == null) {
@@ -1123,7 +1137,7 @@ class SimpleScrollBar extends FeathersControl implements IDirectionalScrollBar {
 			}
 			if (touch.phase == TouchPhase.MOVED) {
 				location = touch.getLocation(this, Pool.getPoint());
-				newValue = this.locationToValue(location);
+				var newValue:Float = this.locationToValue(location);
 				Pool.putPoint(location);
 				if (this._step != 0 && newValue != this._maximum && newValue != this._minimum) {
 					newValue = MathUtils.roundToNearest(newValue, this._step);

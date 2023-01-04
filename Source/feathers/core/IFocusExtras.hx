@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2015 Bowler Hat LLC. All Rights Reserved.
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -14,9 +14,11 @@ import starling.display.DisplayObject;
  * "extra" children may still need to receive focus. An example of this
  * would be a container with "chrome", such as <code>feathers.controls.Panel</code>.
  *
- * @see feathers.core.IFocusManager
+ * @see ../../../help/focus.html Keyboard focus management in Feathers
+ *
+ * @productversion Feathers 1.2.0
  */
-interface IFocusExtras
+interface IFocusExtras 
 {
 	/**
 	 * Extra display objects that are not accessible through standard
@@ -27,9 +29,8 @@ interface IFocusExtras
 	 *
 	 * <p>May return <code>null</code> if there are no extra children.</p>
 	 */
-	var focusExtrasBefore(get, never):Array<DisplayObject>;
-	//function get_focusExtrasBefore():Array<DisplayObject>;
-
+	public var focusExtrasBefore(get, never):Array<DisplayObject>;
+	
 	/**
 	 * Extra display objects that are not accessible through standard
 	 * display list functions like <code>getChildAt()</code>, but should
@@ -39,6 +40,5 @@ interface IFocusExtras
 	 *
 	 * <p>May return <code>null</code> if there are no extra children.</p>
 	 */
-	var focusExtrasAfter(get, never):Array<DisplayObject>;
-	//function get_focusExtrasAfter():Array<DisplayObject>;
+	public var focusExtrasAfter(get, never):Array<DisplayObject>;
 }

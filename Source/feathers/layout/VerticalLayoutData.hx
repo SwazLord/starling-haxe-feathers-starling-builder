@@ -51,11 +51,11 @@ class VerticalLayoutData extends EventDispatcher implements ILayoutData {
 
 	private var _percentWidth:Float;
 
-	public function get_percentWidth():Float {
+	private function get_percentWidth():Float {
 		return this._percentWidth;
 	}
 
-	public function set_percentWidth(value:Float):Float {
+	private function set_percentWidth(value:Float):Float {
 		if (this._percentWidth == value) {
 			return value;
 		}
@@ -82,11 +82,11 @@ class VerticalLayoutData extends EventDispatcher implements ILayoutData {
 
 	private var _percentHeight:Float;
 
-	public function get_percentHeight():Float {
+	private function get_percentHeight():Float {
 		return this._percentHeight;
 	}
 
-	public function set_percentHeight(value:Float):Float {
+	private function set_percentHeight(value:Float):Float {
 		if (this._percentHeight == value) {
 			return value;
 		}

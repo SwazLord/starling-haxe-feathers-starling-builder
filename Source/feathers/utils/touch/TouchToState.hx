@@ -1,13 +1,11 @@
 /*
-	Feathers
-	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.utils.touch;
-
 import feathers.controls.ButtonState;
 import feathers.core.IStateContext;
 import haxe.Constraints.Function;
@@ -31,48 +29,48 @@ import starling.utils.Pool;
  *
  * @productversion Feathers 3.2.0
  */
-class TouchToState {
+class TouchToState 
+{
 	/**
 	 * Constructor.
 	 */
-	public function new(target:DisplayObject = null, callback:String->Void = null) {
+	public function new(target:DisplayObject = null, callback:String->Void = null) 
+	{
 		this.target = target;
 		this.callback = callback;
 	}
-
+	
 	/**
 	 * The target component that should change state based on touch phases.
 	 */
 	public var target(get, set):DisplayObject;
-
 	private var _target:DisplayObject;
-
-	public function get_target():DisplayObject {
-		return this._target;
-	}
-
-	public function set_target(value:DisplayObject):DisplayObject {
-		if (this._target == value) {
-			return this._target;
+	private function get_target():DisplayObject { return this._target; }
+	private function set_target(value:DisplayObject):DisplayObject
+	{
+		if (this._target == value)
+		{
+			return value;
 		}
-		if (this._target != null) {
+		if (this._target != null)
+		{
 			this._target.removeEventListener(TouchEvent.TOUCH, target_touchHandler);
 			this._target.removeEventListener(Event.REMOVED_FROM_STAGE, target_removedFromStageHandler);
 		}
 		this._target = value;
-		if (this._target != null) {
-			// if we're changing targets, and a touch is active, we want to
-			// clear it.
+		if (this._target != null)
+		{
+			//if we're changing targets, and a touch is active, we want to
+			//clear it.
 			this._touchPointID = -1;
-			// then restore to the default state
+			//then restore to the default state
 			this._currentState = this._upState;
 			this._target.addEventListener(TouchEvent.TOUCH, target_touchHandler);
 			this._target.addEventListener(Event.REMOVED_FROM_STAGE, target_removedFromStageHandler);
 		}
-
 		return this._target;
 	}
-
+	
 	/**
 	 * The function to call when the state is changed.
 	 *
@@ -80,114 +78,94 @@ class TouchToState {
 	 * <pre>function(currentState:String):void</pre>
 	 */
 	public var callback(get, set):String->Void;
-
 	private var _callback:String->Void;
-
-	public function get_callback():String->Void {
-		return this._callback;
-	}
-
-	public function set_callback(value:String->Void):String->Void {
-		if (this._callback == value) {
-			return this._callback;
+	private function get_callback():String->Void { return this._callback; }
+	private function set_callback(value:String->Void):String->Void
+	{
+		if (this._callback == value)
+		{
+			return value;
 		}
 		this._callback = value;
-		if (this._callback != null) {
+		if (this._callback != null)
+		{
 			this._callback(this._currentState);
 		}
 		return this._callback;
 	}
-
+	
 	/**
 	 * The current state of the utility. May be different than the state
 	 * of the target.
 	 */
 	public var currentState(get, never):String;
-
 	private var _currentState:String = ButtonState.UP;
-
-	public function get_currentState():String {
-		return this._currentState;
-	}
-
+	private function get_currentState():String { return this._currentState; }
+	
 	/**
 	 * The value for the "up" state.
 	 *
 	 * @default feathers.controls.ButtonState.UP
 	 */
 	public var upState(get, set):String;
-
 	private var _upState:String = ButtonState.UP;
-
-	public function get_upState():String {
-		return this._upState;
-	}
-
-	public function set_upState(value:String):String {
+	private function get_upState():String { return this._upState; }
+	private function set_upState(value:String):String
+	{
 		return this._upState = value;
 	}
-
+	
 	/**
 	 * The value for the "down" state.
 	 *
 	 * @default feathers.controls.ButtonState.DOWN
 	 */
 	public var downState(get, set):String;
-
 	private var _downState:String = ButtonState.DOWN;
-
-	public function get_downState():String {
-		return this._downState;
-	}
-
-	public function set_downState(value:String):String {
+	private function get_downState():String { return this._downState; }
+	private function set_downState(value:String):String
+	{
 		return this._downState = value;
 	}
-
+	
 	/**
 	 * The value for the "hover" state.
 	 *
 	 * @default feathers.controls.ButtonState.HOVER
 	 */
 	public var hoverState(get, set):String;
-
 	private var _hoverState:String = ButtonState.HOVER;
-
-	public function get_hoverState():String {
-		return this._hoverState;
-	}
-
-	public function set_hoverState(value:String):String {
+	private function get_hoverState():String { return this._hoverState; }
+	private function set_hoverState(value:String):String
+	{
 		return this._hoverState = value;
 	}
-
+	
 	/**
 	 * @private
 	 */
 	private var _touchPointID:Int = -1;
-
+	
 	/**
 	 * May be set to <code>false</code> to disable the state changes
 	 * temporarily until set back to <code>true</code>.
 	 */
 	public var isEnabled(get, set):Bool;
-
 	private var _isEnabled:Bool = true;
-
-	public function get_isEnabled():Bool {
-		return this._isEnabled;
-	}
-
-	public function set_isEnabled(value:Bool):Bool {
-		if (this._isEnabled == value) {
+	private function get_isEnabled():Bool { return this._isEnabled; }
+	private function set_isEnabled(value:Bool):Bool
+	{
+		if (this._isEnabled == value)
+		{
 			return value;
 		}
-		if (!value) {
+		if (!value)
+		{
 			this._touchPointID = -1;
 		}
 		return this._isEnabled = value;
 	}
-
+	
 	/**
 	 * In addition to a normal call to <code>hitTest()</code>, a custom
 	 * function may impose additional rules that determine if the target
@@ -202,22 +180,18 @@ class TouchToState {
 	 * triggered.</p>
 	 */
 	public var customHitTest(get, set):Point->Bool;
-
 	private var _customHitTest:Point->Bool;
-
-	public function get_customHitTest():Point->Bool {
-		return this._customHitTest;
-	}
-
-	public function set_customHitTest(value:Point->Bool):Point->Bool {
+	private function get_customHitTest():Point->Bool { return this._customHitTest; }
+	private function set_customHitTest(value:Point->Bool):Point->Bool
+	{
 		return this._customHitTest = value;
 	}
-
+	
 	/**
 	 * @private
 	 */
 	private var _hoverBeforeBegan:Bool = false;
-
+	
 	/**
 	 * If <code>true</code>, the button state will remain as
 	 * <code>downState</code> until <code>TouchPhase.ENDED</code>. If
@@ -228,22 +202,20 @@ class TouchToState {
 	 * @default false
 	 */
 	public var keepDownStateOnRollOut(get, set):Bool;
-
 	private var _keepDownStateOnRollOut:Bool = false;
-
-	public function get_keepDownStateOnRollOut():Bool {
-		return this._keepDownStateOnRollOut;
-	}
-
-	public function set_keepDownStateOnRollOut(value:Bool):Bool {
+	private function get_keepDownStateOnRollOut():Bool { return this._keepDownStateOnRollOut; }
+	private function set_keepDownStateOnRollOut(value:Bool):Bool
+	{
 		return this._keepDownStateOnRollOut = value;
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function handleCustomHitTest(touch:Touch):Bool {
-		if (this._customHitTest == null) {
+	private function handleCustomHitTest(touch:Touch):Bool
+	{
+		if (this._customHitTest == null)
+		{
 			return true;
 		}
 		var point:Point = Pool.getPoint();
@@ -252,28 +224,33 @@ class TouchToState {
 		Pool.putPoint(point);
 		return isInBounds;
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function changeState(value:String):Void {
+	private function changeState(value:String):Void
+	{
 		var oldState:String = this._currentState;
-		if (Std.isOfType(this._target, IStateContext)) {
+		if (Std.isOfType(this._target, IStateContext))
+		{
 			oldState = cast(this._target, IStateContext).currentState;
 		}
 		this._currentState = value;
-		if (oldState == value) {
+		if (oldState == value)
+		{
 			return;
 		}
-		if (this._callback != null) {
+		if (this._callback != null)
+		{
 			this._callback(value);
 		}
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function resetTouchState():Void {
+	private function resetTouchState():Void
+	{
 		this._hoverBeforeBegan = false;
 		this._touchPointID = -1;
 		this.changeState(this._upState);
@@ -282,82 +259,107 @@ class TouchToState {
 	/**
 	 * @private
 	 */
-	private function target_removedFromStageHandler(event:Event):Void {
+	private function target_removedFromStageHandler(event:Event):Void
+	{
 		this.resetTouchState();
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function target_touchHandler(event:TouchEvent):Void {
-		if (!this._isEnabled) {
+	private function target_touchHandler(event:TouchEvent):Void
+	{
+		if (!this._isEnabled)
+		{
 			this._touchPointID = -1;
 			return;
 		}
+		
 		var touch:Touch;
-		if (this._touchPointID >= 0) {
-			// a touch has begun, so we'll ignore all other touches.
+		if (this._touchPointID >= 0)
+		{
+			//a touch has begun, so we'll ignore all other touches.
 			touch = event.getTouch(this._target, null, this._touchPointID);
-			if (touch != null) {
+			if (touch == null)
+			{
 				return;
 			}
-
+			
 			var stage:Stage = this._target.stage;
-			var isInBounds:Bool;
-			if (stage != null) {
+			if (stage != null)
+			{
 				var point:Point = Pool.getPoint();
 				touch.getLocation(stage, point);
-				if (Std.isOfType(this._target, DisplayObjectContainer)) {
+				var isInBounds:Bool;
+				if (Std.isOfType(this._target, DisplayObjectContainer))
+				{
 					isInBounds = cast(this._target, DisplayObjectContainer).contains(stage.hitTest(point));
-				} else {
+				}
+				else
+				{
 					isInBounds = this._target == stage.hitTest(point);
 				}
 				isInBounds = isInBounds && this.handleCustomHitTest(touch);
 				Pool.putPoint(point);
-				if (touch.phase == TouchPhase.MOVED) {
-					if (this._keepDownStateOnRollOut) {
-						// nothing to change!
+				if (touch.phase == TouchPhase.MOVED)
+				{
+					if (this._keepDownStateOnRollOut)
+					{
+						//nothing to change!
 						return;
 					}
-					if (isInBounds) {
+					if (isInBounds)
+					{
 						this.changeState(this._downState);
 						return;
-					} else {
+					}
+					else
+					{
 						this.changeState(this._upState);
 						return;
 					}
-				} else if (touch.phase == TouchPhase.ENDED) {
-					if (isInBounds && this._hoverBeforeBegan) {
-						// if the mouse is over the target on ended, return
-						// to the hover state, but only if there was a hover
-						// state before began.
-						// this ensures that the hover state is not
-						// unexpectedly entered on a touch screen.
+				}
+				else if (touch.phase == TouchPhase.ENDED)
+				{
+					if (isInBounds && this._hoverBeforeBegan)
+					{
+						//if the mouse is over the target on ended, return
+						//to the hover state, but only if there was a hover
+						//state before began.
+						//this ensures that the hover state is not
+						//unexpectedly entered on a touch screen.
 						this._touchPointID = -1;
 						this.changeState(this._hoverState);
-					} else {
+					}
+					else
+					{
 						this.resetTouchState();
 					}
 					return;
 				}
 			}
-		} else {
-			// we aren't tracking another touch, so let's look for a new one.
+		}
+		else
+		{
+			//we aren't tracking another touch, so let's look for a new one.
 			touch = event.getTouch(this._target, TouchPhase.BEGAN);
-			if (touch != null && this.handleCustomHitTest(touch)) {
+			if (touch != null && this.handleCustomHitTest(touch))
+			{
 				this.changeState(this._downState);
 				this._touchPointID = touch.id;
 				return;
 			}
 			touch = event.getTouch(this._target, TouchPhase.HOVER);
-			if (touch != null && this.handleCustomHitTest(touch)) {
+			if (touch != null && this.handleCustomHitTest(touch))
+			{
 				this._hoverBeforeBegan = true;
 				this.changeState(this._hoverState);
 				return;
 			}
-
-			// end of hover
+			
+			//end of hover
 			this.changeState(this._upState);
 		}
 	}
+	
 }

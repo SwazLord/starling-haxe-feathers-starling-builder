@@ -5,8 +5,8 @@
 --macro lime._internal.macros.DefineMacro.run()
 -cp C:/HaxeToolkit/haxe/lib/lime/8,0,0/src
 -D lime=8.0.0
--cp C:/HaxeToolkit/haxe/lib/starling/2,5,1/src
--D starling=2.5.1
+-cp C:/Users/playkiamac/Documents/GitHub/starling/src
+-D starling=0.0.0
 -cp C:/HaxeToolkit/haxe/lib/format/3,5,0
 -D format=3.5.0
 -cp Source
@@ -19,12 +19,9 @@
 -D lime-dom
 -D lime-howlerjs
 -D lime-html5
--D openfl-disable-handle-error
 -D html5
 -D web
 --remap flash:openfl
---connect
-6000
 -js Export/html5/bin/StarlingProject.js
 -cp Export/html5/haxe
 -D html5

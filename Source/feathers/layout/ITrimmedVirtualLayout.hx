@@ -1,10 +1,11 @@
 /*
-Feathers
-Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+	Feathers
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-This program is free software. You can redistribute and/or modify it in
-accordance with the terms of the accompanying license agreement.
-*/
+	This program is free software. You can redistribute and/or modify it in
+	accordance with the terms of the accompanying license agreement.
+ */
+
 package feathers.layout;
 
 /**
@@ -13,8 +14,7 @@ package feathers.layout;
  *
  * @productversion Feathers 1.1.0
  */
-interface ITrimmedVirtualLayout extends IVirtualLayout
-{
+interface ITrimmedVirtualLayout extends IVirtualLayout {
 	/**
 	 * Used internally by a component, such as <code>List</code>, to set the
 	 * number of virtualized items that appear before the items passed to
@@ -29,7 +29,7 @@ interface ITrimmedVirtualLayout extends IVirtualLayout
 	 * only.</p>
 	 */
 	public var beforeVirtualizedItemCount(get, set):Int;
-	
+
 	/**
 	 * Used internally by a component, such as <code>List</code>, to set the
 	 * number of virtualized items that appear after the items passed to

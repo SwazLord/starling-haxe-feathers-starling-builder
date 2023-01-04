@@ -1,6 +1,6 @@
 /*
 	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
 	This program is free software. You can redistribute and/or modify it in
 	accordance with the terms of the accompanying license agreement.
@@ -8,38 +8,14 @@
 
 package feathers.layout;
 
-import feathers.utils.type.SafeCast;
+import feathers.core.IMeasureDisplayObject;
+import feathers.core.IValidating;
 import openfl.errors.IllegalOperationError;
 import openfl.geom.Point;
 import feathers.core.IFeathersControl;
-import feathers.core.IMeasureDisplayObject;
-import feathers.core.IValidating;
 import starling.display.DisplayObject;
 import starling.events.EventDispatcher;
 import starling.utils.Pool;
-
-/**
- * Dispatched when a property of the layout changes, indicating that a
- * redraw is probably needed.
- *
- * <p>The properties of the event object have the following values:</p>
- * <table class="innertable">
- * <tr><th>Property</th><th>Value</th></tr>
- * <tr><td><code>bubbles</code></td><td>false</td></tr>
- * <tr><td><code>currentTarget</code></td><td>The Object that defines the
- *   event listener that handles the event. For example, if you use
- *   <code>myButton.addEventListener()</code> to register an event listener,
- *   myButton is the value of the <code>currentTarget</code>.</td></tr>
- * <tr><td><code>data</code></td><td>null</td></tr>
- * <tr><td><code>target</code></td><td>The Object that dispatched the event;
- *   it is not always the Object listening for the event. Use the
- *   <code>currentTarget</code> property to always access the Object
- *   listening for the event.</td></tr>
- * </table>
- *
- * @eventType starling.events.Event.CHANGE
- */
-// [Event(name="change",type="starling.events.Event")]
 
 /**
  * Positions and sizes items by anchoring their edges (or center points)
@@ -54,7 +30,17 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	/**
 	 * @private
 	 */
-	inline private static var CIRCULAR_REFERENCE_ERROR:String = "It is impossible to create this layout due to a circular reference in the AnchorLayoutData.";
+	private static inline var CIRCULAR_REFERENCE_ERROR:String = "It is impossible to create this layout due to a circular reference in the AnchorLayoutData.";
+
+	/**
+	 * @private
+	 */
+	private var _helperVector1:Array<DisplayObject> = new Array<DisplayObject>();
+
+	/**
+	 * @private
+	 */
+	private var _helperVector2:Array<DisplayObject> = new Array<DisplayObject>();
 
 	/**
 	 * Constructor.
@@ -64,21 +50,11 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	}
 
 	/**
-	 * @private
-	 */
-	private var _helperVector1:Array<DisplayObject> = new Array();
-
-	/**
-	 * @private
-	 */
-	private var _helperVector2:Array<DisplayObject> = new Array();
-
-	/**
 	 * @inheritDoc
 	 */
 	public var requiresLayoutOnScroll(get, never):Bool;
 
-	public function get_requiresLayoutOnScroll():Bool {
+	private function get_requiresLayoutOnScroll():Bool {
 		return false;
 	}
 
@@ -145,7 +121,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	/**
 	 * @inheritDoc
 	 */
-	public function calculateNavigationDestination(items:Array<DisplayObject>, index:Int, keyCode:UInt, bounds:LayoutBoundsResult):Int {
+	public function calculateNavigationDestination(items:Array<DisplayObject>, index:Int, keyCode:Int, bounds:LayoutBoundsResult):Int {
 		return index;
 	}
 
@@ -173,8 +149,8 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 * @private
 	 */
 	private function measureViewPort(items:Array<DisplayObject>, viewPortWidth:Float, viewPortHeight:Float, result:Point):Point {
-		this._helperVector1.splice(0, this._helperVector1.length);
-		this._helperVector2.splice(0, this._helperVector2.length);
+		this._helperVector1.resize(0);
+		this._helperVector2.resize(0);
 		result.setTo(0, 0);
 		var mainVector:Array<DisplayObject> = items;
 		var otherVector:Array<DisplayObject> = this._helperVector1;
@@ -192,13 +168,13 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 			var oldLength:Float = currentLength;
 			currentLength = otherVector.length;
 			if (oldLength == currentLength) {
-				this._helperVector1.splice(0, this._helperVector1.length);
-				this._helperVector2.splice(0, this._helperVector2.length);
+				this._helperVector1.resize(0);
+				this._helperVector2.resize(0);
 				throw new IllegalOperationError(CIRCULAR_REFERENCE_ERROR);
 			}
 		}
-		this._helperVector1.splice(0, this._helperVector1.length);
-		this._helperVector2.splice(0, this._helperVector2.length);
+		this._helperVector1.resize(0);
+		this._helperVector2.resize(0);
 		return result;
 	}
 
@@ -210,20 +186,20 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 			result = new Point();
 		}
 
-		unpositionedItems.splice(0, unpositionedItems.length);
+		unpositionedItems.resize(0);
 		var itemCount:Int = items.length;
 		var pushIndex:Int = 0;
 		for (i in 0...itemCount) {
 			var item:DisplayObject = items[i];
 			var layoutData:AnchorLayoutData = null;
-			if (Std.is(item, ILayoutDisplayObject)) {
-				var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
+			if (Std.isOfType(item, ILayoutDisplayObject)) {
+				var layoutItem:ILayoutDisplayObject = cast item;
 				if (!layoutItem.includeInLayout) {
 					continue;
 				}
-				layoutData = cast(layoutItem.layoutData, AnchorLayoutData);
+				layoutData = cast layoutItem.layoutData;
 			}
-			var isReadyForLayout:Bool = layoutData == null || this.isReadyForLayout(layoutData, i, items, unpositionedItems);
+			var isReadyForLayout:Bool = layoutData != null || this.isReadyForLayout(layoutData, i, items, unpositionedItems);
 			if (!isReadyForLayout) {
 				unpositionedItems[pushIndex] = item;
 				pushIndex++;
@@ -243,22 +219,22 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 		var maxX:Float = result.x;
 		var maxY:Float = result.y;
 		var isAnchored:Bool = false;
-		var measurement:Float = 0;
-		if (Std.is(item, ILayoutDisplayObject)) {
-			var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
-			var layoutData:AnchorLayoutData = cast(layoutItem.layoutData, AnchorLayoutData);
-			if (layoutData != null)
+		var measurement:Float;
+		if (Std.isOfType(item, ILayoutDisplayObject)) {
+			var layoutItem:ILayoutDisplayObject = cast item;
+			var layoutData:AnchorLayoutData = cast layoutItem.layoutData;
+			if (layoutData != null) {
 				measurement = this.measureItemHorizontally(layoutItem, layoutData);
-			if (measurement > maxX) {
-				maxX = measurement;
+				if (measurement > maxX) {
+					maxX = measurement;
+				}
+				measurement = this.measureItemVertically(layoutItem, layoutData);
+				if (measurement > maxY) {
+					maxY = measurement;
+				}
+				isAnchored = true;
 			}
-			measurement = this.measureItemVertically(layoutItem, layoutData);
-			if (measurement > maxY) {
-				maxY = measurement;
-			}
-			isAnchored = true;
 		}
-
 		if (!isAnchored) {
 			measurement = item.x - item.pivotX + item.width;
 			if (measurement > maxX) {
@@ -269,6 +245,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				maxY = measurement;
 			}
 		}
+
 		result.x = maxX;
 		result.y = maxY;
 	}
@@ -278,7 +255,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 */
 	private function measureItemHorizontally(item:ILayoutDisplayObject, layoutData:AnchorLayoutData):Float {
 		var itemWidth:Float = item.width;
-		var displayItem:DisplayObject = cast(item, DisplayObject);
+		var displayItem:DisplayObject = cast item;
 		var left:Float = this.getLeftOffset(displayItem);
 		var right:Float = this.getRightOffset(displayItem);
 		return itemWidth + left + right;
@@ -289,7 +266,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 */
 	private function measureItemVertically(item:ILayoutDisplayObject, layoutData:AnchorLayoutData):Float {
 		var itemHeight:Float = item.height;
-		if (layoutData != null && Std.is(item, IFeathersControl)) {
+		if (layoutData != null && Std.isOfType(item, IFeathersControl)) {
 			var percentHeight:Float = layoutData.percentHeight;
 			// for some reason, if we don't call a function right here,
 			// compiling with the flex 4.6 SDK will throw a VerifyError
@@ -303,7 +280,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				itemHeight = cast(item, IFeathersControl).minHeight;
 			}
 		}
-		var displayItem:DisplayObject = cast(item, DisplayObject);
+		var displayItem:DisplayObject = cast item;
 		var top:Float = this.getTopOffset(displayItem);
 		var bottom:Float = this.getBottomOffset(displayItem);
 		return itemHeight + top + bottom;
@@ -320,9 +297,9 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 * @private
 	 */
 	private function getTopOffset(item:DisplayObject):Float {
-		if (Std.is(item, ILayoutDisplayObject)) {
-			var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
-			var layoutData:AnchorLayoutData = cast(layoutItem.layoutData, AnchorLayoutData);
+		if (Std.isOfType(item, ILayoutDisplayObject)) {
+			var layoutItem:ILayoutDisplayObject = cast item;
+			var layoutData:AnchorLayoutData = cast layoutItem.layoutData;
 			if (layoutData != null) {
 				var top:Float = layoutData.top;
 				var hasTopPosition:Bool = top == top; // !isNaN
@@ -351,7 +328,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				if (hasVerticalCenterPosition) {
 					var verticalCenterAnchorDisplayObject:DisplayObject = layoutData.verticalCenterAnchorDisplayObject;
 					if (verticalCenterAnchorDisplayObject != null) {
-						var verticalOffset:Float = verticalCenter - Math.round((item.height - verticalCenterAnchorDisplayObject.height) / 2);
+						var verticalOffset:Float = verticalCenter - Math.fround((item.height - verticalCenterAnchorDisplayObject.height) / 2);
 						top = Math.max(top, verticalOffset + this.getTopOffset(verticalCenterAnchorDisplayObject));
 					} else if (verticalCenter > 0) {
 						return verticalCenter * 2;
@@ -367,9 +344,9 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 * @private
 	 */
 	private function getRightOffset(item:DisplayObject):Float {
-		if (Std.is(item, ILayoutDisplayObject)) {
-			var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
-			var layoutData:AnchorLayoutData = cast(layoutItem.layoutData, AnchorLayoutData);
+		if (Std.isOfType(item, ILayoutDisplayObject)) {
+			var layoutItem:ILayoutDisplayObject = cast item;
+			var layoutData:AnchorLayoutData = cast layoutItem.layoutData;
 			if (layoutData != null) {
 				var right:Float = layoutData.right;
 				var hasRightPosition:Bool = right == right; // !isNaN
@@ -396,7 +373,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				if (hasHorizontalCenterPosition) {
 					var horizontalCenterAnchorDisplayObject:DisplayObject = layoutData.horizontalCenterAnchorDisplayObject;
 					if (horizontalCenterAnchorDisplayObject != null) {
-						var horizontalOffset:Float = -horizontalCenter - Math.round((item.width - horizontalCenterAnchorDisplayObject.width) / 2);
+						var horizontalOffset:Float = -horizontalCenter - Math.fround((item.width - horizontalCenterAnchorDisplayObject.width) / 2);
 						right = Math.max(right, horizontalOffset + this.getRightOffset(horizontalCenterAnchorDisplayObject));
 					} else if (horizontalCenter < 0) {
 						return -horizontalCenter * 2;
@@ -412,9 +389,9 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 * @private
 	 */
 	private function getBottomOffset(item:DisplayObject):Float {
-		if (Std.is(item, ILayoutDisplayObject)) {
-			var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
-			var layoutData:AnchorLayoutData = cast(layoutItem.layoutData, AnchorLayoutData);
+		if (Std.isOfType(item, ILayoutDisplayObject)) {
+			var layoutItem:ILayoutDisplayObject = cast item;
+			var layoutData:AnchorLayoutData = cast layoutItem.layoutData;
 			if (layoutData != null) {
 				var bottom:Float = layoutData.bottom;
 				var hasBottomPosition:Bool = bottom == bottom; // !isNaN
@@ -441,7 +418,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				if (hasVerticalCenterPosition) {
 					var verticalCenterAnchorDisplayObject:DisplayObject = layoutData.verticalCenterAnchorDisplayObject;
 					if (verticalCenterAnchorDisplayObject != null) {
-						var verticalOffset:Float = -verticalCenter - Math.round((item.height - verticalCenterAnchorDisplayObject.height) / 2);
+						var verticalOffset:Float = -verticalCenter - Math.fround((item.height - verticalCenterAnchorDisplayObject.height) / 2);
 						bottom = Math.max(bottom, verticalOffset + this.getBottomOffset(verticalCenterAnchorDisplayObject));
 					} else if (verticalCenter < 0) {
 						return -verticalCenter * 2;
@@ -457,9 +434,9 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 * @private
 	 */
 	private function getLeftOffset(item:DisplayObject):Float {
-		if (item is ILayoutDisplayObject) {
-			var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
-			var layoutData:AnchorLayoutData = cast(layoutItem.layoutData, AnchorLayoutData);
+		if (Std.isOfType(item, ILayoutDisplayObject)) {
+			var layoutItem:ILayoutDisplayObject = cast item;
+			var layoutData:AnchorLayoutData = cast layoutItem.layoutData;
 			if (layoutData != null) {
 				var left:Float = layoutData.left;
 				var hasLeftPosition:Bool = left == left; // !isNaN
@@ -488,7 +465,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				if (hasHorizontalCenterPosition) {
 					var horizontalCenterAnchorDisplayObject:DisplayObject = layoutData.horizontalCenterAnchorDisplayObject;
 					if (horizontalCenterAnchorDisplayObject != null) {
-						var horizontalOffset:Float = horizontalCenter - Math.round((item.width - horizontalCenterAnchorDisplayObject.width) / 2);
+						var horizontalOffset:Float = horizontalCenter - Math.fround((item.width - horizontalCenterAnchorDisplayObject.width) / 2);
 						left = Math.max(left, horizontalOffset + this.getLeftOffset(horizontalCenterAnchorDisplayObject));
 					} else if (horizontalCenter > 0) {
 						return horizontalCenter * 2;
@@ -541,11 +518,11 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 		var pushIndex:Int = 0;
 		for (i in 0...itemCount) {
 			var item:DisplayObject = items[i];
-			var layoutItem:ILayoutDisplayObject = SafeCast.safe_cast(item, ILayoutDisplayObject);
+			var layoutItem:ILayoutDisplayObject = cast item;
 			if (layoutItem == null || !layoutItem.includeInLayout) {
 				continue;
 			}
-			var layoutData:AnchorLayoutData = SafeCast.safe_cast(layoutItem.layoutData, AnchorLayoutData);
+			var layoutData:AnchorLayoutData = cast(layoutItem.layoutData, AnchorLayoutData);
 			if (layoutData == null) {
 				continue;
 			}
@@ -566,7 +543,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	 */
 	private function positionHorizontally(item:ILayoutDisplayObject, layoutData:AnchorLayoutData, boundsX:Float, boundsY:Float, viewPortWidth:Float,
 			viewPortHeight:Float):Void {
-		var uiItem:IMeasureDisplayObject = cast(item, IMeasureDisplayObject);
+		var uiItem:IMeasureDisplayObject = cast item;
 		var percentWidth:Float = layoutData.percentWidth;
 		var itemWidth:Float;
 		if (percentWidth == percentWidth) // !isNaN
@@ -609,11 +586,10 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 		var hasHorizontalCenterPosition:Bool = horizontalCenter == horizontalCenter; // !isNaN
 		var right:Float = layoutData.right;
 		var hasRightPosition:Bool = right == right; // !isNaN
-		var rightAnchorDisplayObject:DisplayObject = null;
-		var horizontalCenterAnchorDisplayObject:DisplayObject = null;
+		var horizontalCenterAnchorDisplayObject:DisplayObject;
 		var xPositionOfCenter:Float;
 		if (hasRightPosition) {
-			rightAnchorDisplayObject = layoutData.rightAnchorDisplayObject;
+			var rightAnchorDisplayObject:DisplayObject = layoutData.rightAnchorDisplayObject;
 			if (hasLeftPosition) {
 				var leftRightWidth:Float = viewPortWidth;
 				if (rightAnchorDisplayObject != null) {
@@ -633,10 +609,10 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				if (horizontalCenterAnchorDisplayObject != null) {
 					xPositionOfCenter = horizontalCenterAnchorDisplayObject.x
 						- horizontalCenterAnchorDisplayObject.pivotX
-						+ Math.round(horizontalCenterAnchorDisplayObject.width / 2)
+						+ Math.fround(horizontalCenterAnchorDisplayObject.width / 2)
 						+ horizontalCenter;
 				} else {
-					xPositionOfCenter = Math.round(viewPortWidth / 2) + horizontalCenter;
+					xPositionOfCenter = Math.fround(viewPortWidth / 2) + horizontalCenter;
 				}
 				var xPositionOfRight:Float;
 				if (rightAnchorDisplayObject != null) {
@@ -666,7 +642,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 					+ Math.round(horizontalCenterAnchorDisplayObject.width / 2)
 					+ horizontalCenter;
 			} else {
-				xPositionOfCenter = Math.round(viewPortWidth / 2) + horizontalCenter;
+				xPositionOfCenter = Math.fround(viewPortWidth / 2) + horizontalCenter;
 			}
 
 			if (hasLeftPosition) {
@@ -677,7 +653,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				}
 				item.width = itemWidth;
 			} else {
-				item.x = item.pivotX + xPositionOfCenter - Math.round(item.width / 2);
+				item.x = item.pivotX + xPositionOfCenter - Math.fround(item.width / 2);
 			}
 		}
 	}
@@ -731,11 +707,10 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 		var hasVerticalCenterPosition:Bool = verticalCenter == verticalCenter; // !isNaN
 		var bottom:Float = layoutData.bottom;
 		var hasBottomPosition:Bool = bottom == bottom; // !isNaN
-		var bottomAnchorDisplayObject:DisplayObject = null;
-		var verticalCenterAnchorDisplayObject:DisplayObject = null;
+		var verticalCenterAnchorDisplayObject:DisplayObject;
 		var yPositionOfCenter:Float;
 		if (hasBottomPosition) {
-			bottomAnchorDisplayObject = layoutData.bottomAnchorDisplayObject;
+			var bottomAnchorDisplayObject:DisplayObject = layoutData.bottomAnchorDisplayObject;
 			if (hasTopPosition) {
 				var topBottomHeight:Float = viewPortHeight;
 				if (bottomAnchorDisplayObject != null) {
@@ -753,10 +728,12 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 			} else if (hasVerticalCenterPosition) {
 				verticalCenterAnchorDisplayObject = layoutData.verticalCenterAnchorDisplayObject;
 				if (verticalCenterAnchorDisplayObject != null) {
-					yPositionOfCenter = verticalCenterAnchorDisplayObject.y - verticalCenterAnchorDisplayObject.pivotY
-						+ Math.round(verticalCenterAnchorDisplayObject.height / 2) + verticalCenter;
+					yPositionOfCenter = verticalCenterAnchorDisplayObject.y
+						- verticalCenterAnchorDisplayObject.pivotY
+						+ Math.fround(verticalCenterAnchorDisplayObject.height / 2)
+						+ verticalCenter;
 				} else {
-					yPositionOfCenter = Math.round(viewPortHeight / 2) + verticalCenter;
+					yPositionOfCenter = Math.fround(viewPortHeight / 2) + verticalCenter;
 				}
 				var yPositionOfBottom:Float;
 				if (bottomAnchorDisplayObject != null) {
@@ -781,10 +758,12 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 		} else if (hasVerticalCenterPosition) {
 			verticalCenterAnchorDisplayObject = layoutData.verticalCenterAnchorDisplayObject;
 			if (verticalCenterAnchorDisplayObject != null) {
-				yPositionOfCenter = verticalCenterAnchorDisplayObject.y - verticalCenterAnchorDisplayObject.pivotY
-					+ Math.round(verticalCenterAnchorDisplayObject.height / 2) + verticalCenter;
+				yPositionOfCenter = verticalCenterAnchorDisplayObject.y
+					- verticalCenterAnchorDisplayObject.pivotY
+					+ Math.fround(verticalCenterAnchorDisplayObject.height / 2)
+					+ verticalCenter;
 			} else {
-				yPositionOfCenter = Math.round(viewPortHeight / 2) + verticalCenter;
+				yPositionOfCenter = Math.fround(viewPortHeight / 2) + verticalCenter;
 			}
 
 			if (hasTopPosition) {
@@ -795,7 +774,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 				}
 				item.height = itemHeight;
 			} else {
-				item.y = item.pivotY + yPositionOfCenter - Math.round(item.height / 2);
+				item.y = item.pivotY + yPositionOfCenter - Math.fround(item.height / 2);
 			}
 		}
 	}
@@ -874,11 +853,11 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	private function isReferenced(item:DisplayObject, items:Array<DisplayObject>):Bool {
 		var itemCount:Int = items.length;
 		for (i in 0...itemCount) {
-			var otherItem:ILayoutDisplayObject = SafeCast.safe_cast(items[i], ILayoutDisplayObject);
+			var otherItem:ILayoutDisplayObject = cast(items[i], ILayoutDisplayObject);
 			if (otherItem == null || cast(otherItem, DisplayObject) == item) {
 				continue;
 			}
-			var layoutData:AnchorLayoutData = cast(otherItem.layoutData, AnchorLayoutData);
+			var layoutData:AnchorLayoutData = cast otherItem.layoutData;
 			if (layoutData == null) {
 				continue;
 			}
@@ -911,12 +890,12 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 		var itemCount:Int = items.length;
 		for (i in 0...itemCount) {
 			var item:DisplayObject = items[i];
-			if (item is ILayoutDisplayObject) {
-				var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
+			if (Std.isOfType(item, ILayoutDisplayObject)) {
+				var layoutItem:ILayoutDisplayObject = cast item;
 				if (!layoutItem.includeInLayout) {
 					continue;
 				}
-				var layoutData:AnchorLayoutData = SafeCast.safe_cast(layoutItem.layoutData, AnchorLayoutData);
+				var layoutData:AnchorLayoutData = cast layoutItem.layoutData;
 				if (layoutData != null) {
 					var left:Float = layoutData.left;
 					var hasLeftPosition:Bool = left == left; // !isNaN
@@ -926,7 +905,8 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 					var hasRightPosition:Bool = right == right; // !isNaN
 					var percentWidth:Float = layoutData.percentWidth;
 					var hasPercentWidth:Bool = percentWidth == percentWidth; // !isNaN
-					var measureItem:IMeasureDisplayObject = cast(item, IMeasureDisplayObject);
+					var measureItem:IMeasureDisplayObject = cast item;
+					var itemWidth:Float;
 					if (needsWidth) {
 						if (hasLeftPosition && leftAnchor == null && hasRightPosition && rightAnchor == null) {
 							measureItem.width = Math.NaN;
@@ -944,7 +924,6 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 						// optimization: set the child width before
 						// validation if the container width is explicit
 						// or has a maximum
-						var itemWidth:Float;
 						if (hasLeftPosition && leftAnchor == null && hasRightPosition && rightAnchor == null) {
 							itemWidth = containerWidth - left - right;
 							if (measureItem.explicitMaxWidth == measureItem.explicitMaxWidth && // !isNaN

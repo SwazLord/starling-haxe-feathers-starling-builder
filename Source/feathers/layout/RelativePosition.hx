@@ -1,6 +1,6 @@
 /*
 	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
 	This program is free software. You can redistribute and/or modify it in
 	accordance with the terms of the accompanying license agreement.
@@ -23,28 +23,28 @@ class RelativePosition {
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public static inline final TOP:String = "top";
+	public static inline var TOP:String = "top";
 
 	/**
 	 * The item will be positioned to the right of another item.
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public static inline final RIGHT:String = "right";
+	public static inline var RIGHT:String = "right";
 
 	/**
 	 * The item will be positioned below another item.
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public static inline final BOTTOM:String = "bottom";
+	public static inline var BOTTOM:String = "bottom";
 
 	/**
 	 * The item will be positioned to the left of another item.
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public static inline final LEFT:String = "left";
+	public static inline var LEFT:String = "left";
 
 	/**
 	 * The item will be positioned manually with no relation to the position
@@ -53,7 +53,7 @@ class RelativePosition {
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public static inline final MANUAL:String = "manual";
+	public static inline var MANUAL:String = "manual";
 
 	/**
 	 * The item will be positioned to the left another item, and the
@@ -62,7 +62,7 @@ class RelativePosition {
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public static inline final LEFT_BASELINE:String = "leftBaseline";
+	public static inline var LEFT_BASELINE:String = "leftBaseline";
 
 	/**
 	 * The item will be positioned to the right of another item, and the
@@ -71,5 +71,5 @@ class RelativePosition {
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public static inline final RIGHT_BASELINE:String = "rightBaseline";
+	public static inline var RIGHT_BASELINE:String = "rightBaseline";
 }

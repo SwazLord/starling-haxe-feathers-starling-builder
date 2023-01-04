@@ -1,15 +1,14 @@
 /*
-	Feathers
-	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.skins;
-
-import feathers.core.IFeathersControl;
 import feathers.core.TokenList;
+import feathers.core.IFeathersControl;
+import haxe.Constraints.Function;
 
 /**
  * Similar to <code>FunctionStyleProvider</code>, sets styles on a Feathers
@@ -62,14 +61,16 @@ import feathers.core.TokenList;
  *
  * @productversion Feathers 2.0.0
  */
-class StyleNameFunctionStyleProvider implements IStyleProvider {
+class StyleNameFunctionStyleProvider implements IStyleProvider
+{
 	/**
 	 * Constructor.
 	 */
-	public function new(styleFunction:IFeathersControl->Void = null) {
+	public function new(styleFunction:IFeathersControl->Void = null) 
+	{
 		this._defaultStyleFunction = styleFunction;
 	}
-
+	
 	/**
 	 * The target Feathers UI component is passed to this function when
 	 * <code>applyStyles()</code> is called and the component's
@@ -81,23 +82,19 @@ class StyleNameFunctionStyleProvider implements IStyleProvider {
 	 *
 	 * @see #setFunctionForStyleName()
 	 */
-	public var defaultStyleFunction(get, set):IFeathersControl->Void;
-
-	private var _defaultStyleFunction:IFeathersControl->Void;
-
-	public function get_defaultStyleFunction():IFeathersControl->Void {
-		return this._defaultStyleFunction;
-	}
-
-	public function set_defaultStyleFunction(value:IFeathersControl->Void):IFeathersControl->Void {
+	public var defaultStyleFunction(get, set):Function;
+	private var _defaultStyleFunction:Function;
+	private function get_defaultStyleFunction():Function { return this._defaultStyleFunction; }
+	private function set_defaultStyleFunction(value:Function):Function
+	{
 		return this._defaultStyleFunction = value;
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private var _styleNameMap:Map<String, IFeathersControl->Void>;
-
+	private var _styleNameMap:Map<String, Function>;
+	
 	/**
 	 * The target Feathers UI component is passed to this function when
 	 * <code>applyStyles()</code> is called and the component's
@@ -108,35 +105,44 @@ class StyleNameFunctionStyleProvider implements IStyleProvider {
 	 *
 	 * @see #defaultStyleFunction
 	 */
-	public function setFunctionForStyleName(styleName:String, styleFunction:IFeathersControl->Void):Void {
-		if (this._styleNameMap == null) {
-			this._styleNameMap = new Map<String, IFeathersControl->Void>();
+	public function setFunctionForStyleName(styleName:String, styleFunction:Function):Void
+	{
+		if (this._styleNameMap == null)
+		{
+			this._styleNameMap = new Map<String, Function>();
 		}
 		this._styleNameMap[styleName] = styleFunction;
 	}
-
+	
 	/**
 	 * @inheritDoc
 	 */
-	public function applyStyles(target:IFeathersControl):Void {
-		if (this._styleNameMap != null) {
+	public function applyStyles(target:IFeathersControl):Void
+	{
+		if (this._styleNameMap != null)
+		{
 			var hasNameInitializers:Bool = false;
 			var styleNameList:TokenList = target.styleNameList;
 			var styleNameCount:Int = styleNameList.length;
-			for (i in 0...styleNameCount) {
+			for (i in 0...styleNameCount)
+			{
 				var name:String = styleNameList.item(i);
-				var initializer:IFeathersControl->Void = this._styleNameMap[name];
-				if (initializer != null) {
+				var initializer:Function = this._styleNameMap[name];
+				if (initializer != null)
+				{
 					hasNameInitializers = true;
 					initializer(target);
 				}
 			}
-			if (hasNameInitializers) {
+			if (hasNameInitializers)
+			{
 				return;
 			}
 		}
-		if (this._defaultStyleFunction != null) {
+		if (this._defaultStyleFunction != null)
+		{
 			this._defaultStyleFunction(target);
 		}
 	}
+	
 }

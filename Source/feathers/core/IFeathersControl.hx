@@ -1,92 +1,88 @@
-package feathers.core;
+/*
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
+package feathers.core;
+import feathers.core.TokenList;
 import feathers.skins.IStyleProvider;
 
-interface IFeathersControl extends IValidating extends IMeasureDisplayObject {
+/**
+ * Basic interface for Feathers UI controls. A Feathers control must also
+ * be a Starling display object.
+ *
+ * @productversion Feathers 1.0.0
+ */
+interface IFeathersControl extends IValidating extends IMeasureDisplayObject
+{
+	
 	/**
 	 * @copy feathers.core.FeathersControl#isEnabled
 	 */
-	/**
-	 * @private
-	 */
-	var isEnabled(get, set):Bool;
-
+	public var isEnabled(get, set):Bool;
+	
 	/**
 	 * @copy feathers.core.FeathersControl#isInitialized
 	 */
-	var isInitialized(get, never):Bool;
-
-	function get_isInitialized():Bool;
-
+	public var isInitialized(get, never):Bool;
+	
 	/**
 	 * @copy feathers.core.FeathersControl#isCreated
 	 */
-	var isCreated(get, never):Bool;
-
-	function get_isCreated():Bool;
-
+	public var isCreated(get, never):Bool;
+	
 	/**
 	 * @copy feathers.core.FeathersControl#styleNameList
 	 */
-	var styleNameList(get, never):TokenList;
-
-	function get_styleNameList():TokenList;
+	public var styleNameList(get, never):TokenList;
+	
 	/**
 	 * @copy feathers.core.FeathersControl#styleName
 	 */
-	/**
-	 * @private
-	 */
-	var styleName(get, set):String;
-
+	public var styleName(get, set):String;
+	
 	/**
 	 * @copy feathers.core.FeathersControl#styleProvider
 	 */
-	/**
-	 * @private
-	 */
-	var styleProvider(get, set):IStyleProvider;
-
+	public var styleProvider(get, set):IStyleProvider;
+	
 	/**
 	 * @copy feathers.core.FeathersControl#toolTip
 	 */
-	/**
-	 * @private
-	 */
-	var toolTip(get, set):String;
-
+	public var toolTip(get, set):String;
+	
 	/**
 	 * @copy feathers.core.FeathersControl#effectsSuspended
 	 */
-	var effectsSuspended(get, never):Bool;
-
-	function get_effectsSuspended():Bool;
-
+	public var effectsSuspended(get, never):Bool;
+	
 	/**
 	 * @copy feathers.core.FeathersControl#setSize()
 	 */
 	function setSize(width:Float, height:Float):Void;
-
+	
 	/**
 	 * @copy feathers.core.FeathersControl#move()
 	 */
 	function move(x:Float, y:Float):Void;
-
+	
 	/**
 	 * @copy feathers.core.FeathersControl#resetStyleProvider()
 	 */
 	function resetStyleProvider():Void;
-
+	
 	/**
 	 * @copy feathers.core.FeathersControl#initializeNow()
 	 */
 	function initializeNow():Void;
-
+	
 	/**
 	 * @copy feathers.core.FeathersControl#suspendEffects()
 	 */
 	function suspendEffects():Void;
-
+	
 	/**
 	 * @copy feathers.core.FeathersControl#resumeEffects()
 	 */

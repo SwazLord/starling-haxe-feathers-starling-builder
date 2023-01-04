@@ -1,41 +1,63 @@
+/*
+	Feathers
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+
+	This program is free software. You can redistribute and/or modify it in
+	accordance with the terms of the accompanying license agreement.
+ */
+
 package feathers.core;
 
-import haxe.Constraints.IMap;
-import feathers.controls.text.StageTextTextEditor;
-import feathers.utils.display.FeathersDisplayUtil;
+import feathers.controls.text.BitmapFontTextRenderer;
+import feathers.controls.text.TextFieldTextEditor;
+import feathers.controls.text.TextFieldTextRenderer;
+import feathers.events.FeathersEventType;
 import feathers.layout.ILayoutData;
-import openfl.Lib;
+import feathers.layout.ILayoutDisplayObject;
+import feathers.motion.effectClasses.IEffectContext;
+import feathers.motion.effectClasses.IMoveEffectContext;
+import feathers.motion.effectClasses.IResizeEffectContext;
+import feathers.skins.IStyleProvider;
+import feathers.utils.display.DisplayUtils;
+import feathers.utils.math.MathUtils;
+import feathers.utils.type.SafeCast;
+import haxe.Constraints.Function;
+import openfl.errors.ArgumentError;
 import openfl.errors.Error;
+import openfl.errors.IllegalOperationError;
+import openfl.geom.Matrix;
+import openfl.geom.Point;
+import openfl.geom.Rectangle;
+import feathers.core.IFeathersControl;
+import starling.display.DisplayObject;
+import starling.display.Sprite;
+import starling.events.Event;
+import starling.events.EventDispatcher;
+import starling.utils.MathUtil;
 import starling.utils.MatrixUtil;
 import starling.utils.Pool;
-import openfl.geom.Matrix;
-import starling.utils.Max;
-import starling.display.DisplayObject;
-import openfl.errors.ArgumentError;
-import feathers.motion.effectClasses.IResizeEffectContext;
-import feathers.motion.effectClasses.IMoveEffectContext;
-import openfl.geom.Rectangle;
-import starling.events.EventDispatcher;
-import openfl.errors.IllegalOperationError;
-import feathers.motion.effectClasses.IEffectContext;
-import feathers.events.FeathersEventType;
-import starling.events.Event;
-import feathers.skins.IStyleProvider;
-import feathers.controls.text.BitmapFontTextRenderer;
-import openfl.geom.Point;
-import feathers.layout.ILayoutDisplayObject;
-import starling.display.Sprite;
 
-class FeathersControl extends Sprite implements IFeathersControl implements ILayoutDisplayObject {
-	/**
-	 * @private
-	 */
+/**
+ * Base class for all UI controls. Implements invalidation and sets up some
+ * basic template functions like <code>initialize()</code> and
+ * <code>draw()</code>.
+ *
+ * <p>This is a base class for Feathers components that isn't meant to be
+ * instantiated directly. It should only be subclassed. For a simple
+ * component that will automatically size itself based on its children,
+ * and with optional support for layouts, see <code>LayoutGroup</code>.</p>
+ *
+ * @see feathers.controls.LayoutGroup
+ *
+ * @productversion Feathers 1.0.0
+ */
+abstract class FeathersControl extends Sprite implements IFeathersControl implements ILayoutDisplayObject {
 	private static var HELPER_POINT:Point = new Point();
 
 	/**
 	 * Flag to indicate that everything is invalid and should be redrawn.
 	 */
-	inline public static var INVALIDATION_FLAG_ALL:String = "all";
+	public static inline var INVALIDATION_FLAG_ALL:String = "all";
 
 	/**
 	 * Invalidation flag to indicate that the state has changed. Used by
@@ -43,79 +65,60 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 *
 	 * @see #isEnabled
 	 */
-	inline public static var INVALIDATION_FLAG_STATE:String = "state";
+	public static inline var INVALIDATION_FLAG_STATE:String = "state";
 
 	/**
 	 * Invalidation flag to indicate that the dimensions of the UI control
 	 * have changed.
 	 */
-	inline public static var INVALIDATION_FLAG_SIZE:String = "size";
+	public static inline var INVALIDATION_FLAG_SIZE:String = "size";
 
 	/**
 	 * Invalidation flag to indicate that the styles or visual appearance of
 	 * the UI control has changed.
 	 */
-	inline public static var INVALIDATION_FLAG_STYLES:String = "styles";
+	public static inline var INVALIDATION_FLAG_STYLES:String = "styles";
 
 	/**
 	 * Invalidation flag to indicate that the skin of the UI control has changed.
 	 */
-	inline public static var INVALIDATION_FLAG_SKIN:String = "skin";
+	public static inline var INVALIDATION_FLAG_SKIN:String = "skin";
 
 	/**
 	 * Invalidation flag to indicate that the layout of the UI control has
 	 * changed.
 	 */
-	inline public static var INVALIDATION_FLAG_LAYOUT:String = "layout";
+	public static inline var INVALIDATION_FLAG_LAYOUT:String = "layout";
 
 	/**
 	 * Invalidation flag to indicate that the primary data displayed by the
 	 * UI control has changed.
 	 */
-	inline public static var INVALIDATION_FLAG_DATA:String = "data";
+	public static inline var INVALIDATION_FLAG_DATA:String = "data";
 
 	/**
 	 * Invalidation flag to indicate that the scroll position of the UI
 	 * control has changed.
 	 */
-	inline public static var INVALIDATION_FLAG_SCROLL:String = "scroll";
+	public static inline var INVALIDATION_FLAG_SCROLL:String = "scroll";
 
 	/**
 	 * Invalidation flag to indicate that the selection of the UI control
 	 * has changed.
 	 */
-	inline public static var INVALIDATION_FLAG_SELECTED:String = "selected";
+	public static inline var INVALIDATION_FLAG_SELECTED:String = "selected";
 
 	/**
 	 * Invalidation flag to indicate that the focus of the UI control has
 	 * changed.
 	 */
-	inline public static var INVALIDATION_FLAG_FOCUS:String = "focus";
+	public static inline var INVALIDATION_FLAG_FOCUS:String = "focus";
 
-	/**
-	 * @private
-	 */
-	inline private static var INVALIDATION_FLAG_TEXT_RENDERER:String = "textRenderer";
-
-	/**
-	 * @private
-	 */
-	inline private static var INVALIDATION_FLAG_TEXT_EDITOR:String = "textEditor";
-
-	/**
-	 * @private
-	 */
-	inline private static var ILLEGAL_WIDTH_ERROR:String = "A component's width cannot be NaN.";
-
-	/**
-	 * @private
-	 */
-	inline private static var ILLEGAL_HEIGHT_ERROR:String = "A component's height cannot be NaN.";
-
-	/**
-	 * @private
-	 */
-	inline private static var ABSTRACT_CLASS_ERROR:String = "FeathersControl is an abstract class. For a lightweight Feathers wrapper, use feathers.controls.LayoutGroup.";
+	private static inline var INVALIDATION_FLAG_TEXT_RENDERER:String = "textRenderer";
+	private static inline var INVALIDATION_FLAG_TEXT_EDITOR:String = "textEditor";
+	private static inline var ILLEGAL_WIDTH_ERROR:String = "A component's width cannot be NaN.";
+	private static inline var ILLEGAL_HEIGHT_ERROR:String = "A component's height cannot be NaN.";
+	private static inline var ABSTRACT_CLASS_ERROR:String = "FeathersControl is an abstract class. For a lightweight Feathers wrapper, use feathers.controls.LayoutGroup.";
 
 	/**
 	 * A function used by all UI controls that support text renderers to
@@ -130,8 +133,9 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.core.ITextRenderer
 	 */
 	public static var defaultTextRendererFactory:Void->ITextRenderer = function():ITextRenderer {
-		return new BitmapFontTextRenderer();
-	}
+		// return new BitmapFontTextRenderer();
+		return new TextFieldTextRenderer();
+	};
 
 	/**
 	 * A function used by all UI controls that support text editor to
@@ -146,36 +150,28 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.core.ITextEditor
 	 */
 	public static var defaultTextEditorFactory:Void->ITextEditor = function():ITextEditor {
-		return new StageTextTextEditor();
-	}
+		return new TextFieldTextEditor();
+	};
 
 	/**
-	 * Constructor.
-	 */
+		Constructor
+	**/
 	public function new() {
 		super();
-		// if(Object(this).constructor == FeathersControl)
-		// {
-		//	throw new Error(ABSTRACT_CLASS_ERROR);
-		// }
-		this._styleProvider = this.defaultStyleProvider;
+
+		this.styleProvider = this.defaultStyleProvider;
 		this.addEventListener(Event.ADDED_TO_STAGE, feathersControl_addedToStageHandler);
 		this.addEventListener(Event.REMOVED_FROM_STAGE, feathersControl_removedFromStageHandler);
 		if (Std.isOfType(this, IFocusDisplayObject)) {
 			this.addEventListener(FeathersEventType.FOCUS_IN, focusInHandler);
-			this.addEventListener(FeathersEventType.FOCUS_OUT, focusOutHandler);
+			this.removeEventListener(FeathersEventType.FOCUS_OUT, focusOutHandler);
 		}
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _showEffectContext:IEffectContext = null;
-
-	/**
-	 * @private
-	 */
-	private var _showEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is shown.
@@ -199,13 +195,13 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * <p>The <code>IEffectContext</code> is used by the component to
 	 * control the effect, performing actions like playing the effect,
 	 * pausing it, or cancelling it.</p>
-	 * 
+	 *
 	 * <p>Custom animated effects that use
 	 * <code>starling.display.Tween</code> typically return a
 	 * <code>TweenEffectContext</code>. In the following example, we
 	 * recreate the <code>Fade.createFadeBetweenEffect()</code> used in the
 	 * previous example.</p>
-	 * 
+	 *
 	 * <listing version="3.0">
 	 * control.showEffect = function(target:DisplayObject):IEffectContext
 	 * {
@@ -223,29 +219,19 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var showEffect(get, set):ASFunction;
+	public var showEffect(get, set):Function;
 
-	public function get_showEffect():ASFunction {
+	private var _showEffect:Function = null;
+
+	private function get_showEffect():Function {
 		return this._showEffect;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_showEffect(value:ASFunction):ASFunction {
-		this._showEffect = value;
-		return this._showEffect;
+	private function set_showEffect(value:Function):Function {
+		return this._showEffect = value;
 	}
 
-	/**
-	 * @private
-	 */
 	private var _hideEffectContext:IEffectContext = null;
-
-	/**
-	 * @private
-	 */
-	private var _hideEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is hidden.
@@ -269,13 +255,13 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * <p>The <code>IEffectContext</code> is used by the component to
 	 * control the effect, performing actions like playing the effect,
 	 * pausing it, or cancelling it.</p>
-	 * 
+	 *
 	 * <p>Custom animated effects that use
 	 * <code>starling.display.Tween</code> typically return a
 	 * <code>TweenEffectContext</code>. In the following example, we
 	 * recreate the <code>Fade.createFadeOutEffect()</code> used in the
 	 * previous example.</p>
-	 * 
+	 *
 	 * <listing version="3.0">
 	 * control.hideEffect = function(target:DisplayObject):IEffectContext
 	 * {
@@ -292,31 +278,26 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var hideEffect(get, set):ASFunction;
+	public var hideEffect(get, set):Function;
 
-	public function get_hideEffect():ASFunction {
+	private var _hideEffect:Function = null;
+
+	private function get_hideEffect():Function {
 		return this._hideEffect;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_hideEffect(value:ASFunction):ASFunction {
-		this._hideEffect = value;
-		return this._hideEffect;
+	private function set_hideEffect(value:Function):Function {
+		return this._hideEffect = value;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _pendingVisible:Bool = true;
 
-	/**
-	 * @private
-	 */
-	override public function set_visible(value:Bool):Bool {
+	override function set_visible(value:Bool):Bool {
 		if (value == this._pendingVisible) {
-			return this._pendingVisible;
+			return value;
 		}
 		this._pendingVisible = value;
 		if (this._suspendEffectsCount == 0 && this._hideEffectContext != null) {
@@ -330,7 +311,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		if (this._pendingVisible) {
 			super.visible = this._pendingVisible;
 			if (this.isCreated && this._suspendEffectsCount == 0 && this._showEffect != null && this.stage != null) {
-				this._showEffectContext = cast(this._showEffect(this), IEffectContext);
+				this._showEffectContext = cast(this._showEffect(this));
 				this._showEffectContext.addEventListener(Event.COMPLETE, showEffectContext_completeHandler);
 				this._showEffectContext.play();
 			}
@@ -338,29 +319,23 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 			if (!this.isCreated || this._suspendEffectsCount > 0 || this._hideEffect == null || this.stage == null) {
 				super.visible = this._pendingVisible;
 			} else {
-				this._hideEffectContext = cast(this._hideEffect(this), IEffectContext);
+				this._hideEffectContext = cast(this._hideEffect(this));
 				this._hideEffectContext.addEventListener(Event.COMPLETE, hideEffectContext_completeHandler);
 				this._hideEffectContext.play();
 			}
 		}
-
-		return this._pendingVisible;
+		return value;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _focusInEffectContext:IEffectContext = null;
-
-	/**
-	 * @private
-	 */
-	private var _focusInEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component receives
 	 * focus.
-	 * 
+	 *
 	 * <p>The implementation of this property is provided for convenience,
 	 * but it cannot be used unless a subclass implements the
 	 * <code>IFocusDisplayObject</code> interface.</p>
@@ -376,7 +351,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * <p>The <code>IEffectContext</code> is used by the component to
 	 * control the effect, performing actions like playing the effect,
 	 * pausing it, or cancelling it.</p>
-	 * 
+	 *
 	 * <p>Custom animated effects that use
 	 * <code>starling.display.Tween</code> typically return a
 	 * <code>TweenEffectContext</code>.</p>
@@ -388,37 +363,30 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var focusInEffect(get, set):ASFunction;
+	public var focusInEffect(get, set):Function;
 
-	public function get_focusInEffect():ASFunction {
+	private var _focusInEffect:Function = null;
+
+	private function get_focusInEffect():Function {
 		return this._focusInEffect;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_focusInEffect(value:ASFunction):ASFunction {
-		this._focusInEffect = value;
-		return this._focusInEffect;
+	private function set_focusInEffect(value:Function):Function {
+		return this._focusInEffect = value;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _focusOutEffectContext:IEffectContext = null;
 
 	/**
-	 * @private
-	 */
-	private var _focusOutEffect:ASFunction = null;
-
-	/**
 	 * An optional effect that is activated when the component loses focus.
-	 * 
+	 *
 	 * <p>The implementation of this property is provided for convenience,
 	 * but it cannot be used unless a subclass implements the
 	 * <code>IFocusDisplayObject</code> interface.</p>
-	 * 
+	 *
 	 * <p>The implementation of this property is provided for convenience,
 	 * but it cannot be used unless a subclass implements the
 	 * <code>IFocusDisplayObject</code> interface.</p>
@@ -434,7 +402,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * <p>The <code>IEffectContext</code> is used by the component to
 	 * control the effect, performing actions like playing the effect,
 	 * pausing it, or cancelling it.</p>
-	 * 
+	 *
 	 * <p>Custom animated effects that use
 	 * <code>starling.display.Tween</code> typically return a
 	 * <code>TweenEffectContext</code>.</p>
@@ -446,29 +414,22 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var focusOutEffect(get, set):ASFunction;
+	public var focusOutEffect(get, set):Function;
 
-	public function get_focusOutEffect():ASFunction {
+	private var _focusOutEffect:Function = null;
+
+	private function get_focusOutEffect():Function {
 		return this._focusOutEffect;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_focusOutEffect(value:ASFunction):ASFunction {
-		this._focusOutEffect = value;
-		return this._focusOutEffect;
+	private function set_focusOutEffect(value:Function):Function {
+		return this._focusOutEffect = value;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _addedEffectContext:IEffectContext = null;
-
-	/**
-	 * @private
-	 */
-	private var _addedEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is added to
@@ -492,13 +453,13 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * <p>The <code>IEffectContext</code> is used by the component to
 	 * control the effect, performing actions like playing the effect,
 	 * pausing it, or cancelling it.</p>
-	 * 
+	 *
 	 * <p>Custom animated effects that use
 	 * <code>starling.display.Tween</code> typically return a
 	 * <code>TweenEffectContext</code>. In the following example, we
 	 * recreate the <code>Fade.createFadeBetweenEffect()</code> used in the
 	 * previous example.</p>
-	 * 
+	 *
 	 * <listing version="3.0">
 	 * control.addedEffect = function(target:DisplayObject):IEffectContext
 	 * {
@@ -515,33 +476,31 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public var addedEffect(get, set):ASFunction;
+	public var addedEffect(get, set):Function;
 
-	public function get_addedEffect():ASFunction {
+	private var _addedEffect:Function = null;
+
+	private function get_addedEffect():Function {
 		return this._addedEffect;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_addedEffect(value:ASFunction):ASFunction {
-		this._addedEffect = value;
-		return this._addedEffect;
+	private function set_addedEffect(value:Function):Function {
+		return this._addedEffect = value;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _removedEffectContext:IEffectContext = null;
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _disposeAfterRemovedEffect:Bool = false;
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _validationQueue:ValidationQueue;
 
 	/**
@@ -566,22 +525,13 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var styleName(get, set):String;
 
-	public function get_styleName():String {
+	private function get_styleName():String {
 		return this._styleNameList.value;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_styleName(value:String):String {
-		this._styleNameList.value = value;
-		return this._styleNameList.value;
+	private function set_styleName(value:String):String {
+		return this._styleNameList.value = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _styleNameList:TokenList = new TokenList();
 
 	/**
 	 * Contains a list of all "styles" assigned to this control. Names are
@@ -606,42 +556,23 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var styleNameList(get, never):TokenList;
 
-	public function get_styleNameList():TokenList {
+	private var _styleNameList:TokenList = new TokenList();
+
+	private function get_styleNameList():TokenList {
 		return this._styleNameList;
 	}
 
-	/**
-	 * @private
-	 */
-	private var _styleProvider:IStyleProvider;
-
-	/**
-	 * When a component initializes, a style provider may be used to set
-	 * properties that affect the component's visual appearance.
-	 *
-	 * <p>You can set or replace an existing style provider at any time
-	 * before a component initializes without immediately affecting the
-	 * component's visual appearance. After the component initializes, the
-	 * style provider may still be changed, but any properties that
-	 * were set by the previous style provider will not be reset to their
-	 * default values.</p>
-	 *
-	 * @see #styleName
-	 * @see #styleNameList
-	 * @see ../../../help/themes.html Introduction to Feathers themes
-	 */
 	public var styleProvider(get, set):IStyleProvider;
 
-	public function get_styleProvider():IStyleProvider {
+	private var _styleProvider:IStyleProvider;
+
+	private function get_styleProvider():IStyleProvider {
 		return this._styleProvider;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_styleProvider(value:IStyleProvider):IStyleProvider {
+	private function set_styleProvider(value:IStyleProvider):IStyleProvider {
 		if (this._styleProvider == value) {
-			return this._styleProvider;
+			return value;
 		}
 		if (this._applyingStyles) {
 			throw new IllegalOperationError("Cannot change styleProvider while the current style provider is applying styles.");
@@ -660,13 +591,12 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 				cast(this._styleProvider, EventDispatcher).addEventListener(Event.CHANGE, styleProvider_changeHandler);
 			}
 		}
-
 		return this._styleProvider;
 	}
 
 	/**
 	 * When the <code>FeathersControl</code> constructor is called, the
-	 * <code>globalStyleProvider</code> property is set to this value. May be
+	 * <code>styleProvider</code> property is set to this value. May be
 	 * <code>null</code>.
 	 *
 	 * <p>Typically, a subclass of <code>FeathersControl</code> will
@@ -675,23 +605,18 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * this function, and its implementation looks like this:</p>
 	 *
 	 * <listing version="3.0">
-	 * override public function get_defaultStyleProvider():IStyleProvider
+	 * override protected function get defaultStyleProvider():IStyleProvider
 	 * {
 	 *     return Button.globalStyleProvider;
 	 * }</listing>
 	 *
 	 * @see #styleProvider
 	 */
-	private var defaultStyleProvider(get, never):IStyleProvider;
+	public var defaultStyleProvider(get, never):IStyleProvider;
 
-	public function get_defaultStyleProvider():IStyleProvider {
+	private function get_defaultStyleProvider():IStyleProvider {
 		return null;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _isQuickHitAreaEnabled:Bool = false;
 
 	/**
 	 * Similar to <code>mouseChildren</code> on the classic display list. If
@@ -708,32 +633,25 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var isQuickHitAreaEnabled(get, set):Bool;
 
-	public function get_isQuickHitAreaEnabled():Bool {
+	private var _isQuickHitAreaEnabled:Bool = false;
+
+	private function get_isQuickHitAreaEnabled():Bool {
 		return this._isQuickHitAreaEnabled;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_isQuickHitAreaEnabled(value:Bool):Bool {
-		this._isQuickHitAreaEnabled = value;
-		return this._isQuickHitAreaEnabled;
+	private function set_isQuickHitAreaEnabled(value:Bool):Bool {
+		return this._isQuickHitAreaEnabled = value;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _hitArea:Rectangle = new Rectangle();
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _isInitializing:Bool = false;
-
-	/**
-	 * @private
-	 */
-	private var _isInitialized:Bool = false;
 
 	/**
 	 * Determines if the component has been initialized yet. The
@@ -754,19 +672,21 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var isInitialized(get, never):Bool;
 
-	public function get_isInitialized():Bool {
+	private var _isInitialized:Bool = false;
+
+	private function get_isInitialized():Bool {
 		return this._isInitialized;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _applyingStyles:Bool = false;
 
 	/**
-	 * @private
-	 */
-	private var _restrictedStyles:FunctionMap<Dynamic->Void, Bool>;
+		@private
+	**/
+	private var _restrictedStyles:Map<String, Bool> = new Map<String, Bool>();
 
 	/**
 	 * @private
@@ -776,19 +696,14 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	private var _isAllInvalid:Bool = false;
 
 	/**
-	 * @private
-	 */
-	private var _invalidationFlags:Map<String, Bool> = new Map();
+		@private
+	**/
+	private var _invalidationFlags:Map<String, Bool> = new Map<String, Bool>();
 
 	/**
-	 * @private
-	 */
-	private var _delayedInvalidationFlags:Map<String, Bool> = new Map();
-
-	/**
-	 * @private
-	 */
-	private var _isEnabled:Bool = true;
+		@private
+	**/
+	private var _delayedInvalidationFlags:Map<String, Bool> = new Map<String, Bool>();
 
 	/**
 	 * Indicates whether the control is interactive or not.
@@ -802,26 +717,20 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var isEnabled(get, set):Bool;
 
-	public function get_isEnabled():Bool {
+	private var _isEnabled:Bool = true;
+
+	private function get_isEnabled():Bool {
 		return _isEnabled;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_isEnabled(value:Bool):Bool {
+	private function set_isEnabled(value:Bool):Bool {
 		if (this._isEnabled == value) {
-			return _isEnabled;
+			return value;
 		}
 		this._isEnabled = value;
 		this.invalidate(INVALIDATION_FLAG_STATE);
-		return _isEnabled;
+		return this._isEnabled;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _explicitWidth:Float = Math.NaN;
 
 	/**
 	 * The width value explicitly set by passing a value to the
@@ -829,19 +738,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var explicitWidth(get, never):Float;
 
-	public function get_explicitWidth():Float {
+	private var _explicitWidth:Float = Math.NaN;
+
+	private function get_explicitWidth():Float {
 		return this._explicitWidth;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _resizeEffectContext:IEffectContext = null;
-
-	/**
-	 * @private
-	 */
-	private var _resizeEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is resized
@@ -862,35 +768,28 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * pausing it, or cancelling it. Custom animated resize effects that use
 	 * <code>starling.display.Tween</code> typically return a
 	 * <code>TweenResizeEffectContext</code>.</p>
-	 * 
+	 *
 	 * @see feathers.motion.Resize
 	 * @see #width
 	 * @see #height
 	 * @see #setSize()
 	 */
-	public var resizeEffect(get, set):ASFunction;
+	public var resizeEffect(get, set):Function;
 
-	public function get_resizeEffect():ASFunction {
+	private var _resizeEffect:Function = null;
+
+	private function get_resizeEffect():Function {
 		return this._resizeEffect;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_resizeEffect(value:ASFunction):ASFunction {
-		this._resizeEffect = value;
-		return this._resizeEffect;
+	private function set_resizeEffect(value:Function):Function {
+		return this._resizeEffect = value;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _moveEffectContext:IEffectContext = null;
-
-	/**
-	 * @private
-	 */
-	private var _moveEffect:ASFunction = null;
 
 	/**
 	 * An optional effect that is activated when the component is moved to
@@ -919,26 +818,24 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see #y
 	 * @see #move()
 	 */
-	public var moveEffect(get, set):ASFunction;
+	public var moveEffect(get, set):Function;
 
-	public function get_moveEffect():ASFunction {
+	private var _moveEffect:Function = null;
+
+	private function get_moveEffect():Function {
 		return this._moveEffect;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_moveEffect(value:ASFunction):ASFunction {
-		this._moveEffect = value;
-		return this._moveEffect;
+	private function set_moveEffect(value:Function):Function {
+		return this._moveEffect = value;
 	}
 
 	/**
-	 * @private
-	 */
-	override public function set_x(value:Float):Float {
-		var newY:Float = this.y;
+		@private
+	**/
+	override function set_x(value:Float):Float {
 		var moveEffectContext:IMoveEffectContext;
+		var newY:Float = this.y;
 		if (this._suspendEffectsCount == 0 && this._moveEffectContext != null) {
 			if (Std.isOfType(this._moveEffectContext, IMoveEffectContext)) {
 				moveEffectContext = cast this._moveEffectContext;
@@ -948,9 +845,9 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 			this._moveEffectContext = null;
 		}
 		if (this.isCreated && this._suspendEffectsCount == 0 && this._moveEffect != null) {
-			this._moveEffectContext = cast(this._moveEffect(this), IEffectContext);
+			this._moveEffectContext = cast this._moveEffect(this);
 			this._moveEffectContext.addEventListener(Event.COMPLETE, moveEffectContext_completeHandler);
-			if (this._moveEffectContext is IMoveEffectContext) {
+			if (Std.isOfType(this._moveEffectContext, IMoveEffectContext)) {
 				moveEffectContext = cast this._moveEffectContext;
 				moveEffectContext.oldX = this.x;
 				moveEffectContext.oldY = this.y;
@@ -963,16 +860,15 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		} else {
 			super.x = value;
 		}
-
-		return super.x;
+		return value;
 	}
 
 	/**
-	 * @private
-	 */
-	override public function set_y(value:Float):Float {
-		var newX:Float = this.x;
+		@private
+	**/
+	override function set_y(value:Float):Float {
 		var moveEffectContext:IMoveEffectContext;
+		var newX:Float = this.x;
 		if (this._suspendEffectsCount == 0 && this._moveEffectContext != null) {
 			if (Std.isOfType(this._moveEffectContext, IMoveEffectContext)) {
 				moveEffectContext = cast this._moveEffectContext;
@@ -984,7 +880,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		if (this.isCreated && this._suspendEffectsCount == 0 && this._moveEffect != null) {
 			this._moveEffectContext = cast this._moveEffect(this);
 			this._moveEffectContext.addEventListener(Event.COMPLETE, moveEffectContext_completeHandler);
-			if (this._moveEffectContext is IMoveEffectContext) {
+			if (Std.isOfType(this._moveEffectContext, IMoveEffectContext)) {
 				moveEffectContext = cast this._moveEffectContext;
 				moveEffectContext.oldX = this.x;
 				moveEffectContext.oldY = this.y;
@@ -997,8 +893,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		} else {
 			super.y = value;
 		}
-
-		return super.y;
+		return value;
 	}
 
 	/**
@@ -1049,30 +944,30 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.core.FeathersControl#setSize()
 	 * @see feathers.core.FeathersControl#validate()
 	 */
-	override public function get_width():Float {
+	override function get_width():Float {
 		return this.scaledActualWidth;
 	}
 
 	/**
-	 * @private
-	 */
-	override public function set_width(value:Float):Float {
+		@private
+	**/
+	override function set_width(value:Float):Float {
 		var valueIsNaN:Bool = value != value; // isNaN
 		if (valueIsNaN && this._explicitWidth != this._explicitWidth) // isNaN
 		{
-			return get_width();
+			return value;
 		}
 		if (this.scaleX != 1) {
 			value /= this.scaleX;
 		}
 		if (this._explicitWidth == value) {
-			return get_width();
+			return value;
 		}
 		var hasSetExplicitWidth:Bool = false;
 		var newHeight:Float = this.actualHeight;
 		var resizeEffectContext:IResizeEffectContext;
 		if (this._suspendEffectsCount == 0 && this._resizeEffectContext != null) {
-			if (this._resizeEffectContext is IResizeEffectContext) {
+			if (Std.isOfType(this._resizeEffectContext, IResizeEffectContext)) {
 				resizeEffectContext = cast this._resizeEffectContext;
 				newHeight = resizeEffectContext.newHeight;
 			}
@@ -1108,14 +1003,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 				}
 			}
 		}
-
-		return get_width();
+		return value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _explicitHeight:Float = Math.NaN;
 
 	/**
 	 * The height value explicitly set by passing a value to the
@@ -1124,7 +1013,9 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var explicitHeight(get, never):Float;
 
-	public function get_explicitHeight():Float {
+	private var _explicitHeight:Float = Math.NaN;
+
+	private function get_explicitHeight():Float {
 		return this._explicitHeight;
 	}
 
@@ -1176,24 +1067,24 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.core.FeathersControl#setSize()
 	 * @see feathers.core.FeathersControl#validate()
 	 */
-	override public function get_height():Float {
+	override function get_height():Float {
 		return this.scaledActualHeight;
 	}
 
 	/**
-	 * @private
-	 */
-	override public function set_height(value:Float):Float {
+		@private
+	**/
+	override function set_height(value:Float):Float {
 		var valueIsNaN:Bool = value != value; // isNaN
 		if (valueIsNaN && this._explicitHeight != this._explicitHeight) // isNaN
 		{
-			return get_height();
+			return value;
 		}
 		if (this.scaleY != 1) {
 			value /= this.scaleY;
 		}
 		if (this._explicitHeight == value) {
-			return get_height();
+			return value;
 		}
 		var hasSetExplicitHeight:Bool = false;
 		var newWidth:Float = this.actualWidth;
@@ -1235,14 +1126,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 				}
 			}
 		}
-
-		return get_height();
+		return value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _minTouchWidth:Float = 0;
 
 	/**
 	 * If using <code>isQuickHitAreaEnabled</code>, and the hit area's
@@ -1258,26 +1143,20 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var minTouchWidth(get, set):Float;
 
-	public function get_minTouchWidth():Float {
+	private var _minTouchWidth:Float = 0;
+
+	private function get_minTouchWidth():Float {
 		return this._minTouchWidth;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_minTouchWidth(value:Float):Float {
+	private function set_minTouchWidth(value:Float):Float {
 		if (this._minTouchWidth == value) {
-			return get_minTouchWidth();
+			return value;
 		}
 		this._minTouchWidth = value;
 		this.refreshHitAreaX();
-		return get_minTouchWidth();
+		return this._minTouchWidth;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _minTouchHeight:Float = 0;
 
 	/**
 	 * If using <code>isQuickHitAreaEnabled</code>, and the hit area's
@@ -1293,37 +1172,33 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var minTouchHeight(get, set):Float;
 
-	public function get_minTouchHeight():Float {
+	private var _minTouchHeight:Float = 0;
+
+	private function get_minTouchHeight():Float {
+		return this._minTouchHeight;
+	}
+
+	private function set_minTouchHeight(value:Float):Float {
+		if (this._minTouchHeight == value) {
+			return value;
+		}
+		this._minTouchHeight = value;
+		this.refreshHitAreaY();
 		return this._minTouchHeight;
 	}
 
 	/**
-	 * @private
-	 */
-	public function set_minTouchHeight(value:Float):Float {
-		if (this._minTouchHeight == value) {
-			return get_minTouchHeight();
-		}
-		this._minTouchHeight = value;
-		this.refreshHitAreaY();
-		return get_minTouchHeight();
-	}
-
-	/**
-	 * @private
-	 */
-	private var _explicitMinWidth:Float = Math.NaN;
-
-	/**
 	 * The minimum width value explicitly set by passing a value to the
 	 * <code>minWidth</code> setter.
-	 * 
+	 *
 	 * <p>If no value has been passed to the <code>minWidth</code> setter,
 	 * this property returns <code>NaN</code>.</p>
 	 */
 	public var explicitMinWidth(get, never):Float;
 
-	public function get_explicitMinWidth():Float {
+	private var _explicitMinWidth:Float = Math.NaN;
+
+	private function get_explicitMinWidth():Float {
 		return this._explicitMinWidth;
 	}
 
@@ -1363,24 +1238,21 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var minWidth(get, set):Float;
 
-	public function get_minWidth():Float {
+	private function get_minWidth():Float {
 		return this.scaledActualMinWidth;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_minWidth(value:Float):Float {
+	private function set_minWidth(value:Float):Float {
 		var valueIsNaN:Bool = value != value; // isNaN
 		if (valueIsNaN && this._explicitMinWidth != this._explicitMinWidth) // isNaN
 		{
-			return get_minWidth();
+			return value;
 		}
 		if (this.scaleX != 1) {
 			value /= this.scaleX;
 		}
 		if (this._explicitMinWidth == value) {
-			return get_minWidth();
+			return value;
 		}
 		var oldValue:Float = this._explicitMinWidth;
 		this._explicitMinWidth = value;
@@ -1399,14 +1271,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 				this.invalidate(INVALIDATION_FLAG_SIZE);
 			}
 		}
-
-		return get_minWidth();
+		return value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _explicitMinHeight:Float = Math.NaN;
 
 	/**
 	 * The minimum height value explicitly set by passing a value to the
@@ -1417,7 +1283,9 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var explicitMinHeight(get, never):Float;
 
-	public function get_explicitMinHeight():Float {
+	private var _explicitMinHeight:Float = Math.NaN;
+
+	private function get_explicitMinHeight():Float {
 		return this._explicitMinHeight;
 	}
 
@@ -1457,24 +1325,21 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var minHeight(get, set):Float;
 
-	public function get_minHeight():Float {
+	private function get_minHeight():Float {
 		return this.scaledActualMinHeight;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_minHeight(value:Float):Float {
+	private function set_minHeight(value:Float):Float {
 		var valueIsNaN:Bool = value != value; // isNaN
 		if (valueIsNaN && this._explicitMinHeight != this._explicitMinHeight) // isNaN
 		{
-			return get_minHeight();
+			return value;
 		}
 		if (this.scaleY != 1) {
 			value /= this.scaleY;
 		}
 		if (this._explicitMinHeight == value) {
-			return get_minHeight();
+			return value;
 		}
 		var oldValue:Float = this._explicitMinHeight;
 		this._explicitMinHeight = value;
@@ -1493,13 +1358,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 				this.invalidate(INVALIDATION_FLAG_SIZE);
 			}
 		}
-		return get_minHeight();
+		return this._explicitMinHeight;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _explicitMaxWidth:Float = Math.POSITIVE_INFINITY;
 
 	/**
 	 * The maximum width value explicitly set by passing a value to the
@@ -1510,7 +1370,9 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var explicitMaxWidth(get, never):Float;
 
-	public function get_explicitMaxWidth():Float {
+	private var _explicitMaxWidth:Float = Math.POSITIVE_INFINITY;
+
+	private function get_explicitMaxWidth():Float {
 		return this._explicitMaxWidth;
 	}
 
@@ -1531,19 +1393,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var maxWidth(get, set):Float;
 
-	public function get_maxWidth():Float {
+	private function get_maxWidth():Float {
 		return this._explicitMaxWidth;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_maxWidth(value:Float):Float {
+	private function set_maxWidth(value:Float):Float {
 		if (value < 0) {
 			value = 0;
 		}
 		if (this._explicitMaxWidth == value) {
-			return get_maxWidth();
+			return value;
 		}
 		if (value != value) // isNaN
 		{
@@ -1556,13 +1415,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 			// only invalidate if this change might affect the width
 			this.invalidate(INVALIDATION_FLAG_SIZE);
 		}
-		return get_maxWidth();
+		return this._explicitMaxWidth;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _explicitMaxHeight:Float = Math.POSITIVE_INFINITY;
 
 	/**
 	 * The maximum height value explicitly set by passing a value to the
@@ -1573,7 +1427,9 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var explicitMaxHeight(get, never):Float;
 
-	public function get_explicitMaxHeight():Float {
+	private var _explicitMaxHeight:Float = Math.POSITIVE_INFINITY;
+
+	private function get_explicitMaxHeight():Float {
 		return this._explicitMaxHeight;
 	}
 
@@ -1594,19 +1450,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var maxHeight(get, set):Float;
 
-	public function get_maxHeight():Float {
+	private function get_maxHeight():Float {
 		return this._explicitMaxHeight;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_maxHeight(value:Float):Float {
+	private function set_maxHeight(value:Float):Float {
 		if (value < 0) {
 			value = 0;
 		}
 		if (this._explicitMaxHeight == value) {
-			return get_maxHeight();
+			return value;
 		}
 		if (value != value) // isNaN
 		{
@@ -1619,32 +1472,26 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 			// only invalidate if this change might affect the width
 			this.invalidate(INVALIDATION_FLAG_SIZE);
 		}
-
-		return get_maxHeight();
+		return this._explicitMaxHeight;
 	}
 
 	/**
-	 * @private
-	 */
-	override public function set_scaleX(value:Float):Float {
-		super.scaleX = value;
+		@private
+	**/
+	override function set_scaleX(value:Float):Float {
+		super.set_scaleX(value);
 		this.saveMeasurements(this.actualWidth, this.actualHeight, this.actualMinWidth, this.actualMinHeight);
-		return get_scaleX();
+		return value;
 	}
 
 	/**
-	 * @private
-	 */
-	override public function set_scaleY(value:Float):Float {
-		super.scaleY = value;
+		@private
+	**/
+	override function set_scaleY(value:Float):Float {
+		super.set_scaleY(value);
 		this.saveMeasurements(this.actualWidth, this.actualHeight, this.actualMinWidth, this.actualMinHeight);
-		return get_scaleY();
+		return value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _includeInLayout:Bool = true;
 
 	/**
 	 * @inheritDoc
@@ -1653,26 +1500,20 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var includeInLayout(get, set):Bool;
 
+	private var _includeInLayout:Bool = true;
+
 	public function get_includeInLayout():Bool {
 		return this._includeInLayout;
 	}
 
-	/**
-	 * @private
-	 */
 	public function set_includeInLayout(value:Bool):Bool {
 		if (this._includeInLayout == value) {
-			return get_includeInLayout();
+			return value;
 		}
 		this._includeInLayout = value;
 		this.dispatchEventWith(FeathersEventType.LAYOUT_DATA_CHANGE);
-		return get_includeInLayout();
+		return this._includeInLayout;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _layoutData:ILayoutData;
 
 	/**
 	 * @inheritDoc
@@ -1681,16 +1522,15 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var layoutData(get, set):ILayoutData;
 
-	public function get_layoutData():ILayoutData {
+	private var _layoutData:ILayoutData;
+
+	private function get_layoutData():ILayoutData {
 		return this._layoutData;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_layoutData(value:ILayoutData):ILayoutData {
+	private function set_layoutData(value:ILayoutData):ILayoutData {
 		if (this._layoutData == value) {
-			return get_layoutData();
+			return value;
 		}
 		if (this._layoutData != null) {
 			this._layoutData.removeEventListener(Event.CHANGE, layoutData_changeHandler);
@@ -1700,18 +1540,13 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 			this._layoutData.addEventListener(Event.CHANGE, layoutData_changeHandler);
 		}
 		this.dispatchEventWith(FeathersEventType.LAYOUT_DATA_CHANGE);
-		return get_layoutData();
+		return this._layoutData;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _toolTip:String;
 
 	/**
 	 * Text to display in a tool tip to when hovering over this component,
 	 * if the <code>ToolTipManager</code> is enabled.
-	 * 
+	 *
 	 * @default null
 	 *
 	 * @see ../../../help/tool-tips.html Tool tips in Feathers
@@ -1719,28 +1554,21 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var toolTip(get, set):String;
 
-	public function get_toolTip():String {
+	private var _toolTip:String;
+
+	private function get_toolTip():String {
 		return this._toolTip;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_toolTip(value:String):String {
-		this._toolTip = value;
-		return this._toolTip;
+	private function set_toolTip(value:String):String {
+		return this._toolTip = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _focusManager:IFocusManager;
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
 	 * but it cannot be used unless a subclass implements the
 	 * <code>IFocusDisplayObject</code> interface.</p>
-	 * 
+	 *
 	 * @copy feathers.core.IFocusDisplayObject#focusManager
 	 *
 	 * @default null
@@ -1749,58 +1577,44 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var focusManager(get, set):IFocusManager;
 
-	public function get_focusManager():IFocusManager {
+	private var _focusManager:IFocusManager;
+
+	private function get_focusManager():IFocusManager {
 		return this._focusManager;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_focusManager(value:IFocusManager):IFocusManager {
-		if (!Std.is(this, IFocusDisplayObject)) {
+	private function set_focusManager(value:IFocusManager):IFocusManager {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
 			throw new IllegalOperationError("Cannot pass a focus manager to a component that does not implement feathers.core.IFocusDisplayObject");
 		}
 		if (this._focusManager == value) {
-			return this._focusManager;
+			return value;
 		}
-		this._focusManager = value;
-		return this._focusManager;
+		return this._focusManager = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _focusOwner:IFocusDisplayObject;
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
 	 * but it cannot be used unless a subclass implements the
 	 * <code>IFocusDisplayObject</code> interface.</p>
-	 * 
+	 *
 	 * @copy feathers.core.IFocusDisplayObject#focusOwner
 	 *
 	 * @default null
-	 * 
+	 *
 	 * @see feathers.core.IFocusDisplayObject
 	 */
 	public var focusOwner(get, set):IFocusDisplayObject;
 
-	public function get_focusOwner():IFocusDisplayObject {
+	private var _focusOwner:IFocusDisplayObject;
+
+	private function get_focusOwner():IFocusDisplayObject {
 		return this._focusOwner;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_focusOwner(value:IFocusDisplayObject):IFocusDisplayObject {
-		this._focusOwner = value;
-		return this._focusOwner;
+	private function set_focusOwner(value:IFocusDisplayObject):IFocusDisplayObject {
+		return this._focusOwner = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _isFocusEnabled:Bool = true;
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
@@ -1815,22 +1629,20 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var isFocusEnabled(get, set):Bool;
 
-	public function get_isFocusEnabled():Bool {
-		return this._isEnabled && this._isFocusEnabled;
+	private var _isFocusEnabled:Bool = true;
+
+	private function get_isFocusEnabled():Bool {
+		return this._isFocusEnabled;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_isFocusEnabled(value:Bool):Bool {
-		if (!Std.is(this, IFocusDisplayObject)) {
+	private function set_isFocusEnabled(value:Bool):Bool {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
 			throw new IllegalOperationError("Cannot enable focus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
 		if (this._isFocusEnabled == value) {
-			return get_isFocusEnabled();
+			return value;
 		}
-		this._isFocusEnabled = value;
-		return get_isFocusEnabled();
+		return this._isFocusEnabled = value;
 	}
 
 	/**
@@ -1844,7 +1656,9 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.core.IFocusDisplayObject#hideFocus()
 	 * @see feathers.core.IFocusDisplayObject
 	 */
-	public function get_isShowingFocus():Bool {
+	public var isShowingFocus(get, never):Bool;
+
+	private function get_isShowingFocus():Bool {
 		return this._showFocus;
 	}
 
@@ -1857,14 +1671,15 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 *
 	 * @see feathers.core.IFocusDisplayObject
 	 */
-	public function get_maintainTouchFocus():Bool {
+	public var maintainTouchFocus(get, set):Bool;
+
+	private function get_maintainTouchFocus():Bool {
 		return false;
 	}
 
-	/**
-	 * @private
-	 */
-	private var _nextTabFocus:IFocusDisplayObject = null;
+	private function set_maintainTouchFocus(value:Bool):Bool {
+		throw new Error("FeathersControl maintainTouchFocus setter must be override by sub class");
+	}
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
@@ -1879,25 +1694,18 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var nextTabFocus(get, set):IFocusDisplayObject;
 
-	public function get_nextTabFocus():IFocusDisplayObject {
+	private var _nextTabFocus:IFocusDisplayObject = null;
+
+	private function get_nextTabFocus():IFocusDisplayObject {
 		return this._nextTabFocus;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_nextTabFocus(value:IFocusDisplayObject):IFocusDisplayObject {
-		if (!Std.is(this, IFocusDisplayObject)) {
+	private function set_nextTabFocus(value:IFocusDisplayObject):IFocusDisplayObject {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
 			throw new IllegalOperationError("Cannot set nextTabFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextTabFocus = value;
-		return this._nextTabFocus;
+		return this._nextTabFocus = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _previousTabFocus:IFocusDisplayObject = null;
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
@@ -1912,25 +1720,18 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var previousTabFocus(get, set):IFocusDisplayObject;
 
-	public function get_previousTabFocus():IFocusDisplayObject {
+	private var _previousTabFocus:IFocusDisplayObject = null;
+
+	private function get_previousTabFocus():IFocusDisplayObject {
 		return this._previousTabFocus;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_previousTabFocus(value:IFocusDisplayObject):IFocusDisplayObject {
-		if (!Std.is(this, IFocusDisplayObject)) {
+	private function set_previousTabFocus(value:IFocusDisplayObject):IFocusDisplayObject {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
 			throw new IllegalOperationError("Cannot set previousTabFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._previousTabFocus = value;
-		return this._previousTabFocus;
+		return this._previousTabFocus = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _nextUpFocus:IFocusDisplayObject = null;
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
@@ -1947,25 +1748,18 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var nextUpFocus(get, set):IFocusDisplayObject;
 
-	public function get_nextUpFocus():IFocusDisplayObject {
+	private var _nextUpFocus:IFocusDisplayObject = null;
+
+	private function get_nextUpFocus():IFocusDisplayObject {
 		return this._nextUpFocus;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_nextUpFocus(value:IFocusDisplayObject):IFocusDisplayObject {
-		if (!Std.is(this, IFocusDisplayObject)) {
+	private function set_nextUpFocus(value:IFocusDisplayObject):IFocusDisplayObject {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
 			throw new IllegalOperationError("Cannot set nextUpFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextUpFocus = value;
-		return this._nextUpFocus;
+		return this._nextUpFocus = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _nextRightFocus:IFocusDisplayObject = null;
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
@@ -1982,25 +1776,18 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var nextRightFocus(get, set):IFocusDisplayObject;
 
-	public function get_nextRightFocus():IFocusDisplayObject {
+	private var _nextRightFocus:IFocusDisplayObject = null;
+
+	private function get_nextRightFocus():IFocusDisplayObject {
 		return this._nextRightFocus;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_nextRightFocus(value:IFocusDisplayObject):IFocusDisplayObject {
-		if (!Std.is(this, IFocusDisplayObject)) {
+	private function set_nextRightFocus(value:IFocusDisplayObject):IFocusDisplayObject {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
 			throw new IllegalOperationError("Cannot set nextRightFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextRightFocus = value;
-		return this._nextRightFocus;
+		return this._nextRightFocus = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _nextDownFocus:IFocusDisplayObject = null;
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
@@ -2017,25 +1804,18 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var nextDownFocus(get, set):IFocusDisplayObject;
 
-	public function get_nextDownFocus():IFocusDisplayObject {
+	private var _nextDownFocus:IFocusDisplayObject = null;
+
+	private function get_nextDownFocus():IFocusDisplayObject {
 		return this._nextDownFocus;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_nextDownFocus(value:IFocusDisplayObject):IFocusDisplayObject {
-		if (!Std.is(this, IFocusDisplayObject)) {
+	private function set_nextDownFocus(value:IFocusDisplayObject):IFocusDisplayObject {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
 			throw new IllegalOperationError("Cannot set nextDownFocus on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		this._nextDownFocus = value;
-		return this._nextDownFocus;
+		return this._nextDownFocus = value;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _nextLeftFocus:IFocusDisplayObject = null;
 
 	/**
 	 * <p>The implementation of this property is provided for convenience,
@@ -2050,49 +1830,43 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 *
 	 * @productversion Feathers 3.4.0
 	 */
-	public function get_nextLeftFocus():IFocusDisplayObject {
-		return this._nextLeftFocus;
-	}
-
-	/**
-	 * @private
-	 */
 	public var nextLeftFocus(get, set):IFocusDisplayObject;
 
-	public function set_nextLeftFocus(value:IFocusDisplayObject):IFocusDisplayObject {
-		if (!Std.is(this, IFocusDisplayObject)) {
-			throw new IllegalOperationError("Cannot set nextLeftFocus on a component that does not implement feathers.core.IFocusDisplayObject");
-		}
-		this._nextLeftFocus = value;
+	private var _nextLeftFocus:IFocusDisplayObject = null;
+
+	private function get_nextLeftFocus():IFocusDisplayObject {
 		return this._nextLeftFocus;
 	}
 
-	/**
-	 * @private
-	 */
-	private var _focusIndicatorSkin:DisplayObject;
+	private function set_nextLeftFocus(value:IFocusDisplayObject):IFocusDisplayObject {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
+			throw new IllegalOperationError("Cannot set nextLeftFocus on a component that does not implement feathers.core.IFocusDisplayObject");
+		}
+		return this._nextLeftFocus = value;
+	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	public var focusIndicatorSkin(get, set):DisplayObject;
 
-	public function get_focusIndicatorSkin():DisplayObject {
+	private var _focusIndicatorSkin:DisplayObject;
+
+	private function get_focusIndicatorSkin():DisplayObject {
 		return this._focusIndicatorSkin;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_focusIndicatorSkin(value:DisplayObject):DisplayObject {
-		if (!Std.is(this, IFocusDisplayObject)) {
+	private function set_focusIndicatorSkin(value:DisplayObject):DisplayObject {
+		if (!Std.isOfType(this, IFocusDisplayObject)) {
 			throw new IllegalOperationError("Cannot set focus indicator skin on a component that does not implement feathers.core.IFocusDisplayObject");
 		}
-		if (this.processStyleRestriction(this.set_focusIndicatorSkin)) {
-			return this._focusIndicatorSkin;
-		}
+		// TODO: translate this code to haxe
+		// if (this.processStyleRestriction(arguments.callee))
+		// {
+		// return value;
+		// }
 		if (this._focusIndicatorSkin == value) {
-			return this._focusIndicatorSkin;
+			return value;
 		}
 		if (this._focusIndicatorSkin != null) {
 			if (this._focusIndicatorSkin.parent == this) {
@@ -2106,170 +1880,144 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		if (this._focusIndicatorSkin != null) {
 			this._focusIndicatorSkin.touchable = false;
 		}
-		if (this._focusIndicatorSkin is IStateObserver && this is IStateContext) {
-			cast(this._focusIndicatorSkin, IStateObserver).stateContext = cast(this, IStateContext);
+		if (Std.isOfType(this._focusIndicatorSkin, IStateObserver) && Std.isOfType(this, IStateContext)) {
+			cast(this._focusIndicatorSkin, IStateObserver).stateContext = cast this;
 		}
-		if (this._focusManager != null && cast(this._focusManager.focus, IFeathersDisplayObject) == this) {
+		if (this._focusManager != null && this._focusManager.focus == SafeCast.safe_cast(this, DisplayObject)) {
 			this.invalidate(INVALIDATION_FLAG_STYLES);
 		}
-
 		return this._focusIndicatorSkin;
 	}
 
 	/**
-	 * @private
-	 */
-	public function get_focusPadding():Float {
+		@private
+	**/
+	public var focusPadding(get, set):Float;
+
+	private function get_focusPadding():Float {
 		return this._focusPaddingTop;
 	}
 
-	/**
-	 * @private
-	 */
-	public function set_focusPadding(value:Float):Float {
+	private function set_focusPadding(value:Float):Float {
 		this.focusPaddingTop = value;
 		this.focusPaddingRight = value;
 		this.focusPaddingBottom = value;
-		this.focusPaddingLeft = value;
-		return get_focusPadding();
+		return this.focusPaddingLeft = value;
 	}
 
 	/**
-	 * @private
-	 */
-	private var _focusPaddingTop:Float = 0;
-
-	/**
-	 * @private
-	 */
+		@private
+	**/
 	public var focusPaddingTop(get, set):Float;
 
-	public function get_focusPaddingTop():Float {
+	private var _focusPaddingTop:Float = 0;
+
+	private function get_focusPaddingTop():Float {
+		return this._focusPaddingTop;
+	}
+
+	private function set_focusPaddingTop(value:Float):Float {
+		if (this.processStyleRestriction("focusPaddingTop")) {
+			return value;
+		}
+		if (this._focusPaddingTop == value) {
+			return value;
+		}
+		this._focusPaddingTop = value;
+		this.invalidate(INVALIDATION_FLAG_FOCUS);
 		return this._focusPaddingTop;
 	}
 
 	/**
-	 * @private
-	 */
-	public function set_focusPaddingTop(value:Float):Float {
-		if (this.processStyleRestriction(this.set_focusPaddingTop)) {
-			return get_focusPaddingTop();
-		}
-		if (this._focusPaddingTop == value) {
-			return get_focusPaddingTop();
-		}
-		this._focusPaddingTop = value;
-		this.invalidate(INVALIDATION_FLAG_FOCUS);
-		return get_focusPaddingTop();
-	}
-
-	/**
-	 * @private
-	 */
-	private var _focusPaddingRight:Float = 0;
-
-	/**
-	 * @private
-	 */
+		@private
+	**/
 	public var focusPaddingRight(get, set):Float;
 
-	public function get_focusPaddingRight():Float {
+	private var _focusPaddingRight:Float = 0;
+
+	private function get_focusPaddingRight():Float {
+		return this._focusPaddingRight;
+	}
+
+	private function set_focusPaddingRight(value:Float):Float {
+		if (this.processStyleRestriction("focusPaddingRight")) {
+			return value;
+		}
+		if (this._focusPaddingRight == value) {
+			return value;
+		}
+		this._focusPaddingRight = value;
+		this.invalidate(INVALIDATION_FLAG_FOCUS);
 		return this._focusPaddingRight;
 	}
 
 	/**
-	 * @private
-	 */
-	public function set_focusPaddingRight(value:Float):Float {
-		if (this.processStyleRestriction(this.set_focusPaddingRight)) {
-			return get_focusPaddingRight();
-		}
-		if (this._focusPaddingRight == value) {
-			return get_focusPaddingRight();
-		}
-		this._focusPaddingRight = value;
-		this.invalidate(INVALIDATION_FLAG_FOCUS);
-		return get_focusPaddingRight();
-	}
-
-	/**
-	 * @private
-	 */
-	private var _focusPaddingBottom:Float = 0;
-
-	/**
-	 * @private
-	 */
+		@private
+	**/
 	public var focusPaddingBottom(get, set):Float;
 
-	public function get_focusPaddingBottom():Float {
+	private var _focusPaddingBottom:Float = 0;
+
+	private function get_focusPaddingBottom():Float {
+		return this._focusPaddingBottom;
+	}
+
+	private function set_focusPaddingBottom(value:Float):Float {
+		if (this.processStyleRestriction("focusPaddingBottom")) {
+			return value;
+		}
+		if (this._focusPaddingBottom == value) {
+			return value;
+		}
+		this._focusPaddingBottom = value;
+		this.invalidate(INVALIDATION_FLAG_FOCUS);
 		return this._focusPaddingBottom;
 	}
 
 	/**
-	 * @private
-	 */
-	public function set_focusPaddingBottom(value:Float):Float {
-		if (this.processStyleRestriction(this.set_focusPaddingBottom)) {
-			return get_focusPaddingBottom();
-		}
-		if (this._focusPaddingBottom == value) {
-			return get_focusPaddingBottom();
-		}
-		this._focusPaddingBottom = value;
-		this.invalidate(INVALIDATION_FLAG_FOCUS);
-		return get_focusPaddingBottom();
-	}
-
-	/**
-	 * @private
-	 */
-	private var _focusPaddingLeft:Float = 0;
-
-	/**
-	 * @private
-	 */
+		@private
+	**/
 	public var focusPaddingLeft(get, set):Float;
 
-	public function get_focusPaddingLeft():Float {
+	private var _focusPaddingLeft:Float = 0;
+
+	private function get_focusPaddingLeft():Float {
+		return this._focusPaddingLeft;
+	}
+
+	private function set_focusPaddingLeft(value:Float):Float {
+		// TODO: translate this code to haxe
+		if (this.processStyleRestriction("focusPaddingLeft")) {
+			return value;
+		}
+		if (this._focusPaddingLeft == value) {
+			return value;
+		}
+		this._focusPaddingLeft = value;
+		this.invalidate(INVALIDATION_FLAG_FOCUS);
 		return this._focusPaddingLeft;
 	}
 
 	/**
-	 * @private
-	 */
-	public function set_focusPaddingLeft(value:Float):Float {
-		if (this.processStyleRestriction(this.set_focusPaddingLeft)) {
-			return get_focusPaddingLeft();
-		}
-		if (this._focusPaddingLeft == value) {
-			return get_focusPaddingLeft();
-		}
-		this._focusPaddingLeft = value;
-		this.invalidate(INVALIDATION_FLAG_FOCUS);
-		return get_focusPaddingLeft();
-	}
-
-	/**
 	 * Indicates if effects have been suspended.
-	 * 
+	 *
 	 * @see #suspendEffects()
 	 * @see #resumeEffects()
 	 */
 	public var effectsSuspended(get, never):Bool;
 
-	public function get_effectsSuspended():Bool {
+	private function get_effectsSuspended():Bool {
 		return this._suspendEffectsCount > 0;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _hasFocus:Bool = false;
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _showFocus:Bool = false;
 
 	/**
@@ -2302,37 +2050,34 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 */
 	public var isCreated(get, never):Bool;
 
-	public function get_isCreated():Bool {
+	private function get_isCreated():Bool {
 		return this._hasValidated;
 	}
-
-	/**
-	 * @private
-	 */
-	private var _depth:Int = -1;
 
 	/**
 	 * @copy feathers.core.IValidating#depth
 	 */
 	public var depth(get, never):Int;
 
-	public function get_depth():Int {
+	private var _depth:Int = -1;
+
+	private function get_depth():Int {
 		return this._depth;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _suspendEffectsCount:Int = 0;
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _ignoreNextStyleRestriction:Bool = false;
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _invalidateCount:Int = 0;
 
 	/**
@@ -2348,8 +2093,10 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 			resultRect = new Rectangle();
 		}
 
-		var minX:Float = Max.MAX_VALUE, maxX:Float = -Max.MAX_VALUE;
-		var minY:Float = Max.MAX_VALUE, maxY:Float = -Max.MAX_VALUE;
+		var minX:Float = MathUtils.FLOAT_MIN;
+		var maxX:Float = MathUtils.FLOAT_MAX;
+		var minY:Float = MathUtils.FLOAT_MIN;
+		var maxY:Float = MathUtils.FLOAT_MAX;
 
 		if (targetSpace == this) // optimization
 		{
@@ -2397,8 +2144,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	override public function hitTest(localPoint:Point):DisplayObject {
 		if (this._isQuickHitAreaEnabled) {
 			if (!this.visible || !this.touchable) {
@@ -2413,13 +2160,13 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private var _isDisposed:Bool = false;
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	override public function dispose():Void {
 		// we don't dispose it if this is the parent because it'll
 		// already get disposed in super.dispose()
@@ -2488,7 +2235,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 			// an infinite loop or a serious bug because it affects
 			// performance.
 			if (this._invalidateCount >= 10) {
-				throw new Error(Lib.getQualifiedClassName(this)
+				throw new Error(Type.getClassName(Type.getClass(this))
 					+
 					" returned to validation queue too many times during validation. This may be an infinite loop. Try to avoid doing anything that calls invalidate() during validation.");
 			}
@@ -2531,18 +2278,17 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		}
 		this._isValidating = true;
 		this.draw();
-		for (flag in this._invalidationFlags.keys()) {
-			this._invalidationFlags.remove(flag);
-		}
+		this._invalidationFlags.clear();
 		this._isAllInvalid = false;
-		for (flag in this._delayedInvalidationFlags.keys()) {
+		for (flag in this._delayedInvalidationFlags.keys()) // TODO : don't iterate on a Map's String keys ?
+		{
 			if (flag == INVALIDATION_FLAG_ALL) {
 				this._isAllInvalid = true;
 			} else {
 				this._invalidationFlags[flag] = true;
 			}
-			this._delayedInvalidationFlags.remove(flag);
 		}
+		this._delayedInvalidationFlags.clear();
 		this._isValidating = false;
 		if (!this._hasValidated) {
 			this._hasValidated = true;
@@ -2655,7 +2401,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		if (this.isCreated && this._suspendEffectsCount == 0 && this._moveEffect != null) {
 			this._moveEffectContext = cast this._moveEffect(this);
 			this._moveEffectContext.addEventListener(Event.COMPLETE, moveEffectContext_completeHandler);
-			if (this._moveEffectContext is IMoveEffectContext) {
+			if (Std.isOfType(this._moveEffectContext, IMoveEffectContext)) {
 				var moveEffectContext:IMoveEffectContext = cast this._moveEffectContext;
 				moveEffectContext.oldX = this.x;
 				moveEffectContext.oldY = this.y;
@@ -2693,13 +2439,13 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * <p>The <code>IEffectContext</code> is used by the component to
 	 * control the effect, performing actions like playing the effect,
 	 * pausing it, or cancelling it.</p>
-	 * 
+	 *
 	 * <p>Custom animated effects that use
 	 * <code>starling.display.Tween</code> typically return a
 	 * <code>TweenEffectContext</code>. In the following example, we
 	 * recreate the <code>Fade.createFadeOutEffect()</code> used in the
 	 * previous example.</p>
-	 * 
+	 *
 	 * <listing version="3.0">
 	 * function customEffect(target:DisplayObject):IEffectContext
 	 * {
@@ -2714,7 +2460,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * @see feathers.motion.effectClasses.IEffectContext
 	 * @see feathers.motion.effectClasses.TweenEffectContext
 	 */
-	public function removeFromParentWithEffect(effect:ASFunction, dispose:Bool = false):Void {
+	public function removeFromParentWithEffect(effect:Function, dispose:Bool = false):Void {
 		if (this.isCreated && this._suspendEffectsCount == 0) {
 			this._disposeAfterRemovedEffect = dispose;
 			this._removedEffectContext = cast effect(this);
@@ -2728,7 +2474,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * Resets the <code>styleProvider</code> property to its default value,
 	 * which is usually the global style provider for the component.
-	 * 
+	 *
 	 * @see #styleProvider
 	 * @see #defaultStyleProvider
 	 */
@@ -2739,7 +2485,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	/**
 	 * Indicates that effects should not be activated temporarily. Call
 	 * <code>resumeEffects()</code> when effects should be allowed again.
-	 * 
+	 *
 	 * @see #resumeEffects()
 	 */
 	public function suspendEffects():Void {
@@ -2748,7 +2494,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 
 	/**
 	 * Indicates that effects should be re-activated after being suspended.
-	 * 
+	 *
 	 * @see #suspendEffects()
 	 */
 	public function resumeEffects():Void {
@@ -2798,7 +2544,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * Then, if the component has a style provider, it will be applied. The
 	 * component will not validate, though. To initialize and validate
 	 * immediately, call <code>validate()</code> instead.
-	 * 
+	 *
 	 * @see #isInitialized
 	 * @see #initialize()
 	 * @see #event:initialize FeathersEventType.INITIALIZE
@@ -2982,14 +2728,14 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * style provider to set the style later will be ignored. This allows
 	 * developers to customize a component's styles directly without
 	 * worrying about conflicts from the style provider or theme.
-	 * 
+	 *
 	 * <p>If a style provider is currently applying styles to the component,
 	 * returns <code>true</code> if the style is restricted or false if it
 	 * may be set.</p>
-	 * 
+	 *
 	 * <p>If the style setter is called outside of a style provider, marks
 	 * the style as restricted and returns <code>false</code>.</p>
-	 * 
+	 *
 	 * <p>The <code>key</code> parameter should be a unique value for each
 	 * separate style. In most cases, <code>processStyleRestriction()</code>
 	 * will be called in the style property setter, so
@@ -3002,12 +2748,12 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 *
 	 * <listing version="3.0">
 	 * private var _customStyle:Object;
-	 *
+	 * 
 	 * public function get customStyle():Object
 	 * {
 	 *     return this._customStyle;
 	 * }
-	 *
+	 * 
 	 * public function set customStyle( value:Object ):void
 	 * {
 	 *     if( this.processStyleRestriction( arguments.callee ) )
@@ -3021,7 +2767,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 *
 	 * @see #ignoreNextStyleRestriction()
 	 */
-	private function processStyleRestriction(key:Dynamic):Bool {
+	private function processStyleRestriction(key:String):Bool {
 		var ignore:Bool = this._ignoreNextStyleRestriction;
 		this._ignoreNextStyleRestriction = false;
 		// in most cases, the style is not restricted, and we can set it
@@ -3033,9 +2779,9 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		}
 		if (this._restrictedStyles == null) {
 			// only create the object if it is needed
-			this._restrictedStyles = new FunctionMap<Dynamic->Void, Bool>();
+			this._restrictedStyles = new Map<String, Bool>();
 		}
-		this._restrictedStyles.set(key, true);
+		this._restrictedStyles[key] = true;
 		return false;
 	}
 
@@ -3043,7 +2789,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	 * The next style that is set will not be restricted. This allows
 	 * components to set defaults by calling the setter while still allowing
 	 * the style property to be replaced by a theme in the future.
-	 * 
+	 *
 	 * @see #processStyleRestriction()
 	 */
 	private function ignoreNextStyleRestriction():Void {
@@ -3077,8 +2823,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function refreshHitAreaX():Void {
 		if (this.actualWidth < this._minTouchWidth) {
 			this._hitArea.width = this._minTouchWidth;
@@ -3095,8 +2841,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function refreshHitAreaY():Void {
 		if (this.actualHeight < this._minTouchHeight) {
 			this._hitArea.height = this._minTouchHeight;
@@ -3173,7 +2919,7 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		if (!this._isInitialized) {
 			this.initializeNow();
 		}
-		this._depth = FeathersDisplayUtil.getDisplayObjectDepthFromStage(this);
+		this._depth = DisplayUtils.getDisplayObjectDepthFromStage(this);
 		this._validationQueue = ValidationQueue.forStarling(this.stage.starling);
 		if (this.isInvalid()) {
 			this._invalidateCount = 0;
@@ -3194,8 +2940,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function feathersControl_removedFromStageHandler(event:Event):Void {
 		if (this._addedEffectContext != null) {
 			this._addedEffectContext.interrupt();
@@ -3205,15 +2951,15 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function addedEffectContext_completeHandler(event:Event):Void {
 		this._addedEffectContext = null;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function removedEffectContext_completeHandler(event:Event, stopped:Bool):Void {
 		this._removedEffectContext = null;
 		if (!stopped) {
@@ -3222,16 +2968,16 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function showEffectContext_completeHandler(event:Event):Void {
 		this._showEffectContext.removeEventListener(Event.COMPLETE, showEffectContext_completeHandler);
 		this._showEffectContext = null;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function hideEffectContext_completeHandler(event:Event, stopped:Bool):Void {
 		this._hideEffectContext.removeEventListener(Event.COMPLETE, hideEffectContext_completeHandler);
 		this._hideEffectContext = null;
@@ -3243,47 +2989,47 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function focusInEffectContext_completeHandler(event:Event):Void {
 		this._focusInEffectContext.removeEventListener(Event.COMPLETE, focusInEffectContext_completeHandler);
 		this._focusInEffectContext = null;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function focusOutEffectContext_completeHandler(event:Event):Void {
 		this._focusOutEffectContext.removeEventListener(Event.COMPLETE, focusOutEffectContext_completeHandler);
 		this._focusOutEffectContext = null;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function moveEffectContext_completeHandler(event:Event):Void {
 		this._moveEffectContext.removeEventListener(Event.COMPLETE, moveEffectContext_completeHandler);
 		this._moveEffectContext = null;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function resizeEffectContext_completeHandler(event:Event):Void {
 		this._resizeEffectContext.removeEventListener(Event.COMPLETE, resizeEffectContext_completeHandler);
 		this._resizeEffectContext = null;
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function layoutData_changeHandler(event:Event):Void {
 		this.dispatchEventWith(FeathersEventType.LAYOUT_DATA_CHANGE);
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function styleNameList_changeHandler(event:Event):Void {
 		if (this._styleProvider == null) {
 			return;
@@ -3297,8 +3043,8 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 	}
 
 	/**
-	 * @private
-	 */
+		@private
+	**/
 	private function styleProvider_changeHandler(event:Event):Void {
 		if (!this._isInitialized) {
 			// safe to ignore changes until initialization
@@ -3310,95 +3056,5 @@ class FeathersControl extends Sprite implements IFeathersControl implements ILay
 		this._applyingStyles = true;
 		this._styleProvider.applyStyles(this);
 		this._applyingStyles = false;
-	}
-}
-
-class FunctionMap<K:ASFunction, V> implements IMap<K, V> {
-	private var _keys:Array<K>;
-	private var _values:Array<V>;
-
-	public function new() {
-		_keys = [];
-		_values = [];
-	}
-
-	public function get(k:K):Null<V> {
-		var keyIndex = index(k);
-		if (keyIndex < 0) {
-			return null;
-		} else {
-			return _values[keyIndex];
-		}
-	}
-
-	public function set(k:K, v:V):Void {
-		var keyIndex = index(k);
-		if (keyIndex < 0) {
-			_keys.push(k);
-			_values.push(v);
-		} else {
-			_values[keyIndex] = v;
-		}
-	}
-
-	public function exists(k:K):Bool {
-		return index(k) >= 0;
-	}
-
-	public function remove(k:K):Bool {
-		var keyIndex = index(k);
-		if (keyIndex < 0) {
-			return false;
-		} else {
-			_keys.splice(keyIndex, 1);
-			_values.splice(keyIndex, 1);
-			return true;
-		}
-	}
-
-	public function keys():Iterator<K> {
-		return _keys.iterator();
-	}
-
-	public function iterator():Iterator<V> {
-		return _values.iterator();
-	}
-
-	public function toString():String {
-		var s = new StringBuf();
-		s.add("{");
-		for (i in 0..._keys.length) {
-			s.add('<function>');
-			s.add(" => ");
-			s.add(Std.string(_values[i]));
-			if (i < _keys.length - 1)
-				s.add(", ");
-		}
-		s.add("}");
-		return s.toString();
-	}
-
-	private function index(key:K):Int {
-		for (i in 0..._keys.length) {
-			if (Reflect.compareMethods(key, _keys[i])) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	public function keyValueIterator():KeyValueIterator<K, V> {
-		var a = [];
-
-		return a.iterator();
-	}
-
-	public function copy():IMap<K, V> {
-		return null;
-	}
-
-	public function clear():Void {
-		_keys = [];
-		_values = [];
 	}
 }

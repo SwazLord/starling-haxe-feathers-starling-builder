@@ -1,6 +1,6 @@
 /*
 	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
 	This program is free software. You can redistribute and/or modify it in
 	accordance with the terms of the accompanying license agreement.
@@ -21,7 +21,7 @@ class AutoSizeMode {
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public inline static var STAGE:String = "stage";
+	public static inline var STAGE:String = "stage";
 
 	/**
 	 * The component will automatically calculate its dimensions to fit its
@@ -29,5 +29,5 @@ class AutoSizeMode {
 	 *
 	 * @productversion Feathers 3.0.0
 	 */
-	public inline static var CONTENT:String = "content";
+	public static inline var CONTENT:String = "content";
 }

@@ -1,16 +1,14 @@
 /*
-	Feathers
-	Copyright 2012-2020 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.system;
-
 import openfl.display.Stage;
-import starling.core.Starling;
 import openfl.system.Capabilities;
+import starling.core.Starling;
 
 /**
  * Using values from the Stage and Capabilities classes, makes educated
@@ -18,7 +16,9 @@ import openfl.system.Capabilities;
  *
  * @productversion Feathers 1.0.0
  */
-class DeviceCapabilities {
+class DeviceCapabilities 
+{
+
 	/**
 	 * Indicates if the arrow and enter keys on a standard keyboard are
 	 * treated the same as a d-pad. If <code>true</code>, focus and other
@@ -35,13 +35,12 @@ class DeviceCapabilities {
 	 */
 	public static var simulateDPad:Bool = false;
 
-	// early Android tablets were frequently 600x1024 170 DPI, which results
-	// in a portrait width slightly larger than 3.5 inches
-
+	//early Android tablets were frequently 600x1024 170 DPI, which results
+	//in a portrait width slightly larger than 3.5 inches
 	/**
 	 * The minimum physical width, in inches, of the device when in
 	 * portrait orientation to be considered a tablet.
-	 * 
+	 *
 	 * <p>When calling <code>isTablet()</code>, a device must meet the
 	 * requirements of both the minimum portrait width and the minimum
 	 * landscape width.</p>
@@ -52,11 +51,11 @@ class DeviceCapabilities {
 	 * @see #isTablet()
 	 */
 	public static var tabletScreenPortraitWidthMinimumInches:Float = 3.5;
-
+	
 	/**
 	 * The minimum physical size, in inches, of the device's larger side to
 	 * be considered a tablet.
-	 * 
+	 *
 	 * <p>When calling <code>isTablet()</code>, a device must meet the
 	 * requirements of both the minimum portrait width and the minimum
 	 * landscape width.</p>
@@ -68,16 +67,15 @@ class DeviceCapabilities {
 	 */
 	public static var tabletScreenLandscapeWidthMinimumInches:Float = 5;
 
-	// the iPhone X is 1125x2436 458 DPI, which results in a portrait width
-	// of ~2.45 inches. This device should be treated as a small phone.
-	// the Pixel XL is 1440x2560 534 DPI, which results in a portrait width
-	// of ~2.69 inches. This device should be treated as a large phone.
-
+	//the iPhone X is 1125x2436 458 DPI, which results in a portrait width
+	//of ~2.45 inches. This device should be treated as a small phone.
+	//the Pixel XL is 1440x2560 534 DPI, which results in a portrait width
+	//of ~2.69 inches. This device should be treated as a large phone.
 	/**
 	 * The minimum physical width, in inches, of the device when in
 	 * portrait orientation to be considered a large phone (sometimes
 	 * called a phablet).
-	 * 
+	 *
 	 * <p>When calling <code>isLargePhone()</code>, a device must meet the
 	 * requirements of both the minimum portrait width and the minimum
 	 * landscape width.</p>
@@ -88,11 +86,11 @@ class DeviceCapabilities {
 	 * @see #isLargePhone()
 	 */
 	public static var largePhoneScreenPortraitWidthMinimumInches:Float = 2.5;
-
+	
 	/**
 	 * The minimum physical size, in inches, of the device's larger side to
 	 * be considered a large phone (sometimes called a phablet).
-	 * 
+	 *
 	 * <p>When calling <code>isLargePhone()</code>, a device must meet the
 	 * requirements of both the minimum portrait width and the minimum
 	 * landscape width.</p>
@@ -103,7 +101,7 @@ class DeviceCapabilities {
 	 * @see #isLargePhone()
 	 */
 	public static var largePhoneScreenLandscapeWidthMinimumInches:Float = 4.5;
-
+	
 	/**
 	 * A custom width, in pixels, to use for calculations of the device's
 	 * physical screen size. Set to NaN to use the actual width.
@@ -113,7 +111,7 @@ class DeviceCapabilities {
 	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/Stage.html#fullScreenWidth Full description of flash.display.Stage.fullScreenWidth in Adobe's Flash Platform API Reference
 	 */
 	public static var screenPixelWidth:Float = Math.NaN;
-
+	
 	/**
 	 * A custom height, in pixels, to use for calculations of the device's
 	 * physical screen size. Set to NaN to use the actual height.
@@ -123,7 +121,7 @@ class DeviceCapabilities {
 	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/Stage.html#fullScreenWidth Full description of flash.display.Stage.fullScreenWidth in Adobe's Flash Platform API Reference
 	 */
 	public static var screenPixelHeight:Float = Math.NaN;
-
+	
 	/**
 	 * The screen density to be used by Feathers. Defaults to the value of
 	 * <code>flash.system.Capabilities.screenDPI</code>, but may be
@@ -145,7 +143,7 @@ class DeviceCapabilities {
 	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/system/Capabilities.html#screenDPI Full description of flash.system.Capabilities.screenDPI in Adobe's Flash Platform API Reference
 	 */
 	public static var dpi:Int = Std.int(Capabilities.screenDPI);
-
+	
 	/**
 	 * Determines if this device is probably a tablet, based on the physical
 	 * width and height, in inches, calculated using the full-screen
@@ -155,18 +153,21 @@ class DeviceCapabilities {
 	 * @see #tabletScreenLandscapeWidthMinimumInches
 	 * @see #isPhone()
 	 */
-	public static function isTablet(stage:Stage = null):Bool {
+	public static function isTablet(stage:Stage = null):Bool
+	{
 		var portraitWidth:Float = screenInchesX(stage);
 		var landscapeWidth:Float = screenInchesY(stage);
-		if (portraitWidth > landscapeWidth) {
-			// make sure the longer side is used for landscape comparison
+		if(portraitWidth > landscapeWidth)
+		{
+			//make sure the longer side is used for landscape comparison
 			var temp:Float = landscapeWidth;
 			landscapeWidth = portraitWidth;
 			portraitWidth = temp;
 		}
-		return portraitWidth >= tabletScreenPortraitWidthMinimumInches && landscapeWidth >= tabletScreenLandscapeWidthMinimumInches;
+		return portraitWidth >= tabletScreenPortraitWidthMinimumInches &&
+			landscapeWidth >= tabletScreenLandscapeWidthMinimumInches;
 	}
-
+	
 	/**
 	 * Determines if this device is probably a large phone (sometimes
 	 * called a phablet), based on the physical width and height, in
@@ -178,25 +179,27 @@ class DeviceCapabilities {
 	 * @see #isPhone()
 	 * @see #isTablet()
 	 */
-	public static function isLargePhone(stage:Stage = null):Bool {
+	public static function isLargePhone(stage:Stage = null):Bool
+	{
 		var portraitWidth:Float = screenInchesX(stage);
 		var landscapeWidth:Float = screenInchesY(stage);
-		if (portraitWidth > landscapeWidth) {
-			// make sure the longer side is used for landscape comparison
+		if(portraitWidth > landscapeWidth)
+		{
+			//make sure the longer side is used for landscape comparison
 			var temp:Float = landscapeWidth;
 			landscapeWidth = portraitWidth;
 			portraitWidth = temp;
 		}
-		return portraitWidth >= largePhoneScreenPortraitWidthMinimumInches
-			&& landscapeWidth >= largePhoneScreenLandscapeWidthMinimumInches
-			&& !isTablet(stage);
+		return portraitWidth >= largePhoneScreenPortraitWidthMinimumInches &&
+			landscapeWidth >= largePhoneScreenLandscapeWidthMinimumInches &&
+			!isTablet(stage);
 	}
-
+	
 	/**
 	 * Determines if this device is probably a phone, based on the physical
 	 * width and height, in inches, calculated using the full-screen
 	 * dimensions and the screen density.
-	 * 
+	 *
 	 * <p>Returns <code>true</code> if the device is smaller than the
 	 * minimum dimensions of a tablet. Larger phones (sometimes called
 	 * phablets) are classified as phones when calling
@@ -207,10 +210,11 @@ class DeviceCapabilities {
 	 * @see #isTablet()
 	 * @see #isLargePhone()
 	 */
-	public static function isPhone(stage:Stage = null):Bool {
+	public static function isPhone(stage:Stage = null):Bool
+	{
 		return !isTablet(stage);
 	}
-
+	
 	/**
 	 * The physical width of the device, in inches. Calculated using the
 	 * full-screen width and the screen density.
@@ -218,18 +222,20 @@ class DeviceCapabilities {
 	 * @see #screenPixelWidth
 	 * @see #dpi
 	 */
-	public static function screenInchesX(stage:Stage = null):Float {
-		if (stage == null) {
+	public static function screenInchesX(stage:Stage = null):Float
+	{
+		if(stage == null)
+		{
 			stage = Starling.current.nativeStage;
 		}
 		var screenWidth:Float = screenPixelWidth;
-		if (screenWidth != screenWidth) // isNaN
+		if(screenWidth != screenWidth) //isNaN
 		{
 			screenWidth = stage.fullScreenWidth;
 		}
 		return screenWidth / dpi;
 	}
-
+	
 	/**
 	 * The physical height of the device, in inches. Calculated using the
 	 * full-screen height and the screen density.
@@ -237,15 +243,18 @@ class DeviceCapabilities {
 	 * @see #screenPixelHeight
 	 * @see #dpi
 	 */
-	public static function screenInchesY(stage:Stage = null):Float {
-		if (stage == null) {
+	public static function screenInchesY(stage:Stage = null):Float
+	{
+		if(stage == null)
+		{
 			stage = Starling.current.nativeStage;
 		}
 		var screenHeight:Float = screenPixelHeight;
-		if (screenHeight != screenHeight) // isNaN
+		if(screenHeight != screenHeight) //isNaN
 		{
 			screenHeight = stage.fullScreenHeight;
 		}
 		return screenHeight / dpi;
 	}
+	
 }

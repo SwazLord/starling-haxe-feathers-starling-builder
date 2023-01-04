@@ -1,16 +1,14 @@
 /*
-	Feathers
-	Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
+Feathers
+Copyright 2012-2021 Bowler Hat LLC. All Rights Reserved.
 
-	This program is free software. You can redistribute and/or modify it in
-	accordance with the terms of the accompanying license agreement.
- */
-
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/
 package feathers.utils.touch;
-
-import starling.display.DisplayObject;
 import feathers.core.IToggle;
 import openfl.geom.Point;
+import starling.display.DisplayObject;
 import starling.display.DisplayObjectContainer;
 import starling.display.Stage;
 import starling.events.Touch;
@@ -49,85 +47,80 @@ import starling.utils.Pool;
  *
  * @productversion Feathers 2.3.0
  */
-class TapToSelect {
+class TapToSelect 
+{
 	/**
 	 * Constructor.
 	 */
-	public function new(target:IToggle = null) {
+	public function new(target:IToggle = null) 
+	{
 		this.target = target;
 	}
-
+	
 	/**
 	 * The target component that should be selected when tapped.
 	 */
 	public var target(get, set):IToggle;
-
 	private var _target:IToggle;
-
-	public function get_target():IToggle {
-		return this._target;
-	}
-
-	public function set_target(value:IToggle):IToggle {
-		if (this._target == value) {
+	private function get_target():IToggle { return this._target; }
+	private function set_target(value:IToggle):IToggle
+	{
+		if (this._target == value)
+		{
 			return value;
 		}
-		if (this._target != null) {
+		if (this._target != null)
+		{
 			this._target.removeEventListener(TouchEvent.TOUCH, target_touchHandler);
 		}
 		this._target = value;
-		if (this._target != null) {
-			// if we're changing targets, and a touch is active, we want to
-			// clear it.
+		if (this._target != null)
+		{
+			//if we're changing targets, and a touch is active, we want to
+			//clear it.
 			this._touchPointID = -1;
 			this._target.addEventListener(TouchEvent.TOUCH, target_touchHandler);
 		}
 		return this._target;
 	}
-
+	
 	/**
 	 * @private
 	 */
 	private var _touchPointID:Int = -1;
-
+	
 	/**
 	 * May be set to <code>false</code> to disable selection temporarily
 	 * until set back to <code>true</code>.
 	 */
 	public var isEnabled(get, set):Bool;
-
 	private var _isEnabled:Bool = true;
-
-	public function get_isEnabled():Bool {
-		return this._isEnabled;
-	}
-
-	public function set_isEnabled(value:Bool):Bool {
-		if (this._isEnabled == value) {
+	private function get_isEnabled():Bool { return this._isEnabled; }
+	private function set_isEnabled(value:Bool):Bool
+	{
+		if (this._isEnabled == value)
+		{
 			return value;
 		}
-		if (!value) {
+		if (!value)
+		{
 			this._touchPointID = -1;
 		}
 		return this._isEnabled = value;
 	}
-
+	
 	/**
 	 * May be set to <code>true</code> to allow the target to be deselected
 	 * when tapped.
 	 */
 	public var tapToDeselect(get, set):Bool;
-
 	private var _tapToDeselect:Bool;
-
-	public function get_tapToDeselect():Bool {
-		return this._tapToDeselect;
-	}
-
-	public function set_tapToDeselect(value:Bool):Bool {
+	private function get_tapToDeselect():Bool { return this._tapToDeselect; }
+	private function set_tapToDeselect(value:Bool):Bool
+	{
 		return this._tapToDeselect = value;
 	}
-
+	
 	/**
 	 * In addition to a normal call to <code>hitTest()</code>, a custom
 	 * function may impose additional rules that determine if the target
@@ -141,81 +134,97 @@ class TapToSelect {
 	 * be selected, and <code>false</code> if it should not be selected.</p>
 	 */
 	public var customHitTest(get, set):Point->Bool;
-
 	private var _customHitTest:Point->Bool;
-
-	public function get_customHitTest():Point->Bool {
-		return this._customHitTest;
-	}
-
-	public function set_customHitTest(value:Point->Bool):Point->Bool {
+	private function get_customHitTest():Point->Bool { return this._customHitTest; }
+	private function set_customHitTest(value:Point->Bool):Point->Bool
+	{
 		return this._customHitTest = value;
 	}
-
+	
 	/**
 	 * @private
 	 */
-	private function target_touchHandler(event:TouchEvent):Void {
-		if (!this._isEnabled) {
+	private function target_touchHandler(event:TouchEvent):Void
+	{
+		if (!this._isEnabled)
+		{
 			this._touchPointID = -1;
 			return;
 		}
-		var isInBounds:Bool;
+		
 		var touch:Touch;
 		var point:Point;
-		if (this._touchPointID >= 0) {
-			// a touch has begun, so we'll ignore all other touches.
+		var isInBounds:Bool;
+		if (this._touchPointID >= 0)
+		{
+			//a touch has begun, so we'll ignore all other touches.
 			touch = event.getTouch(cast this._target, null, this._touchPointID);
-			if (touch == null) {
-				// this should not happen.
+			if (touch == null)
+			{
+				//this should not happen.
 				return;
 			}
-
-			if (touch.phase == TouchPhase.ENDED) {
+			
+			if (touch.phase == TouchPhase.ENDED)
+			{
 				var stage:Stage = this._target.stage;
-				if (stage != null) {
+				if (stage != null)
+				{
 					point = Pool.getPoint();
 					touch.getLocation(stage, point);
-					if (Std.is(this._target, DisplayObjectContainer)) {
+					if (Std.isOfType(this._target, DisplayObjectContainer))
+					{
 						isInBounds = cast(this._target, DisplayObjectContainer).contains(stage.hitTest(point));
-					} else {
-						isInBounds = (this._target == cast(stage.hitTest(point), IToggle));
+					}
+					else
+					{
+						isInBounds = cast(this._target, DisplayObject) == stage.hitTest(point);
 					}
 					Pool.putPoint(point);
-					if (isInBounds) {
-						if (this._tapToDeselect) {
+					if(isInBounds)
+					{
+						if(this._tapToDeselect)
+						{
 							this._target.isSelected = !this._target.isSelected;
-						} else {
+						}
+						else
+						{
 							this._target.isSelected = true;
 						}
 					}
 				}
-
-				// the touch has ended, so now we can start watching for a
-				// new one.
+				
+				//the touch has ended, so now we can start watching for a
+				//new one.
 				this._touchPointID = -1;
 			}
 			return;
-		} else {
-			// we aren't tracking another touch, so let's look for a new one.
+		}
+		else
+		{
+			//we aren't tracking another touch, so let's look for a new one.
 			touch = event.getTouch(cast this._target, TouchPhase.BEGAN);
-			if (touch == null) {
-				// we only care about the began phase. ignore all other
-				// phases when we don't have a saved touch ID.
+			if (touch == null)
+			{
+				//we only care about the began phase. ignore all other
+				//phases when we don't have a saved touch ID.
 				return;
 			}
-			if (this._customHitTest != null) {
+			if (this._customHitTest != null)
+			{
 				point = Pool.getPoint();
-				touch.getLocation(cast(this._target, DisplayObject), point);
+				touch.getLocation(cast this._target, point);
 				isInBounds = this._customHitTest(point);
 				Pool.putPoint(point);
-				if (!isInBounds) {
+				if (!isInBounds)
+				{
 					return;
 				}
 			}
-
-			// save the touch ID so that we can track this touch's phases.
+			
+			//save the touch ID so that we can track this touch's phases.
 			this._touchPointID = touch.id;
 		}
 	}
+	
 }
