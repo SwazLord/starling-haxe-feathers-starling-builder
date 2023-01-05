@@ -193,13 +193,14 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 			var item:DisplayObject = items[i];
 			var layoutData:AnchorLayoutData = null;
 			if (Std.isOfType(item, ILayoutDisplayObject)) {
-				var layoutItem:ILayoutDisplayObject = cast item;
+				var layoutItem:ILayoutDisplayObject = cast(item, ILayoutDisplayObject);
 				if (!layoutItem.includeInLayout) {
 					continue;
 				}
-				layoutData = cast layoutItem.layoutData;
+				layoutData = cast(layoutItem.layoutData, AnchorLayoutData);
 			}
-			var isReadyForLayout:Bool = layoutData != null || this.isReadyForLayout(layoutData, i, items, unpositionedItems);
+
+			var isReadyForLayout:Bool = layoutData == null || this.isReadyForLayout(layoutData, i, items, unpositionedItems);
 			if (!isReadyForLayout) {
 				unpositionedItems[pushIndex] = item;
 				pushIndex++;
@@ -518,7 +519,12 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 		var pushIndex:Int = 0;
 		for (i in 0...itemCount) {
 			var item:DisplayObject = items[i];
-			var layoutItem:ILayoutDisplayObject = cast item;
+			var layoutItem:ILayoutDisplayObject = null;
+
+			if (Std.isOfType(item, ILayoutDisplayObject)) {
+				layoutItem = cast(item, ILayoutDisplayObject);
+			}
+
 			if (layoutItem == null || !layoutItem.includeInLayout) {
 				continue;
 			}
@@ -853,7 +859,7 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	private function isReferenced(item:DisplayObject, items:Array<DisplayObject>):Bool {
 		var itemCount:Int = items.length;
 		for (i in 0...itemCount) {
-			var otherItem:ILayoutDisplayObject = cast(items[i], ILayoutDisplayObject);
+			var otherItem:ILayoutDisplayObject = cast items[i];
 			if (otherItem == null || cast(otherItem, DisplayObject) == item) {
 				continue;
 			}

@@ -21,7 +21,7 @@ interface ILayoutDisplayObject extends IFeathersDisplayObject {
 	 * Extra parameters associated with this display object that will be
 	 * used by the layout algorithm.
 	 */
-	var layoutData(get, set):ILayoutData;
+	public var layoutData(get, set):ILayoutData;
 
 	/**
 	 * Determines if the ILayout should use this object or ignore it.
@@ -32,5 +32,5 @@ interface ILayoutDisplayObject extends IFeathersDisplayObject {
 	 * <listing version="3.0">
 	 * object.includeInLayout = false;</listing>
 	 */
-	var includeInLayout(get, set):Bool;
+	public var includeInLayout(get, set):Bool;
 }

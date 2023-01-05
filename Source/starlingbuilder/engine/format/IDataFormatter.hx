@@ -5,12 +5,14 @@
  *  This program is free software. You can redistribute and/or modify it in
  *  accordance with the terms of the accompanying license agreement.
  */
+
 package starlingbuilder.engine.format;
 
 /**
-     * @private
-     */
-interface IDataFormatter
-{
-    function read(data:Dynamic):Dynamic;
+ * @private
+ */
+interface IDataFormatter {
+	function read(data:Dynamic):Dynamic;
+
+	var prettyData(get, set):Bool;
 }

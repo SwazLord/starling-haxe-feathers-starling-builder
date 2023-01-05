@@ -1,0 +1,11 @@
+{
+    "name": "com.sample.starlingproject",
+    "version": "1.0.0",
+    "main": "ElectronSetup.js",
+    "scripts": {
+        "start": "electron ElectronSetup.js"
+    },
+    "devDependencies": {
+        "electron": "^18.0.4"
+    }
+}

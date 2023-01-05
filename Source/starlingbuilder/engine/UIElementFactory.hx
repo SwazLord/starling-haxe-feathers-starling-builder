@@ -27,6 +27,7 @@ class UIElementFactory {
 	private function setDefaultParams(obj:Dynamic, data:Dynamic):Void {}
 
 	private function setDirectParams(obj:Dynamic, data:Dynamic):Void {
+		// trace("setDirectParams Obj = " + obj);
 		var array:Array<Dynamic> = [];
 		var id:String;
 		for (id in Reflect.fields(data.params)) {
@@ -36,19 +37,15 @@ class UIElementFactory {
 
 		for (id in array) {
 			var item:Dynamic = data.params[id];
+			trace("id = " + id + " item = " + item);
 
 			if (item != null && Reflect.hasField(item, "cls")) {
-				try {
-					Reflect.setProperty(obj, id, create(item));
-				} catch (e:Error) {
-					trace(e);
-				}
+				Reflect.setProperty(obj, id, create(item));
 			} else {
-				try {
-					Reflect.setProperty(obj, id, item);
-				} catch (e:Error) {
-					trace(e);
-				}
+				// trace("Obj before = " + obj);
+				Reflect.setProperty(obj, id, item);
+				// trace("Obj after = " + obj);
+				// trace("Has name Field " + Reflect.hasField(obj, "__name"));
 			}
 		}
 	}
@@ -65,7 +62,7 @@ class UIElementFactory {
 		var data:Dynamic;
 
 		var clsName:String = param.cls;
-		trace("clsName = " + clsName);
+		// trace("clsName = " + clsName);
 		switch (clsName) {
 			case "starling.textures.Texture":
 				{
@@ -163,7 +160,7 @@ class UIElementFactory {
 	}
 
 	public function create(data:Dynamic):Dynamic {
-		trace("data = " + data);
+		// trace("create data = " + data);
 		var obj:Dynamic;
 		var constructorParams:Array<Dynamic> = cast data.constructorParams;
 
@@ -179,15 +176,13 @@ class UIElementFactory {
 			&& data.customParams.customComponentClass != "null") {
 			try {
 				cls = Type.resolveClass(data.customParams.customComponentClass);
-				trace("cls is : ", cls);
+				// trace("cls is : ", cls);
 			} catch (e:Error) {
-				trace("Class " + data.customParams.customComponentClass + " can't be instantiated.");
+				trace("Error : Class " + data.customParams.customComponentClass + " can't be instantiated.");
 			}
-		} else {
-			trace("else condition");
 		}
 
-		trace("data class " + data.cls);
+		// trace("data class " + data.cls);
 
 		// hack: flash.geom.Rectangle only exists in flash target
 		#if (display || !flash)
@@ -197,7 +192,7 @@ class UIElementFactory {
 		#end
 
 		if (cls == null) {
-			trace("cls is null so cls is " + data.cls);
+			// trace("cls is null so cls is " + data.cls);
 			cls = Type.resolveClass(data.cls);
 		}
 
@@ -211,10 +206,12 @@ class UIElementFactory {
 		}
 
 		setDefault(obj, data);
+
 		return obj;
 	}
 
 	private function createArgumentsFromParams(params:Array<Dynamic>):Array<Dynamic> {
+		// trace("createArgumentsFromParams = " + params);
 		var args:Array<Dynamic> = [];
 
 		if (params != null) {
@@ -225,8 +222,6 @@ class UIElementFactory {
 					args.push(param.value);
 				}
 			}
-		} else {
-			trace("params null");
 		}
 
 		return args;

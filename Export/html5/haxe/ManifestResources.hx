@@ -61,6 +61,8 @@ import sys.FileSystem;
 		}
 
 		#if (openfl && !flash && !display)
+		openfl.text.Font.registerFont (__ASSET__OPENFL__assets_fonts_sourcesanspro_regular_ttf);
+		openfl.text.Font.registerFont (__ASSET__OPENFL__assets_fonts_sourcesanspro_semibold_ttf);
 		
 		#end
 
@@ -77,7 +79,7 @@ import sys.FileSystem;
 
 		#else
 
-		data = '{"name":null,"assets":"aoy4:pathy21:assets%2Fgame_ui.jsony4:sizei5123y4:typey4:TEXTy2:idR1y7:preloadtgoR0y24:assets%2Fgame_ui_01.jsonR2i1394R3R4R5R7R6tgoR0y24:assets%2Fgame_ui_02.jsonR2i3559R3R4R5R8R6tgoR0y28:assets%2Flayouts%2Fcard.jsonR2i16432R3R4R5R9R6tgoR0y28:assets%2Flayouts%2Fgame.jsonR2i4284R3R4R5R10R6tgoR0y31:assets%2Flayouts%2Fgame_ui.jsonR2i5183R3R4R5R11R6tgoR0y28:assets%2Flayouts%2Fmenu.jsonR2i3053R3R4R5R12R6tgoR0y40:assets%2Fsettings%2Feditor_template.jsonR2i38273R3R4R5R13R6tgoR0y29:assets%2Fsettings%2Flibs.jsonR2i2R3R4R5R14R6tgoR0y36:assets%2Fsettings%2Frecent_open.jsonR2i693R3R4R5R15R6tgoR0y40:assets%2Fsettings%2Ftexture_options.jsonR2i58R3R4R5R16R6tgoR0y35:assets%2Fsettings%2Fui_builder.jsonR2i265R3R4R5R17R6tgoR0y42:assets%2Fsettings%2Fworkspace_setting.jsonR2i142R3R4R5R18R6tgoR0y29:assets%2Ftextures%2Fatlas.pngR2i225831R3y5:IMAGER5R19R6tgoR0y29:assets%2Ftextures%2Fatlas.xmlR2i1303R3R4R5R21R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR2i20725R3R4R5R22R6tgoR0y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR2i32050R3R20R5R23R6tgh","rootPath":null,"version":2,"libraryArgs":[],"libraryType":null}';
+		data = '{"name":null,"assets":"aoy4:sizei149508y4:typey4:FONTy9:classNamey47:__ASSET__assets_fonts_sourcesanspro_regular_ttfy2:idy42:assets%2Ffonts%2FSourceSansPro-Regular.ttfy7:preloadtgoR0i149352R1R2R3y48:__ASSET__assets_fonts_sourcesanspro_semibold_ttfR5y43:assets%2Ffonts%2FSourceSansPro-Semibold.ttfR7tgoy4:pathy21:assets%2Fgame_ui.jsonR0i7773R1y4:TEXTR5R11R7tgoR10y26:assets%2Fgame_ui_test.jsonR0i19060R1R12R5R13R7tgoR10y37:assets%2Fimg%2Fmetalworks_desktop.pngR0i85319R1y5:IMAGER5R14R7tgoR10y37:assets%2Fimg%2Fmetalworks_desktop.xmlR0i13618R1R12R5R16R7tgoR10y28:assets%2Flayouts%2Fcard.jsonR0i16432R1R12R5R17R7tgoR10y28:assets%2Flayouts%2Fgame.jsonR0i4284R1R12R5R18R7tgoR10y31:assets%2Flayouts%2Fgame_ui.jsonR0i5183R1R12R5R19R7tgoR10y28:assets%2Flayouts%2Fmenu.jsonR0i3053R1R12R5R20R7tgoR10y40:assets%2Fsettings%2Feditor_template.jsonR0i38273R1R12R5R21R7tgoR10y29:assets%2Fsettings%2Flibs.jsonR0i2R1R12R5R22R7tgoR10y36:assets%2Fsettings%2Frecent_open.jsonR0i693R1R12R5R23R7tgoR10y40:assets%2Fsettings%2Ftexture_options.jsonR0i58R1R12R5R24R7tgoR10y35:assets%2Fsettings%2Fui_builder.jsonR0i265R1R12R5R25R7tgoR10y42:assets%2Fsettings%2Fworkspace_setting.jsonR0i142R1R12R5R26R7tgoR10y29:assets%2Ftextures%2Fatlas.pngR0i225831R1R15R5R27R7tgoR10y29:assets%2Ftextures%2Fatlas.xmlR0i1303R1R12R5R28R7tgoR10y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR0i20725R1R12R5R29R7tgoR10y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR0i32050R1R15R5R30R7tgh","rootPath":null,"version":2,"libraryArgs":[],"libraryType":null}';
 		manifest = AssetManifest.parse (data, rootPath);
 		library = AssetLibrary.fromManifest (manifest);
 		Assets.registerLibrary ("default", library);
@@ -105,9 +107,12 @@ null
 #if !display
 #if flash
 
+@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_fonts_sourcesanspro_regular_ttf extends null { }
+@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_fonts_sourcesanspro_semibold_ttf extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_game_ui_json extends null { }
-@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_game_ui_01_json extends null { }
-@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_game_ui_02_json extends null { }
+@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_game_ui_test_json extends null { }
+@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_img_metalworks_desktop_png extends flash.display.BitmapData { public function new () { super (0, 0, true, 0); } }
+@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_img_metalworks_desktop_xml extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_layouts_card_json extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_layouts_game_json extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_layouts_game_ui_json extends null { }
@@ -127,9 +132,12 @@ null
 
 #elseif (desktop || cpp)
 
+@:keep @:font("Export/html5/obj/webfont/SourceSansPro-Regular.ttf") @:noCompletion #if display private #end class __ASSET__assets_fonts_sourcesanspro_regular_ttf extends lime.text.Font {}
+@:keep @:font("Export/html5/obj/webfont/SourceSansPro-Semibold.ttf") @:noCompletion #if display private #end class __ASSET__assets_fonts_sourcesanspro_semibold_ttf extends lime.text.Font {}
 @:keep @:file("Assets/game_ui.json") @:noCompletion #if display private #end class __ASSET__assets_game_ui_json extends haxe.io.Bytes {}
-@:keep @:file("Assets/game_ui_01.json") @:noCompletion #if display private #end class __ASSET__assets_game_ui_01_json extends haxe.io.Bytes {}
-@:keep @:file("Assets/game_ui_02.json") @:noCompletion #if display private #end class __ASSET__assets_game_ui_02_json extends haxe.io.Bytes {}
+@:keep @:file("Assets/game_ui_test.json") @:noCompletion #if display private #end class __ASSET__assets_game_ui_test_json extends haxe.io.Bytes {}
+@:keep @:image("Assets/img/metalworks_desktop.png") @:noCompletion #if display private #end class __ASSET__assets_img_metalworks_desktop_png extends lime.graphics.Image {}
+@:keep @:file("Assets/img/metalworks_desktop.xml") @:noCompletion #if display private #end class __ASSET__assets_img_metalworks_desktop_xml extends haxe.io.Bytes {}
 @:keep @:file("Assets/layouts/card.json") @:noCompletion #if display private #end class __ASSET__assets_layouts_card_json extends haxe.io.Bytes {}
 @:keep @:file("Assets/layouts/game.json") @:noCompletion #if display private #end class __ASSET__assets_layouts_game_json extends haxe.io.Bytes {}
 @:keep @:file("Assets/layouts/game_ui.json") @:noCompletion #if display private #end class __ASSET__assets_layouts_game_ui_json extends haxe.io.Bytes {}
@@ -150,6 +158,8 @@ null
 
 #else
 
+@:keep @:expose('__ASSET__assets_fonts_sourcesanspro_regular_ttf') @:noCompletion #if display private #end class __ASSET__assets_fonts_sourcesanspro_regular_ttf extends lime.text.Font { public function new () { #if !html5 __fontPath = "assets/fonts/SourceSansPro-Regular"; #else ascender = 984; descender = -273; height = 1257; numGlyphs = 1114; underlinePosition = -100; underlineThickness = 50; unitsPerEM = 1000; #end name = "Source Sans Pro"; super (); }}
+@:keep @:expose('__ASSET__assets_fonts_sourcesanspro_semibold_ttf') @:noCompletion #if display private #end class __ASSET__assets_fonts_sourcesanspro_semibold_ttf extends lime.text.Font { public function new () { #if !html5 __fontPath = "assets/fonts/SourceSansPro-Semibold"; #else ascender = 984; descender = -273; height = 1257; numGlyphs = 1114; underlinePosition = -100; underlineThickness = 50; unitsPerEM = 1000; #end name = "Source Sans Pro Semibold"; super (); }}
 
 
 #end
@@ -157,8 +167,12 @@ null
 #if (openfl && !flash)
 
 #if html5
+@:keep @:expose('__ASSET__OPENFL__assets_fonts_sourcesanspro_regular_ttf') @:noCompletion #if display private #end class __ASSET__OPENFL__assets_fonts_sourcesanspro_regular_ttf extends openfl.text.Font { public function new () { __fromLimeFont (new __ASSET__assets_fonts_sourcesanspro_regular_ttf ()); super (); }}
+@:keep @:expose('__ASSET__OPENFL__assets_fonts_sourcesanspro_semibold_ttf') @:noCompletion #if display private #end class __ASSET__OPENFL__assets_fonts_sourcesanspro_semibold_ttf extends openfl.text.Font { public function new () { __fromLimeFont (new __ASSET__assets_fonts_sourcesanspro_semibold_ttf ()); super (); }}
 
 #else
+@:keep @:expose('__ASSET__OPENFL__assets_fonts_sourcesanspro_regular_ttf') @:noCompletion #if display private #end class __ASSET__OPENFL__assets_fonts_sourcesanspro_regular_ttf extends openfl.text.Font { public function new () { __fromLimeFont (new __ASSET__assets_fonts_sourcesanspro_regular_ttf ()); super (); }}
+@:keep @:expose('__ASSET__OPENFL__assets_fonts_sourcesanspro_semibold_ttf') @:noCompletion #if display private #end class __ASSET__OPENFL__assets_fonts_sourcesanspro_semibold_ttf extends openfl.text.Font { public function new () { __fromLimeFont (new __ASSET__assets_fonts_sourcesanspro_semibold_ttf ()); super (); }}
 
 #end
 

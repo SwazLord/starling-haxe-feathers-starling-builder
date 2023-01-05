@@ -355,7 +355,7 @@ class HorizontalLayout extends BaseLinearLayout implements IVariableVirtualLayou
 				// we get here if the item isn't null. it is never null if
 				// the layout isn't virtualized.
 
-				if (Std.is(item, ILayoutDisplayObject) && !cast(item, ILayoutDisplayObject).includeInLayout) {
+				if (Std.isOfType(item, ILayoutDisplayObject) && !cast(item, ILayoutDisplayObject).includeInLayout) {
 					layoutItem = cast(item, ILayoutDisplayObject);
 					continue;
 				}
@@ -511,7 +511,7 @@ class HorizontalLayout extends BaseLinearLayout implements IVariableVirtualLayou
 		var availableHeightMinusPadding:Float = availableHeight - this._paddingTop - this._paddingBottom;
 		for (i in 0...discoveredItemCount) {
 			item = discoveredItems[i];
-			if (Std.is(item, ILayoutDisplayObject) && !cast(item, ILayoutDisplayObject).includeInLayout) {
+			if (Std.isOfType(item, ILayoutDisplayObject) && !cast(item, ILayoutDisplayObject).includeInLayout) {
 				layoutItem = cast(item, ILayoutDisplayObject);
 				continue;
 			}

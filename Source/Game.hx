@@ -1,6 +1,8 @@
 package;
 
-// import feathers.themes.MetalWorksDesktopTheme;
+import starlingbuilder.engine.AssetMediator;
+import starling.assets.AssetManager;
+import feathers.themes.MetalWorksDesktopTheme;
 import feathers.layout.VerticalLayout;
 import feathers.layout.HorizontalLayout;
 import feathers.controls.ScrollContainer;
@@ -9,23 +11,23 @@ import feathers.controls.LayoutGroup;
 import starlingbuilder.engine.UIBuilder;
 import starlingbuilder.engine.IUIBuilder;
 import starlingbuilder.engine.LayoutLoader;
-import starlingbuilder.demo.AssetMediator;
 import starling.display.DisplayObject;
 import starling.events.ResizeEvent;
 import starling.core.Starling;
 import starling.display.Image;
 import openfl.Assets;
-import starling.utils.AssetManager;
 import starling.display.Sprite;
 import starling.display.Button;
 
+@:keep
 class Game extends Sprite {
 	public static var assetManager:AssetManager;
 
 	private var _assetMediator:AssetMediator;
 	private var _sprite:Sprite;
 
-	private var scrollContainer:ScrollContainer;
+	public var _scrollContainer:ScrollContainer = null;
+	public var _play_btn:Button = null;
 
 	public static var uiBuilder:IUIBuilder;
 	public static var linkers:Array<Dynamic> = [
@@ -39,6 +41,7 @@ class Game extends Sprite {
 
 	public function new() {
 		super();
+		var theme:MetalWorksDesktopTheme = new MetalWorksDesktopTheme();
 	}
 
 	public function start():Void {
@@ -51,35 +54,50 @@ class Game extends Sprite {
 			Assets.getPath("assets/textures/atlas.png"),
 			Assets.getPath("assets/textures/atlas.xml")
 		]);
-		assetManager.loadQueue(function(ratio:Float):Void {
-			trace(ratio);
-			if (ratio == 1) {
-				trace("Assets Loaded");
-				_sprite = new Sprite();
-				_sprite = cast uiBuilder.create(ParsedLayouts.game_ui, false, this);
-				// _sprite.addChild(new Image(assetManager.getTexture("header_text")));
-				addChild(_sprite);
-				onResize(null);
-				init();
-			}
-		});
+		assetManager.loadQueue(onComplete, onError, onProgress);
 
 		Starling.current.stage.addEventListener(ResizeEvent.RESIZE, onResize);
 	}
 
+	function onComplete():Void {
+		trace("Assets Loaded");
+		_sprite = new Sprite();
+		_sprite = cast uiBuilder.create(ParsedLayouts.game_ui, false, this);
+		// _sprite.addChild(new Image(assetManager.getTexture("play_btn")));
+		addChild(_sprite);
+		onResize(null);
+		init();
+	}
+
+	function onError(msg:String):Void {
+		trace(msg);
+	}
+
+	function onProgress(ratio:Float):Void {
+		trace(ratio);
+	}
+
 	function init() {
-		var item_1:Image = new Image(assetManager.getTexture("cell_01"));
-		var item_2:Image = new Image(assetManager.getTexture("cell_02"));
-		var layout:HorizontalLayout = new HorizontalLayout();
-		layout.gap = 10;
+		/* var item_1:Image = new Image(assetManager.getTexture("cell_01"));
+			var item_2:Image = new Image(assetManager.getTexture("cell_02"));
+			var item_3:Image = new Image(assetManager.getTexture("cell_03"));
+			var item_4:Image = new Image(assetManager.getTexture("cell_04"));
+			var layout:HorizontalLayout = new HorizontalLayout();
+			layout.gap = 10;
 
-		scrollContainer = new ScrollContainer();
-		scrollContainer.width = 300;
-		scrollContainer.layout = layout;
+			_scrollContainer = new ScrollContainer();
+			_scrollContainer.width = 300;
+			_scrollContainer.layout = layout;
 
-		scrollContainer.addChild(item_1);
-		scrollContainer.addChild(item_2);
-		_sprite.addChild(scrollContainer);
+			_scrollContainer.addChild(item_1);
+			_scrollContainer.addChild(item_2);
+			_scrollContainer.addChild(item_3);
+			_scrollContainer.addChild(item_4);
+			_sprite.addChild(_scrollContainer);
+
+			_scrollContainer.snapToPages = true; */
+
+		// _play_btn.enabled = false;
 	}
 
 	private function onResize(event:ResizeEvent):Void {
