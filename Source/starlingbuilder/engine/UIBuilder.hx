@@ -205,15 +205,16 @@ class UIBuilder implements IUIBuilder {
 	 * @param view object you want to bind to
 	 * @param paramsDict params dictionary of meta data
 	 */
-	public function bind(view:Dynamic, paramsDict:Map<DisplayObject, Dynamic>):Void {
+	public static function bind(view:Dynamic, paramsDict:Map<DisplayObject, Dynamic>):Void {
 		for (obj in paramsDict.keys()) {
-			trace("bind - Obj " + obj);
-			trace("bind - Obj name " + obj.name);
-			trace("bind - paramsDict[obj] = " + paramsDict[obj]);
-			trace("bind - field(obj) = " + Reflect.field(obj, "__name"));
-			trace("bind - hasField(obj) = " + Reflect.hasField(obj, "__name"));
-			trace("bind - fields(obj) = " + Reflect.fields(obj));
-			trace("bind - getProperty(obj) = " + Reflect.getProperty(obj, "__name"));
+			/*trace("bind - Obj " + obj);
+				trace("bind - Obj name " + obj.name);
+				trace("Type.getInstanceFields = " + Type.getInstanceFields(Type.getClass(obj)));
+				 trace("bind - paramsDict[obj] = " + paramsDict[obj]);
+					trace("bind - field(obj) = " + Reflect.field(obj, "__name"));
+					trace("bind - hasField(obj) = " + Reflect.hasField(obj, "__name"));
+					trace("bind - fields(obj) = " + Reflect.fields(obj));
+					trace("bind - getProperty(obj) = " + Reflect.getProperty(obj, "__name")); */
 			var name:String = null;
 
 			if (Reflect.hasField(obj, "__name")) {

@@ -9,6 +9,7 @@
 -D starling=0.0.0
 -cp C:/HaxeToolkit/haxe/lib/format/3,5,0
 -D format=3.5.0
+-cp ../feathersui-starling/src
 -cp Source
 -D AIR_SDK=c:\AIRSDK_Windows
 -D tools=8.0.0

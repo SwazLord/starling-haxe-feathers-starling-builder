@@ -1,13 +1,15 @@
 package;
 
+import starling.animation.Juggler;
+import starling.display.MovieClip;
 import starlingbuilder.engine.AssetMediator;
 import starling.assets.AssetManager;
-import feathers.themes.MetalWorksDesktopTheme;
 import feathers.layout.VerticalLayout;
 import feathers.layout.HorizontalLayout;
 import feathers.controls.ScrollContainer;
 import feathers.layout.AnchorLayout;
 import feathers.controls.LayoutGroup;
+import feathers.themes.MetalWorksDesktopTheme;
 import starlingbuilder.engine.UIBuilder;
 import starlingbuilder.engine.IUIBuilder;
 import starlingbuilder.engine.LayoutLoader;
@@ -28,6 +30,7 @@ class Game extends Sprite {
 
 	public var _scrollContainer:ScrollContainer = null;
 	public var _play_btn:Button = null;
+	public var _mc:MovieClip;
 
 	public static var uiBuilder:IUIBuilder;
 	public static var linkers:Array<Dynamic> = [
@@ -47,6 +50,7 @@ class Game extends Sprite {
 	public function start():Void {
 		// new MetalWorksDesktopTheme();
 		assetManager = new AssetManager();
+		assetManager.verbose = true;
 		_assetMediator = new AssetMediator(assetManager);
 		uiBuilder = new UIBuilder(_assetMediator);
 		var loader:LayoutLoader = new LayoutLoader(ParsedLayouts);
@@ -60,10 +64,10 @@ class Game extends Sprite {
 	}
 
 	function onComplete():Void {
-		trace("Assets Loaded");
+		trace("Assets Loaded.");
 		_sprite = new Sprite();
 		_sprite = cast uiBuilder.create(ParsedLayouts.game_ui, false, this);
-		// _sprite.addChild(new Image(assetManager.getTexture("play_btn")));
+		// _sprite.addChild(new Image(assetManager.getTexture("cloud-1")));
 		addChild(_sprite);
 		onResize(null);
 		init();
@@ -98,6 +102,11 @@ class Game extends Sprite {
 			_scrollContainer.snapToPages = true; */
 
 		// _play_btn.enabled = false;
+
+		_mc = new MovieClip(assetManager.getTextures("bird-"));
+		_sprite.addChild(_mc);
+		_mc.play();
+		Starling.currentJuggler.add(_mc);
 	}
 
 	private function onResize(event:ResizeEvent):Void {

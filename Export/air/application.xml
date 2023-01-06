@@ -2,7 +2,7 @@
 <application xmlns="http://ns.adobe.com/air/application/28.0">
 	<id>com.sample.starlingproject</id>
 	<versionLabel>1.0.0</versionLabel>
-	<versionNumber>11</versionNumber>
+	<versionNumber>12</versionNumber>
 	<filename>StarlingProject</filename>
 	<name>StarlingProject</name>
 	<description></description>

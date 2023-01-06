@@ -160,7 +160,7 @@ class UIElementFactory {
 	}
 
 	public function create(data:Dynamic):Dynamic {
-		// trace("create data = " + data);
+		trace("create data = " + data);
 		var obj:Dynamic;
 		var constructorParams:Array<Dynamic> = cast data.constructorParams;
 
@@ -176,13 +176,13 @@ class UIElementFactory {
 			&& data.customParams.customComponentClass != "null") {
 			try {
 				cls = Type.resolveClass(data.customParams.customComponentClass);
-				// trace("cls is : ", cls);
+				trace("cls is : ", cls);
 			} catch (e:Error) {
 				trace("Error : Class " + data.customParams.customComponentClass + " can't be instantiated.");
 			}
 		}
 
-		// trace("data class " + data.cls);
+		trace("data class " + data.cls);
 
 		// hack: flash.geom.Rectangle only exists in flash target
 		#if (display || !flash)
@@ -192,11 +192,12 @@ class UIElementFactory {
 		#end
 
 		if (cls == null) {
-			// trace("cls is null so cls is " + data.cls);
+			trace("cls is null so cls is " + data.cls);
 			cls = Type.resolveClass(data.cls);
 		}
 
 		var args:Array<Dynamic> = createArgumentsFromParams(constructorParams);
+		trace("args =  " + args);
 
 		try {
 			obj = Type.createInstance(cls, args);
@@ -211,7 +212,7 @@ class UIElementFactory {
 	}
 
 	private function createArgumentsFromParams(params:Array<Dynamic>):Array<Dynamic> {
-		// trace("createArgumentsFromParams = " + params);
+		trace("createArgumentsFromParams = " + params);
 		var args:Array<Dynamic> = [];
 
 		if (params != null) {

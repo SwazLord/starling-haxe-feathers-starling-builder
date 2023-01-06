@@ -79,7 +79,7 @@ import sys.FileSystem;
 
 		#else
 
-		data = '{"name":null,"assets":"aoy4:sizei149508y4:typey4:FONTy9:classNamey47:__ASSET__assets_fonts_sourcesanspro_regular_ttfy2:idy42:assets%2Ffonts%2FSourceSansPro-Regular.ttfy7:preloadtgoR0i149352R1R2R3y48:__ASSET__assets_fonts_sourcesanspro_semibold_ttfR5y43:assets%2Ffonts%2FSourceSansPro-Semibold.ttfR7tgoy4:pathy21:assets%2Fgame_ui.jsonR0i7773R1y4:TEXTR5R11R7tgoR10y26:assets%2Fgame_ui_test.jsonR0i19060R1R12R5R13R7tgoR10y37:assets%2Fimg%2Fmetalworks_desktop.pngR0i85319R1y5:IMAGER5R14R7tgoR10y37:assets%2Fimg%2Fmetalworks_desktop.xmlR0i13618R1R12R5R16R7tgoR10y28:assets%2Flayouts%2Fcard.jsonR0i16432R1R12R5R17R7tgoR10y28:assets%2Flayouts%2Fgame.jsonR0i4284R1R12R5R18R7tgoR10y31:assets%2Flayouts%2Fgame_ui.jsonR0i5183R1R12R5R19R7tgoR10y28:assets%2Flayouts%2Fmenu.jsonR0i3053R1R12R5R20R7tgoR10y40:assets%2Fsettings%2Feditor_template.jsonR0i38273R1R12R5R21R7tgoR10y29:assets%2Fsettings%2Flibs.jsonR0i2R1R12R5R22R7tgoR10y36:assets%2Fsettings%2Frecent_open.jsonR0i693R1R12R5R23R7tgoR10y40:assets%2Fsettings%2Ftexture_options.jsonR0i58R1R12R5R24R7tgoR10y35:assets%2Fsettings%2Fui_builder.jsonR0i265R1R12R5R25R7tgoR10y42:assets%2Fsettings%2Fworkspace_setting.jsonR0i142R1R12R5R26R7tgoR10y29:assets%2Ftextures%2Fatlas.pngR0i225831R1R15R5R27R7tgoR10y29:assets%2Ftextures%2Fatlas.xmlR0i1303R1R12R5R28R7tgoR10y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR0i20725R1R12R5R29R7tgoR10y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR0i32050R1R15R5R30R7tgh","rootPath":null,"version":2,"libraryArgs":[],"libraryType":null}';
+		data = '{"name":null,"assets":"aoy4:sizei149508y4:typey4:FONTy9:classNamey47:__ASSET__assets_fonts_sourcesanspro_regular_ttfy2:idy42:assets%2Ffonts%2FSourceSansPro-Regular.ttfy7:preloadtgoR0i149352R1R2R3y48:__ASSET__assets_fonts_sourcesanspro_semibold_ttfR5y43:assets%2Ffonts%2FSourceSansPro-Semibold.ttfR7tgoy4:pathy21:assets%2Fgame_ui.jsonR0i3288R1y4:TEXTR5R11R7tgoR10y26:assets%2Fgame_ui_test.jsonR0i19060R1R12R5R13R7tgoR10y37:assets%2Fimg%2Fmetalworks_desktop.pngR0i85319R1y5:IMAGER5R14R7tgoR10y37:assets%2Fimg%2Fmetalworks_desktop.xmlR0i13618R1R12R5R16R7tgoR10y28:assets%2Flayouts%2Fcard.jsonR0i16432R1R12R5R17R7tgoR10y28:assets%2Flayouts%2Fgame.jsonR0i4284R1R12R5R18R7tgoR10y31:assets%2Flayouts%2Fgame_ui.jsonR0i5183R1R12R5R19R7tgoR10y28:assets%2Flayouts%2Fmenu.jsonR0i3053R1R12R5R20R7tgoR10y40:assets%2Fsettings%2Feditor_template.jsonR0i38273R1R12R5R21R7tgoR10y29:assets%2Fsettings%2Flibs.jsonR0i2R1R12R5R22R7tgoR10y36:assets%2Fsettings%2Frecent_open.jsonR0i786R1R12R5R23R7tgoR10y40:assets%2Fsettings%2Ftexture_options.jsonR0i58R1R12R5R24R7tgoR10y35:assets%2Fsettings%2Fui_builder.jsonR0i265R1R12R5R25R7tgoR10y42:assets%2Fsettings%2Fworkspace_setting.jsonR0i142R1R12R5R26R7tgoR10y29:assets%2Ftextures%2Fatlas.pngR0i223173R1R15R5R27R7tgoR10y29:assets%2Ftextures%2Fatlas.xmlR0i2121R1R12R5R28R7tgoR10y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.fntR0i20725R1R12R5R29R7tgoR10y47:assets%2Ftextures%2Fbitmapfont%2FArialRound.pngR0i32050R1R15R5R30R7tgoR10y34:assets%2Ftextures%2Fbradybunch.fntR0i13287R1R12R5R31R7tgoR10y34:assets%2Ftextures%2Fbradybunch.pngR0i766539R1R15R5R32R7tgh","rootPath":null,"version":2,"libraryArgs":[],"libraryType":null}';
 		manifest = AssetManifest.parse (data, rootPath);
 		library = AssetLibrary.fromManifest (manifest);
 		Assets.registerLibrary ("default", library);
@@ -127,6 +127,8 @@ null
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_textures_atlas_xml extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_textures_bitmapfont_arialround_fnt extends null { }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_textures_bitmapfont_arialround_png extends flash.display.BitmapData { public function new () { super (0, 0, true, 0); } }
+@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_textures_bradybunch_fnt extends null { }
+@:keep @:bind @:noCompletion #if display private #end class __ASSET__assets_textures_bradybunch_png extends flash.display.BitmapData { public function new () { super (0, 0, true, 0); } }
 @:keep @:bind @:noCompletion #if display private #end class __ASSET__manifest_default_json extends null { }
 
 
@@ -152,6 +154,8 @@ null
 @:keep @:file("Assets/textures/atlas.xml") @:noCompletion #if display private #end class __ASSET__assets_textures_atlas_xml extends haxe.io.Bytes {}
 @:keep @:file("Assets/textures/bitmapfont/ArialRound.fnt") @:noCompletion #if display private #end class __ASSET__assets_textures_bitmapfont_arialround_fnt extends haxe.io.Bytes {}
 @:keep @:image("Assets/textures/bitmapfont/ArialRound.png") @:noCompletion #if display private #end class __ASSET__assets_textures_bitmapfont_arialround_png extends lime.graphics.Image {}
+@:keep @:file("Assets/textures/bradybunch.fnt") @:noCompletion #if display private #end class __ASSET__assets_textures_bradybunch_fnt extends haxe.io.Bytes {}
+@:keep @:image("Assets/textures/bradybunch.png") @:noCompletion #if display private #end class __ASSET__assets_textures_bradybunch_png extends lime.graphics.Image {}
 @:keep @:file("") @:noCompletion #if display private #end class __ASSET__manifest_default_json extends haxe.io.Bytes {}
 
 
