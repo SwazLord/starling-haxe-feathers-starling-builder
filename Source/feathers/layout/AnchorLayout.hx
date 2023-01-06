@@ -8,6 +8,7 @@
 
 package feathers.layout;
 
+import feathers.utils.type.SafeCast;
 import feathers.core.IMeasureDisplayObject;
 import feathers.core.IValidating;
 import openfl.errors.IllegalOperationError;
@@ -859,11 +860,11 @@ class AnchorLayout extends EventDispatcher implements ILayout {
 	private function isReferenced(item:DisplayObject, items:Array<DisplayObject>):Bool {
 		var itemCount:Int = items.length;
 		for (i in 0...itemCount) {
-			var otherItem:ILayoutDisplayObject = cast items[i];
+			var otherItem:ILayoutDisplayObject = SafeCast.safe_cast(items[i], ILayoutDisplayObject);
 			if (otherItem == null || cast(otherItem, DisplayObject) == item) {
 				continue;
 			}
-			var layoutData:AnchorLayoutData = cast otherItem.layoutData;
+			var layoutData:AnchorLayoutData = cast(otherItem.layoutData, AnchorLayoutData);
 			if (layoutData == null) {
 				continue;
 			}
