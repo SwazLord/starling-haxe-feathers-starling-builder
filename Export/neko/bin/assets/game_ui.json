@@ -4,206 +4,96 @@
       {
         "children":[
           {
-            "cls":"feathers.controls.Button",
-            "customParams":{},
-            "params":{
-              "height":82,
-              "label":"Hello World",
-              "name":"button",
-              "width":165,
-              "x":170,
-              "y":59
-            }
-          },
-          {
-            "cls":"feathers.controls.Label",
-            "customParams":{},
-            "params":{
-              "name":"label",
-              "text":"This is feathers UI Label",
-              "x":335,
-              "y":91
-            }
-          },
-          {
-            "cls":"starling.display.Button",
+            "cls":"starling.display.Image",
             "constructorParams":[
               {
                 "cls":"starling.textures.Texture",
-                "textureName":"play_btn"
+                "textureName":"upper_back_skin"
               }
             ],
             "customParams":{},
             "params":{
-              "height":138,
-              "name":"play_btn",
-              "pivotX":179,
-              "pivotY":69,
-              "textFormat":{
-                "cls":"starling.text.TextFormat",
-                "constructorParams":[],
-                "customParams":{},
-                "params":{}
-              },
-              "width":358,
-              "x":652,
-              "y":100
-            }
-          }
-        ],
-        "cls":"feathers.controls.LayoutGroup",
-        "customParams":{},
-        "params":{
-          "backgroundSkin":{
-            "cls":"starling.display.Quad",
-            "constructorParams":[
-              {
-                "name":"width",
-                "type":"Number",
-                "value":50
-              },
-              {
-                "name":"height",
-                "type":"Number",
-                "value":50
-              }
-            ],
-            "customParams":{},
-            "params":{
-              "color":891,
-              "name":null,
-              "scaleX":20,
-              "scaleY":4
+              "name":"upper_back_skin"
             }
           },
-          "height":200,
-          "layout":{
-            "cls":"feathers.layout.HorizontalLayout",
-            "customParams":{},
-            "params":{
-              "horizontalAlign":"center",
-              "verticalAlign":"middle"
-            }
-          },
-          "layoutData":{
-            "cls":"feathers.layout.AnchorLayoutData",
-            "customParams":{},
-            "params":{
-              "horizontalCenter":0,
-              "verticalCenter":0
-            }
-          },
-          "name":"layoutGroup",
-          "width":1000,
-          "x":140,
-          "y":260
-        }
-      },
-      {
-        "children":[
           {
             "children":[
               {
-                "cls":"feathers.controls.Button",
+                "cls":"starling.display.Button",
+                "constructorParams":[
+                  {
+                    "cls":"starling.textures.Texture",
+                    "textureName":"lobby_button_01"
+                  }
+                ],
                 "customParams":{},
                 "params":{
-                  "label":"1",
-                  "name":"button"
-                }
-              },
-              {
-                "cls":"feathers.controls.Button",
-                "customParams":{},
-                "params":{
-                  "label":"2",
-                  "name":"button",
-                  "x":68
-                }
-              },
-              {
-                "cls":"feathers.controls.Button",
-                "customParams":{},
-                "params":{
-                  "label":"3",
-                  "name":"button",
-                  "x":136
-                }
-              },
-              {
-                "cls":"feathers.controls.Button",
-                "customParams":{},
-                "params":{
-                  "label":"4",
-                  "name":"button",
-                  "x":204
-                }
-              },
-              {
-                "cls":"feathers.controls.Button",
-                "customParams":{},
-                "params":{
-                  "label":"5",
-                  "name":"button",
-                  "x":272
-                }
-              },
-              {
-                "cls":"feathers.controls.Button",
-                "customParams":{},
-                "params":{
-                  "label":"6",
-                  "name":"button",
-                  "x":340
-                }
-              },
-              {
-                "cls":"feathers.controls.Button",
-                "customParams":{},
-                "params":{
-                  "label":"7",
-                  "name":"button",
-                  "x":408
-                }
-              },
-              {
-                "cls":"feathers.controls.Button",
-                "customParams":{},
-                "params":{
-                  "label":"8",
-                  "name":"button",
-                  "x":476
-                }
-              },
-              {
-                "cls":"feathers.controls.Button",
-                "customParams":{},
-                "params":{
-                  "label":"9",
-                  "name":"button",
-                  "x":544
+                  "height":45,
+                  "name":"lobby_button_01",
+                  "textFormat":{
+                    "cls":"starling.text.TextFormat",
+                    "constructorParams":[],
+                    "customParams":{},
+                    "params":{}
+                  },
+                  "width":88
                 }
               }
             ],
-            "cls":"feathers.controls.ScrollContainer",
+            "cls":"feathers.controls.LayoutGroup",
             "customParams":{},
             "params":{
-              "layout":{
-                "cls":"feathers.layout.HorizontalLayout",
-                "customParams":{},
-                "params":{}
-              },
               "layoutData":{
                 "cls":"feathers.layout.AnchorLayoutData",
                 "customParams":{},
                 "params":{
-                  "horizontalCenter":0,
+                  "left":20,
                   "verticalCenter":0
                 }
               },
-              "name":"scrollContainer",
-              "width":300,
-              "x":490,
-              "y":6
+              "name":"top_left_layout",
+              "x":20,
+              "y":3
+            }
+          },
+          {
+            "children":[
+              {
+                "cls":"starling.display.Button",
+                "constructorParams":[
+                  {
+                    "cls":"starling.textures.Texture",
+                    "textureName":"settings_button_01"
+                  }
+                ],
+                "customParams":{},
+                "params":{
+                  "height":45,
+                  "name":"settings_button_01",
+                  "textFormat":{
+                    "cls":"starling.text.TextFormat",
+                    "constructorParams":[],
+                    "customParams":{},
+                    "params":{}
+                  },
+                  "width":51
+                }
+              }
+            ],
+            "cls":"feathers.controls.LayoutGroup",
+            "customParams":{},
+            "params":{
+              "layoutData":{
+                "cls":"feathers.layout.AnchorLayoutData",
+                "customParams":{},
+                "params":{
+                  "right":20,
+                  "verticalCenter":0
+                }
+              },
+              "name":"right_layout",
+              "x":1209,
+              "y":3
             }
           }
         ],
@@ -211,25 +101,20 @@
         "customParams":{},
         "params":{
           "backgroundSkin":{
-            "cls":"starling.display.Quad",
+            "cls":"starling.display.Image",
             "constructorParams":[
               {
-                "name":"width",
-                "type":"Number",
-                "value":50
-              },
-              {
-                "name":"height",
-                "type":"Number",
-                "value":50
+                "cls":"starling.textures.Texture",
+                "textureName":"top_bar"
               }
             ],
             "customParams":{},
             "params":{
               "name":null,
-              "scaleX":25.6
+              "scaleY":0.75
             }
           },
+          "height":51,
           "layout":{
             "cls":"feathers.layout.AnchorLayout",
             "customParams":{},
@@ -239,14 +124,67 @@
             "cls":"feathers.layout.AnchorLayoutData",
             "customParams":{},
             "params":{
-              "bottom":20,
               "horizontalCenter":0,
-              "percentWidth":100
+              "percentWidth":100,
+              "top":0
             }
           },
-          "name":"layoutGroup",
-          "width":1280,
-          "y":650
+          "name":"top_layout",
+          "width":1280
+        }
+      },
+      {
+        "children":[
+          {
+            "cls":"starling.display.Image",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"upper_back"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "name":"upper_back"
+            }
+          },
+          {
+            "cls":"starling.display.Button",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"buy_coins_01"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "height":52,
+              "name":"buy_coins_01",
+              "textFormat":{
+                "cls":"starling.text.TextFormat",
+                "constructorParams":[],
+                "customParams":{},
+                "params":{}
+              },
+              "width":251,
+              "x":337,
+              "y":5
+            }
+          }
+        ],
+        "cls":"feathers.controls.LayoutGroup",
+        "customParams":{},
+        "params":{
+          "layoutData":{
+            "cls":"feathers.layout.AnchorLayoutData",
+            "customParams":{},
+            "params":{
+              "horizontalCenter":0,
+              "top":0
+            }
+          },
+          "name":"top_middle_layout",
+          "x":160
         }
       }
     ],
@@ -254,25 +192,16 @@
     "customParams":{},
     "params":{
       "backgroundSkin":{
-        "cls":"starling.display.Quad",
+        "cls":"starling.display.Image",
         "constructorParams":[
           {
-            "name":"width",
-            "type":"Number",
-            "value":50
-          },
-          {
-            "name":"height",
-            "type":"Number",
-            "value":50
+            "cls":"starling.textures.Texture",
+            "textureName":"back"
           }
         ],
         "customParams":{},
         "params":{
-          "color":519160,
-          "name":null,
-          "scaleX":25.6,
-          "scaleY":14.4
+          "name":null
         }
       },
       "height":720,

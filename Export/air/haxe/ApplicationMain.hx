@@ -20,7 +20,7 @@ class ApplicationMain
 
 		#if (js && html5)
 		#if (munit || utest)
-		lime.system.System.embed("StarlingProject", null, 800, 600);
+		lime.system.System.embed("StarlingProject", null, 1280, 720);
 		#end
 		#else
 		create(null);
@@ -35,7 +35,7 @@ class ApplicationMain
 		ManifestResources.init(config);
 		#end
 
-		app.meta["build"] = "12";
+		app.meta["build"] = "14";
 		app.meta["company"] = "Company Name";
 		app.meta["file"] = "StarlingProject";
 		app.meta["name"] = "StarlingProject";
@@ -52,23 +52,23 @@ class ApplicationMain
 			borderless: false,
 			// display: 0,
 			element: null,
-			frameRate: 30,
+			frameRate: 60,
 			#if !web fullscreen: false, #end
-			height: 600,
+			height: 720,
 			hidden: #if munit true #else false #end,
 			maximized: false,
 			minimized: false,
 			parameters: {},
 			resizable: true,
 			title: "StarlingProject",
-			width: 800,
+			width: 1280,
 			x: null,
 			y: null,
 		};
 
 		attributes.context = {
 			antialiasing: 0,
-			background: 16777215,
+			background: 0,
 			colorDepth: 32,
 			depth: true,
 			hardware: true,
@@ -102,8 +102,8 @@ class ApplicationMain
 		app.createWindow(attributes);
 		
 		#elseif !air
-		app.window.context.attributes.background = 16777215;
-		app.window.frameRate = 30;
+		app.window.context.attributes.background = 0;
+		app.window.frameRate = 60;
 		#end
 
 		var preloader = getPreloader();

@@ -8,12 +8,92 @@
             "constructorParams":[
               {
                 "cls":"starling.textures.Texture",
-                "textureName":"ground"
+                "textureName":"upper_back_skin"
               }
             ],
             "customParams":{},
             "params":{
-              "name":"ground"
+              "name":"upper_back_skin"
+            }
+          },
+          {
+            "children":[
+              {
+                "cls":"starling.display.Button",
+                "constructorParams":[
+                  {
+                    "cls":"starling.textures.Texture",
+                    "textureName":"lobby_button_01"
+                  }
+                ],
+                "customParams":{},
+                "params":{
+                  "height":45,
+                  "name":"lobby_button_01",
+                  "textFormat":{
+                    "cls":"starling.text.TextFormat",
+                    "constructorParams":[],
+                    "customParams":{},
+                    "params":{}
+                  },
+                  "width":88
+                }
+              }
+            ],
+            "cls":"feathers.controls.LayoutGroup",
+            "customParams":{},
+            "params":{
+              "layoutData":{
+                "cls":"feathers.layout.AnchorLayoutData",
+                "customParams":{},
+                "params":{
+                  "left":20,
+                  "verticalCenter":0
+                }
+              },
+              "name":"top_left_layout",
+              "x":20,
+              "y":3
+            }
+          },
+          {
+            "children":[
+              {
+                "cls":"starling.display.Button",
+                "constructorParams":[
+                  {
+                    "cls":"starling.textures.Texture",
+                    "textureName":"settings_button_01"
+                  }
+                ],
+                "customParams":{},
+                "params":{
+                  "height":45,
+                  "name":"settings_button_01",
+                  "textFormat":{
+                    "cls":"starling.text.TextFormat",
+                    "constructorParams":[],
+                    "customParams":{},
+                    "params":{}
+                  },
+                  "width":51
+                }
+              }
+            ],
+            "cls":"feathers.controls.LayoutGroup",
+            "customParams":{},
+            "params":{
+              "layoutData":{
+                "cls":"feathers.layout.AnchorLayoutData",
+                "customParams":{},
+                "params":{
+                  "right":20,
+                  "verticalCenter":0
+                }
+              },
+              "name":"right_layout",
+              "x":1209,
+              "y":3
             }
           }
         ],
@@ -25,32 +105,32 @@
             "constructorParams":[
               {
                 "cls":"starling.textures.Texture",
-                "textureName":"ground"
+                "textureName":"top_bar"
               }
             ],
             "customParams":{},
             "params":{
               "name":null,
-              "scaleX":5.33,
-              "tileGrid":{
-                "cls":"flash.geom.Rectangle",
-                "customParams":{},
-                "params":{}
-              }
+              "scaleY":0.75
             }
+          },
+          "height":51,
+          "layout":{
+            "cls":"feathers.layout.AnchorLayout",
+            "customParams":{},
+            "params":{}
           },
           "layoutData":{
             "cls":"feathers.layout.AnchorLayoutData",
             "customParams":{},
             "params":{
-              "bottom":0,
               "horizontalCenter":0,
-              "percentWidth":100
+              "percentWidth":100,
+              "top":0
             }
           },
-          "name":"layoutGroup",
-          "width":1280,
-          "y":585
+          "name":"top_layout",
+          "width":1280
         }
       },
       {
@@ -60,38 +140,51 @@
             "constructorParams":[
               {
                 "cls":"starling.textures.Texture",
-                "textureName":"cloud-1"
+                "textureName":"upper_back"
               }
             ],
             "customParams":{},
             "params":{
-              "name":"cloud-1"
+              "name":"upper_back"
+            }
+          },
+          {
+            "cls":"starling.display.Button",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"buy_coins_01"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "height":52,
+              "name":"buy_coins_01",
+              "textFormat":{
+                "cls":"starling.text.TextFormat",
+                "constructorParams":[],
+                "customParams":{},
+                "params":{}
+              },
+              "width":251,
+              "x":337,
+              "y":5
             }
           }
         ],
-        "cls":"starling.display.Sprite",
+        "cls":"feathers.controls.LayoutGroup",
         "customParams":{},
         "params":{
-          "name":"sprite",
-          "x":388.5
-        }
-      },
-      {
-        "cls":"starling.display.MovieClip",
-        "constructorParams":[
-          {
-            "cls":"__AS3__.vec.Vector.<starling.textures.Texture>",
-            "label":"prefix",
-            "name":"textures",
-            "value":"bird-"
-          }
-        ],
-        "customParams":{},
-        "params":{
-          "currentFrame":2,
-          "name":"movieClip",
-          "x":453.5,
-          "y":217
+          "layoutData":{
+            "cls":"feathers.layout.AnchorLayoutData",
+            "customParams":{},
+            "params":{
+              "horizontalCenter":0,
+              "top":0
+            }
+          },
+          "name":"top_middle_layout",
+          "x":160
         }
       }
     ],
@@ -103,14 +196,12 @@
         "constructorParams":[
           {
             "cls":"starling.textures.Texture",
-            "textureName":"sky"
+            "textureName":"back"
           }
         ],
         "customParams":{},
         "params":{
-          "name":null,
-          "scaleX":1.03,
-          "scaleY":0.91
+          "name":null
         }
       },
       "height":720,

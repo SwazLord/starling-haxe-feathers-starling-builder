@@ -36,8 +36,8 @@ class UIElementFactory {
 		sortParams(array, PARAMS);
 
 		for (id in array) {
+			trace("id = " + id);
 			var item:Dynamic = data.params[id];
-			trace("id = " + id + " item = " + item);
 
 			if (item != null && Reflect.hasField(item, "cls")) {
 				Reflect.setProperty(obj, id, create(item));

@@ -1,5 +1,7 @@
 package;
 
+import starling.utils.MathUtil;
+import feathers.layout.TiledRowsLayout;
 import starling.animation.Juggler;
 import starling.display.MovieClip;
 import starlingbuilder.engine.AssetMediator;
@@ -30,7 +32,7 @@ class Game extends Sprite {
 
 	public var _scrollContainer:ScrollContainer = null;
 	public var _play_btn:Button = null;
-	public var _mc:MovieClip;
+	public var _bird_mc:MovieClip;
 
 	public static var uiBuilder:IUIBuilder;
 	public static var linkers:Array<Dynamic> = [
@@ -39,12 +41,13 @@ class Game extends Sprite {
 		AnchorLayout,
 		ScrollContainer,
 		HorizontalLayout,
-		VerticalLayout
+		VerticalLayout,
+		TiledRowsLayout
 	];
 
 	public function new() {
 		super();
-		var theme:MetalWorksDesktopTheme = new MetalWorksDesktopTheme();
+		//var theme:MetalWorksDesktopTheme = new MetalWorksDesktopTheme();
 	}
 
 	public function start():Void {
@@ -64,10 +67,16 @@ class Game extends Sprite {
 	}
 
 	function onComplete():Void {
-		trace("Assets Loaded.");
+		trace("Assets Loaded");
 		_sprite = new Sprite();
 		_sprite = cast uiBuilder.create(ParsedLayouts.game_ui, false, this);
-		// _sprite.addChild(new Image(assetManager.getTexture("cloud-1")));
+		 _sprite.addChild(new Image(assetManager.getTexture("contact_button")));
+		/* trace("stage.stageHeight = " + stage.stageHeight + " stage.stageWidth " + stage.stageWidth);
+			var new_scale:Float = MathUtil.min(1.0 * stage.stageWidth / _sprite.width, 1.0 * stage.stageHeight / _sprite.height);
+			_sprite.scaleX = _sprite.scaleY = round2(new_scale, 2);
+			trace("_sprite.scaleX = " + _sprite.scaleX);
+			_sprite.width = stage.stageWidth;
+			_sprite.height = stage.stageHeight; */
 		addChild(_sprite);
 		onResize(null);
 		init();
@@ -103,10 +112,13 @@ class Game extends Sprite {
 
 		// _play_btn.enabled = false;
 
-		_mc = new MovieClip(assetManager.getTextures("bird-"));
-		_sprite.addChild(_mc);
-		_mc.play();
-		Starling.currentJuggler.add(_mc);
+		// _bird_mc.play();
+		// Starling.currentJuggler.add(_bird_mc);
+	}
+
+	public static function round2(num:Float, decimals:Int):Float {
+		var m:Int = Std.int(Math.pow(10, decimals));
+		return Math.round(num * m) / m;
 	}
 
 	private function onResize(event:ResizeEvent):Void {

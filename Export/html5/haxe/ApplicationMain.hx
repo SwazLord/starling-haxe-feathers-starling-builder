@@ -35,7 +35,7 @@ class ApplicationMain
 		ManifestResources.init(config);
 		#end
 
-		app.meta["build"] = "13";
+		app.meta["build"] = "14";
 		app.meta["company"] = "Company Name";
 		app.meta["file"] = "StarlingProject";
 		app.meta["name"] = "StarlingProject";
@@ -68,7 +68,7 @@ class ApplicationMain
 
 		attributes.context = {
 			antialiasing: 0,
-			background: 16777215,
+			background: 0,
 			colorDepth: 32,
 			depth: true,
 			hardware: true,
@@ -102,7 +102,7 @@ class ApplicationMain
 		app.createWindow(attributes);
 		
 		#elseif !air
-		app.window.context.attributes.background = 16777215;
+		app.window.context.attributes.background = 0;
 		app.window.frameRate = 60;
 		#end
 

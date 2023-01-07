@@ -10,6 +10,6 @@ class AssetMediator extends DefaultAssetMediator {
 	}
 
 	override public function getExternalData(name:String):Dynamic {
-		return Assets.getText("assets/" + name + ".json");
+		return Assets.getText("assets/layouts/" + name + ".json");
 	}
 }

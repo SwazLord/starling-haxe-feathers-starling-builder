@@ -3,14 +3,20 @@
 	
 	<meta title="StarlingProject" package="com.sample.starlingproject" version="1.0.0" company="Company Name" />
 	<app main="Startup" path="Export" file="StarlingProject" />
+
+	<window background="#000000" fps="60" />
+	<window width="1280" height="720" unless="html5 || mobile" />
+	<window orientation="landscape" vsync="false" antialiasing="0" if="cpp" />
 	
 	<source path="../feathersui-starling/src" />
 	<source path="Source" />
+	
 	
 
 	<haxelib name="openfl" />
 	<haxelib name="starling" />
 	<haxelib name="format" />
-	<assets path="Assets" rename="assets"/>
+	<assets path="Assets/textures" rename="assets/textures"/>
+	<assets path="Assets/layouts" rename="assets/layouts"/>
 	
 </project>

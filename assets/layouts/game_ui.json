@@ -2,127 +2,135 @@
   "layout":{
     "children":[
       {
-        "children":[],
+        "children":[
+          {
+            "cls":"starling.display.Image",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"upper_back_skin"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "name":"upper_back_skin"
+            }
+          },
+          {
+            "children":[
+              {
+                "cls":"starling.display.Button",
+                "constructorParams":[
+                  {
+                    "cls":"starling.textures.Texture",
+                    "textureName":"lobby_button_01"
+                  }
+                ],
+                "customParams":{},
+                "params":{
+                  "height":45,
+                  "name":"lobby_button_01",
+                  "textFormat":{
+                    "cls":"starling.text.TextFormat",
+                    "constructorParams":[],
+                    "customParams":{},
+                    "params":{}
+                  },
+                  "width":88
+                }
+              }
+            ],
+            "cls":"feathers.controls.LayoutGroup",
+            "customParams":{},
+            "params":{
+              "layoutData":{
+                "cls":"feathers.layout.AnchorLayoutData",
+                "customParams":{},
+                "params":{
+                  "left":20,
+                  "verticalCenter":0
+                }
+              },
+              "name":"top_left_layout",
+              "x":20,
+              "y":3
+            }
+          },
+          {
+            "children":[
+              {
+                "cls":"starling.display.Button",
+                "constructorParams":[
+                  {
+                    "cls":"starling.textures.Texture",
+                    "textureName":"settings_button_01"
+                  }
+                ],
+                "customParams":{},
+                "params":{
+                  "height":45,
+                  "name":"settings_button_01",
+                  "textFormat":{
+                    "cls":"starling.text.TextFormat",
+                    "constructorParams":[],
+                    "customParams":{},
+                    "params":{}
+                  },
+                  "width":51
+                }
+              }
+            ],
+            "cls":"feathers.controls.LayoutGroup",
+            "customParams":{},
+            "params":{
+              "layoutData":{
+                "cls":"feathers.layout.AnchorLayoutData",
+                "customParams":{},
+                "params":{
+                  "right":20,
+                  "verticalCenter":0
+                }
+              },
+              "name":"right_layout",
+              "x":1209,
+              "y":3
+            }
+          }
+        ],
         "cls":"feathers.controls.LayoutGroup",
         "customParams":{},
         "params":{
+          "backgroundSkin":{
+            "cls":"starling.display.Image",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"top_bar"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "name":null,
+              "scaleY":0.75
+            }
+          },
+          "height":51,
+          "layout":{
+            "cls":"feathers.layout.AnchorLayout",
+            "customParams":{},
+            "params":{}
+          },
           "layoutData":{
             "cls":"feathers.layout.AnchorLayoutData",
             "customParams":{},
             "params":{
               "horizontalCenter":0,
-              "verticalCenter":0
+              "percentWidth":100,
+              "top":0
             }
           },
-          "name":"_main_layout",
-          "x":320,
-          "y":480
-        }
-      },
-      {
-        "children":[
-          {
-            "children":[
-              {
-                "cls":"starling.display.Image",
-                "constructorParams":[
-                  {
-                    "cls":"starling.textures.Texture",
-                    "textureName":"new_opponent"
-                  }
-                ],
-                "customParams":{},
-                "params":{
-                  "name":"new_opponent",
-                  "pivotX":150,
-                  "pivotY":150,
-                  "x":150,
-                  "y":150
-                }
-              }
-            ],
-            "cls":"starling.display.Sprite",
-            "customParams":{
-              "customComponentClass":"PlayerSp"
-            },
-            "params":{
-              "name":"_opponent",
-              "pivotX":150,
-              "pivotY":150,
-              "x":150,
-              "y":150
-            }
-          }
-        ],
-        "cls":"feathers.controls.LayoutGroup",
-        "customParams":{},
-        "params":{
-          "layoutData":{
-            "cls":"feathers.layout.AnchorLayoutData",
-            "customParams":{},
-            "params":{
-              "bottom":0,
-              "horizontalCenter":0
-            }
-          },
-          "name":"opponent_layout",
-          "pivotX":150,
-          "pivotY":150,
-          "x":320,
-          "y":960
-        }
-      },
-      {
-        "children":[
-          {
-            "children":[
-              {
-                "cls":"starling.display.Image",
-                "constructorParams":[
-                  {
-                    "cls":"starling.textures.Texture",
-                    "textureName":"new_you"
-                  }
-                ],
-                "customParams":{},
-                "params":{
-                  "name":"new_you",
-                  "pivotX":150,
-                  "pivotY":150,
-                  "x":150,
-                  "y":150
-                }
-              }
-            ],
-            "cls":"starling.display.Sprite",
-            "customParams":{
-              "customComponentClass":"PlayerSp"
-            },
-            "params":{
-              "name":"_you",
-              "pivotX":150,
-              "pivotY":150,
-              "x":150,
-              "y":150
-            }
-          }
-        ],
-        "cls":"feathers.controls.LayoutGroup",
-        "customParams":{},
-        "params":{
-          "layoutData":{
-            "cls":"feathers.layout.AnchorLayoutData",
-            "customParams":{},
-            "params":{
-              "bottom":0,
-              "horizontalCenter":0
-            }
-          },
-          "name":"player_layout",
-          "pivotX":150,
-          "pivotY":150,
-          "x":320,
-          "y":960
+          "name":"top_layout",
+          "width":1280
         }
       },
       {
@@ -132,16 +140,35 @@
             "constructorParams":[
               {
                 "cls":"starling.textures.Texture",
-                "textureName":"header_text"
+                "textureName":"upper_back"
               }
             ],
             "customParams":{},
             "params":{
-              "name":"header_text",
-              "pivotX":303,
-              "pivotY":64,
-              "x":303,
-              "y":64
+              "name":"upper_back"
+            }
+          },
+          {
+            "cls":"starling.display.Button",
+            "constructorParams":[
+              {
+                "cls":"starling.textures.Texture",
+                "textureName":"buy_coins_01"
+              }
+            ],
+            "customParams":{},
+            "params":{
+              "height":52,
+              "name":"buy_coins_01",
+              "textFormat":{
+                "cls":"starling.text.TextFormat",
+                "constructorParams":[],
+                "customParams":{},
+                "params":{}
+              },
+              "width":251,
+              "x":337,
+              "y":5
             }
           }
         ],
@@ -153,12 +180,71 @@
             "customParams":{},
             "params":{
               "horizontalCenter":0,
-              "top":40
+              "top":0
             }
           },
-          "name":"header_layout",
-          "x":17,
-          "y":40
+          "name":"top_middle_layout",
+          "x":160
+        }
+      },
+      {
+        "cls":"starling.display.Image",
+        "constructorParams":[
+          {
+            "cls":"starling.textures.Texture",
+            "textureName":"button_back"
+          }
+        ],
+        "customParams":{},
+        "params":{
+          "name":"button_back",
+          "x":583,
+          "y":360
+        }
+      },
+      {
+        "cls":"starling.display.Image",
+        "constructorParams":[
+          {
+            "cls":"starling.textures.Texture",
+            "textureName":"button_glow"
+          }
+        ],
+        "customParams":{},
+        "params":{
+          "name":"button_glow",
+          "x":222.5,
+          "y":202.5
+        }
+      },
+      {
+        "cls":"starling.display.Image",
+        "constructorParams":[
+          {
+            "cls":"starling.textures.Texture",
+            "textureName":"coins_icon"
+          }
+        ],
+        "customParams":{},
+        "params":{
+          "name":"coins_icon",
+          "x":602.5,
+          "y":211
+        }
+      },
+      {
+        "cls":"starling.display.Image",
+        "constructorParams":[
+          {
+            "cls":"starling.textures.Texture",
+            "textureName":"game_button"
+          }
+        ],
+        "customParams":{},
+        "params":{
+          "name":"game_button",
+          "x":713,
+          "y":125
         }
       }
     ],
@@ -166,28 +252,19 @@
     "customParams":{},
     "params":{
       "backgroundSkin":{
-        "cls":"starling.display.Quad",
+        "cls":"starling.display.Image",
         "constructorParams":[
           {
-            "name":"width",
-            "type":"Number",
-            "value":50
-          },
-          {
-            "name":"height",
-            "type":"Number",
-            "value":50
+            "cls":"starling.textures.Texture",
+            "textureName":"back"
           }
         ],
         "customParams":{},
         "params":{
-          "color":23710,
-          "name":null,
-          "scaleX":12.8,
-          "scaleY":19.2
+          "name":null
         }
       },
-      "height":960,
+      "height":720,
       "layout":{
         "cls":"feathers.layout.AnchorLayout",
         "customParams":{},
@@ -201,15 +278,15 @@
           "percentWidth":100
         }
       },
-      "name":"_root",
-      "width":640
+      "name":"root",
+      "width":1280
     }
   },
   "setting":{
     "canvasColor":21079,
     "canvasSize":{
-      "x":640,
-      "y":960
+      "x":1280,
+      "y":720
     }
   },
   "version":"2.0"

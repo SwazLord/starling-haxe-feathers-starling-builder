@@ -1,18 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with TexturePacker https://www.codeandweb.com/texturepacker -->
-<!-- $TexturePacker:SmartUpdate:ed5cf8bd0e3e88bb21b3e5baed453f2c:002ac7d26dc878a4b1a02f04dea65eb0:cde709370900f12288f3449eded86f07$ -->
-<TextureAtlas imagePath="atlas.png" width="1024" height="1024">
-    <SubTexture name="ArialRound" x="107" y="1" width="188" height="291"/>
-    <SubTexture name="cell_00" x="297" y="1" width="193" height="193"/>
-    <SubTexture name="cell_01" x="492" y="1" width="193" height="193"/>
-    <SubTexture name="cell_02" x="687" y="1" width="193" height="193"/>
-    <SubTexture name="cell_03" x="1" y="294" width="193" height="193"/>
-    <SubTexture name="cell_04" x="196" y="294" width="193" height="193"/>
-    <SubTexture name="cell_bg" x="391" y="294" width="193" height="193"/>
-    <SubTexture name="h_line" x="1" y="1" width="104" height="13"/>
-    <SubTexture name="header_text" x="1" y="641" width="606" height="128"/>
-    <SubTexture name="new_opponent" x="586" y="294" width="300" height="150"/>
-    <SubTexture name="new_radial_progress_bar" x="1" y="489" width="300" height="150"/>
-    <SubTexture name="new_you" x="303" y="489" width="300" height="150"/>
-    <SubTexture name="play_btn" x="605" y="489" width="358" height="138"/>
+<!-- $TexturePacker:SmartUpdate:bc31f9630d841447eedfe487d934620c:4900210dc84e2d13d27db8cc6302213e:cde709370900f12288f3449eded86f07$ -->
+<TextureAtlas imagePath="atlas.png" width="2048" height="2048">
+    <SubTexture name="0" x="963" y="397" width="250" height="380"/>
+    <SubTexture name="1" x="1506" y="397" width="300" height="340"/>
+    <SubTexture name="2" x="1" y="779" width="300" height="340"/>
+    <SubTexture name="3" x="303" y="779" width="300" height="340"/>
+    <SubTexture name="4" x="605" y="779" width="300" height="340"/>
+    <SubTexture name="5" x="1215" y="397" width="289" height="340"/>
+    <SubTexture name="back" x="536" y="1251" width="1280" height="720"/>
+    <SubTexture name="bottom_back" x="1" y="397" width="960" height="93"/>
+    <SubTexture name="button_back" x="907" y="779" width="275" height="417"/>
+    <SubTexture name="button_glow" x="1184" y="779" width="293" height="435"/>
+    <SubTexture name="button_shadow" x="1537" y="1" width="272" height="60"/>
+    <SubTexture name="buy_coins_01" x="1022" y="1" width="251" height="52"/>
+    <SubTexture name="coins_back" x="325" y="134" width="428" height="63"/>
+    <SubTexture name="coins_icon" x="444" y="1" width="75" height="70"/>
+    <SubTexture name="contact_button" x="521" y="1" width="165" height="48"/>
+    <SubTexture name="game_button" x="1479" y="779" width="346" height="470"/>
+    <SubTexture name="info_button_01" x="115" y="1" width="44" height="45"/>
+    <SubTexture name="left_arrow" x="374" y="1" width="33" height="131"/>
+    <SubTexture name="lobby_button_01" x="214" y="1" width="88" height="45"/>
+    <SubTexture name="music_button" x="688" y="1" width="165" height="48"/>
+    <SubTexture name="play_btn" x="1275" y="1" width="260" height="55"/>
+    <SubTexture name="right_arrow" x="409" y="1" width="33" height="131"/>
+    <SubTexture name="saranaigame" x="1" y="1251" width="533" height="501"/>
+    <SubTexture name="settings_back" x="755" y="134" width="182" height="191"/>
+    <SubTexture name="settings_btn" x="304" y="1" width="68" height="60"/>
+    <SubTexture name="settings_button_01" x="161" y="1" width="51" height="45"/>
+    <SubTexture name="sound_button" x="855" y="1" width="165" height="48"/>
+    <SubTexture name="toggle_00" x="1" y="1" width="55" height="32"/>
+    <SubTexture name="toggle_01" x="58" y="1" width="55" height="32"/>
+    <SubTexture name="top_bar" x="1" y="327" width="1280" height="68"/>
+    <SubTexture name="upper_back" x="939" y="134" width="960" height="61"/>
+    <SubTexture name="upper_back_skin" x="1" y="134" width="322" height="51"/>
 </TextureAtlas>
